@@ -142,6 +142,8 @@ namespace blqw
                         return false;
                     }
                 }
+                _Position++;
+                _Current = '\0';
                 return true;
             }
             else
