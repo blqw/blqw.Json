@@ -1,6 +1,0 @@
-U:\百度云同步盘\Code\Literacy\Json\bin\Release\blqw.Json.XML
-U:\百度云同步盘\Code\Literacy\Json\bin\Release\blqw.Json.dll
-U:\百度云同步盘\Code\Literacy\Json\bin\Release\blqw.Literacy.dll
-U:\百度云同步盘\Code\Literacy\Json\bin\Release\blqw.Literacy.xml
-U:\百度云同步盘\Code\Literacy\Json\obj\Release\Json.csprojResolveAssemblyReference.cache
-U:\百度云同步盘\Code\Literacy\Json\obj\Release\blqw.Json.dll
