@@ -1,11 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace blqw
 {
-    public class Json
+    /// <summary> 操作Json序列化/反序列化的静态对象
+    /// </summary>
+    public static class Json
     {
+        /// <summary> 将对象转换为Json字符串
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public static string ToJsonString(object obj)
         {
             return new QuickJsonBuilder().ToJsonString(obj);
@@ -20,7 +24,6 @@ namespace blqw
             }
             return (T)ToObject(typeof(T), json);
         }
-
         /// <summary> 将json字符串转换为指定对象
         /// </summary>
         public static Object ToObject(string json)
