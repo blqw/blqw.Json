@@ -1,0 +1,14 @@
+U:\百度云同步盘\Code\Literacy\Json\bin\Debug\blqw.Json.dll
+U:\百度云同步盘\Code\Literacy\Json\bin\Debug\blqw.Json.pdb
+U:\百度云同步盘\Code\Literacy\Json\bin\Debug\blqw.Literacy.dll
+U:\百度云同步盘\Code\Literacy\Json\bin\Debug\blqw.Literacy.pdb
+U:\百度云同步盘\Code\Literacy\Json\obj\Debug\Json.csprojResolveAssemblyReference.cache
+U:\百度云同步盘\Code\Literacy\Json\obj\Debug\blqw.Json.dll
+U:\百度云同步盘\Code\Literacy\Json\obj\Debug\blqw.Json.pdb
+U:\百度云同步盘\Code\blqw\Json\bin\Debug\blqw.Json.dll
+U:\百度云同步盘\Code\blqw\Json\bin\Debug\blqw.Json.pdb
+U:\百度云同步盘\Code\blqw\Json\bin\Debug\blqw.Literacy.dll
+U:\百度云同步盘\Code\blqw\Json\bin\Debug\blqw.Literacy.pdb
+U:\百度云同步盘\Code\blqw\Json\obj\Debug\Json.csprojResolveAssemblyReference.cache
+U:\百度云同步盘\Code\blqw\Json\obj\Debug\blqw.Json.dll
+U:\百度云同步盘\Code\blqw\Json\obj\Debug\blqw.Json.pdb
