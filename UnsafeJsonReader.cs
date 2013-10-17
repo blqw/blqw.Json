@@ -927,8 +927,11 @@ namespace blqw
                     if (buff == null)
                     {
                         //锁定指针
-                        char* p = stackalloc char[255];
-                        buff = new MiniBuffer(p);
+                        char[] arr = new char[255];
+                        fixed (char* p = arr)
+                        {
+                            buff = new MiniBuffer(p);
+                        }
                     }
                     buff.AddString(_P, index, _Position - index);
                     MoveNext();

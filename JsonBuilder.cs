@@ -20,8 +20,11 @@ namespace blqw
             string str;
             unsafe
             {
-                char* p = stackalloc char[4096];
-                Buffer.Ready(p, 4096);
+                char[] arr = new char[4096];
+                fixed (char* p = arr)
+                {
+                    Buffer.Ready(p, 4096);
+                }
                 AppendObject(obj);
                 str = Buffer.ToString();
                 Buffer.Close();

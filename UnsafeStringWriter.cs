@@ -43,7 +43,7 @@ namespace blqw
             {
                 return _Length + _Position;
             }
-        } 
+        }
 
         #region 私有方法
         /// <summary> 在调试器的变量窗口中的显示的信息
@@ -98,7 +98,7 @@ namespace blqw
                 throw new Exception("指针尚未准备就绪!");
             }
             return true;
-        } 
+        }
         #endregion
 
         #region Append
@@ -296,45 +296,49 @@ namespace blqw
                 return this;
             }
 
-            char* number = stackalloc char[64];
+            char[] arr = new char[64];
+            fixed (char* p = arr)
+            {
+                char* number = p;
 
-            var pos = 63;
-            if (val < 0)
-            {
-                p[_Position++] = '-';
-                number[pos] = (char)(~(val % 10) + '1');
-                if (val < -10)
+                var pos = 63;
+                if (val < 0)
                 {
-                    val = val / -10;
-                    number[--pos] = (char)(val % 10 + '0');
+                    p[_Position++] = '-';
+                    number[pos] = (char)(~(val % 10) + '1');
+                    if (val < -10)
+                    {
+                        val = val / -10;
+                        number[--pos] = (char)(val % 10 + '0');
+                    }
                 }
-            }
-            else
-            {
-                number[pos] = (char)(val % 10 + '0');
-            }
-            while ((val = val / 10L) != 0L)
-            {
-                number[--pos] = (char)(val % 10L + '0');
-            }
-            var length = 64 - pos;
-            TryWrite(length);
-            int* p1 = (int*)&p[_Position];
-            int* p2 = ((int*)&number[pos]);
-            _Position += length;
-            while (length >= 4)
-            {
-                (*p1++) = *(p2++);
-                (*p1++) = *(p2++);
-                length -= 4;
-            }
-            if ((length & 2) != 0)
-            {
-                (*p1++) = *(p2++);
-            }
-            if ((length & 1) != 0)
-            {
-                *(char*)p1 = number[pos];
+                else
+                {
+                    number[pos] = (char)(val % 10 + '0');
+                }
+                while ((val = val / 10L) != 0L)
+                {
+                    number[--pos] = (char)(val % 10L + '0');
+                }
+                var length = 64 - pos;
+                TryWrite(length);
+                int* p1 = (int*)&p[_Position];
+                int* p2 = ((int*)&number[pos]);
+                _Position += length;
+                while (length >= 4)
+                {
+                    (*p1++) = *(p2++);
+                    (*p1++) = *(p2++);
+                    length -= 4;
+                }
+                if ((length & 2) != 0)
+                {
+                    (*p1++) = *(p2++);
+                }
+                if ((length & 1) != 0)
+                {
+                    *(char*)p1 = number[pos];
+                }
             }
             return this;
         }
@@ -433,7 +437,7 @@ namespace blqw
                     if ((length & 1) != 0)
                     {
                         p[_Position++] = c[0];
-                        p2 = ((int*)(c+1));
+                        p2 = ((int*)(c + 1));
                         length--;
                     }
                     else
@@ -441,8 +445,8 @@ namespace blqw
                         p2 = ((int*)c);
                     }
                     int* p1 = (int*)&p[_Position];
-                    
-                    
+
+
                     _Position += length;
                     while (length >= 8)
                     {
