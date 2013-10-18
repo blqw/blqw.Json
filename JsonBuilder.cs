@@ -24,10 +24,10 @@ namespace blqw
                 fixed (char* p = arr)
                 {
                     Buffer.Ready(p, 4096);
+                    AppendObject(obj);
+                    str = Buffer.ToString();
+                    Buffer.Close();
                 }
-                AppendObject(obj);
-                str = Buffer.ToString();
-                Buffer.Close();
             }
             return str;
         }
