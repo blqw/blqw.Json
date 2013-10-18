@@ -247,7 +247,7 @@ namespace blqw
             MoveNext();
         }
         //袖珍版字符串处理类
-        class MiniBuffer
+        class MiniBuffer:IDisposable
         {
             char* _p;
             string[] _str;
@@ -352,6 +352,12 @@ namespace blqw
                 {
                     return string.Concat(_str[0], _str[1], _str[2], new string(_p, 0, _position));
                 }
+            }
+
+            public void Dispose()
+            {
+                _p = null;
+                _str = null;
             }
         }
 
@@ -752,10 +758,6 @@ namespace blqw
 
             int pot = -1;
             bool neg = false;
-            //if ((WordChars[_Current] & 4) == 0)
-            //{
-            //    return ReadConsts();
-            //}
 
             switch (_Current)
             {
@@ -767,12 +769,6 @@ namespace blqw
                     break;
                 case '-':
                     MoveNext();//读取下一个字符
-                    //if ((WordChars[_Current] & 4) == 0)
-                    //{
-                    //    _Position--;
-                    //    _Current = _p[_Position];
-                    //    return ReadConsts();
-                    //}
                     neg = true;
                     break;
                 default:
@@ -914,8 +910,26 @@ namespace blqw
             }
 
             var index = _Position;
-            MiniBuffer buff = null;
 
+            do
+            {
+                if (_Current == '\\')//是否是转义符
+                {
+                    char[] arr = new char[255];
+                    fixed (char* p = arr)
+                    {
+                        return ReadString(index, quot, new MiniBuffer(p));
+                    }
+                }
+                MoveNext();
+            } while (_Current != quot);//是否是结束字符
+            string str = new string(_P, index, _Position - index);
+            MoveNext();
+            return str;
+        }
+
+        private string ReadString(int index, char quot, MiniBuffer buff)
+        {
             do
             {
                 if (_Current == '\\')//是否是转义符
@@ -923,15 +937,6 @@ namespace blqw
                     if ((WordChars[_Current] & 16) == 0)
                     {
                         ThrowException();
-                    }
-                    if (buff == null)
-                    {
-                        //锁定指针
-                        char[] arr = new char[255];
-                        fixed (char* p = arr)
-                        {
-                            buff = new MiniBuffer(p);
-                        }
                     }
                     buff.AddString(_P, index, _Position - index);
                     MoveNext();
@@ -965,15 +970,9 @@ namespace blqw
                 MoveNext();
             } while (_Current != quot);//是否是结束字符
             string str;
-            if (buff == null)
-            {
-                str = new string(_P, index, _Position - index);
-            }
-            else
-            {
-                buff.AddString(_P, index, _Position - index);
-                str = buff.ToString();
-            }
+            buff.AddString(_P, index, _Position - index);
+            str = buff.ToString();
+            buff.Dispose();
             MoveNext();
             return str;
         }
