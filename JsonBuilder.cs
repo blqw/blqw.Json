@@ -12,7 +12,7 @@ namespace blqw
     {
         private Dictionary<object, object> _LoopObject = new Dictionary<object, object>();//循环引用对象缓存区
         private UnsafeStringWriter Buffer = new UnsafeStringWriter();//字符缓冲区
-
+           
         /// <summary> 将对象转换为Json字符串
         /// </summary>
         public string ToJsonString(object obj)

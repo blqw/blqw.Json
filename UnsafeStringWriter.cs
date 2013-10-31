@@ -8,7 +8,7 @@ namespace blqw
     /// <summary> 以非安全方式访问指针操作字符串直接写入内存,以提高字符串拼接效率
     /// </summary>
     [DebuggerDisplay("长度:{Length} 内容: {DebugInfo}")]
-    public unsafe class UnsafeStringWriter
+    public unsafe class UnsafeStringWriter : IDisposable
     {
         /// <summary> 新建 以非安全方式访问指针操作字符串直接写入内存的 对象
         /// </summary>
@@ -624,5 +624,19 @@ namespace blqw
             }
         }
 
+
+        public UnsafeStringWriter Append(IEnumerable<string> arr)
+        {
+            foreach (var str in arr)
+            {
+                Append(str);
+            }
+            return this;
+        }
+
+        public void Dispose()
+        {
+            Close();
+        }
     }
 }
