@@ -415,8 +415,12 @@ namespace blqw
         /// </summary>
         public UnsafeStringWriter Append(String val)
         {
+            if (val == null)
+            {
+                return this;
+            }
             var length = val.Length;
-            if (val == null || length == 0)
+            if (length == 0)
             {
                 return this;
             }
