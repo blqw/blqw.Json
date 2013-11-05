@@ -33,7 +33,7 @@ namespace blqw
             {
                 object arr = new ArrayList();
                 var eleType = type.GetElementType();
-                FillObject(ref arr, Literacy.Cache(eleType, false), json);
+                FillObject(ref arr, Literacy.Cache(eleType, true), json);
                 return ((ArrayList)arr).ToArray(eleType);
             }
             else
@@ -83,7 +83,7 @@ namespace blqw
                         if (obj == null)
                         {
                             obj = new Dictionary<string, object>();
-                            lit = Literacy.Cache(typeof(Dictionary<string, object>), false);
+                            lit = Literacy.Cache(typeof(Dictionary<string, object>), true);
                         }
                         FillObject(obj, lit, reader);
                         if (reader.Current != '}')
