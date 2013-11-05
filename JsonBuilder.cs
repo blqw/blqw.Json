@@ -43,10 +43,11 @@ namespace blqw
             {
                 _LoopObject.Add(obj, null);
                 if (obj is IDictionary) AppendJson((IDictionary)obj);
-                else if (obj is IEnumerable) AppendArray((IEnumerable)obj);
+                else if (obj is IDataReader) AppendDataSet((IDataReader)obj);
                 else if (obj is DataSet) AppendDataSet((DataSet)obj);
                 else if (obj is DataTable) AppendDataTable((DataTable)obj);
                 else if (obj is DataView) AppendDataView((DataView)obj);
+                else if (obj is IEnumerable) AppendArray((IEnumerable)obj);
                 else AppendOther(obj);
                 _LoopObject.Remove(obj);
             }
@@ -476,6 +477,38 @@ namespace blqw
             Buffer.Append(",\"rows\":");
             AppendArray(tableView, o => ((DataRowView)o).Row.ItemArray);
             Buffer.Append('}');
+        }
+
+        /// <summary> IDataReader 对象转换Json字符串写入Buffer
+        /// </summary>
+        /// <param name="dataset">DataSet 对象</param>
+        protected virtual void AppendDataSet(IDataReader reader)
+        {
+            Buffer.Append("{\"columns\":");
+            AppendArray(GetDataReaderNames(reader));
+            Buffer.Append(",\"rows\":");
+            AppendArray(GetDataReaderValues(reader));
+            Buffer.Append('}');
+        }
+
+        private IEnumerable GetDataReaderNames(IDataReader reader)
+        {
+            int c = reader.FieldCount;
+            for (int i = 0; i < c; i++)
+            {
+                yield return reader.GetName(i);
+            }
+        }
+
+        private IEnumerable GetDataReaderValues(IDataReader reader)
+        {
+            int c = reader.FieldCount;
+            while (reader.Read())
+            {
+                object[] values = new object[c];
+                reader.GetValues(values);
+                yield return values;
+            }
         }
     }
 }
