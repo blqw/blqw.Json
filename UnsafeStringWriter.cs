@@ -553,10 +553,6 @@ namespace blqw
             {
                 throw new ArgumentNullException("point");
             }
-            if (length < 1024)
-            {
-                length = 1024;
-            }
             Close();
             _EndPosition = length - 1;
             _Current = point;
@@ -611,11 +607,11 @@ namespace blqw
         /// </summary>
         public override string ToString()
         {
-            if (_Length == 0)
+            if (_BufferIndex == 0)
             {
                 return new string(_Current, 0, _Position);
             }
-            else if (_Length <= 4)
+            else if (_BufferIndex <= 4)
             {
                 return string.Concat(_Buffer[0], _Buffer[1], _Buffer[2], new string(_Current, 0, _Position));
             }
