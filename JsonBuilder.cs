@@ -340,15 +340,21 @@ namespace blqw
                     Buffer.Append(number.ToString(System.Globalization.NumberFormatInfo.InvariantInfo));
                     break;
                 case TypeCode.Int16:
+                    Buffer.Append(number.ToInt16(System.Globalization.NumberFormatInfo.InvariantInfo));
+                    break;
                 case TypeCode.Int32:
                 case TypeCode.Int64:
-                case TypeCode.SByte:
                     Buffer.Append(number.ToInt64(System.Globalization.NumberFormatInfo.InvariantInfo));
+                    break;
+                case TypeCode.SByte:
+                    Buffer.Append(number.ToSByte(System.Globalization.NumberFormatInfo.InvariantInfo));
                     break;
                 case TypeCode.Byte:
                     Buffer.Append(number.ToByte(System.Globalization.NumberFormatInfo.InvariantInfo));
                     break;
                 case TypeCode.UInt16:
+                    Buffer.Append(number.ToUInt16(System.Globalization.NumberFormatInfo.InvariantInfo));
+                    break;
                 case TypeCode.UInt32:
                 case TypeCode.UInt64:
                     Buffer.Append(number.ToUInt64(System.Globalization.NumberFormatInfo.InvariantInfo));
