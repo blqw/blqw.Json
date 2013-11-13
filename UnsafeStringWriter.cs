@@ -12,7 +12,7 @@ namespace blqw
     {
         /// <summary> 新建 以非安全方式访问指针操作字符串直接写入内存的 对象
         /// </summary>
-        public UnsafeStringWriter() { }
+        public UnsafeStringWriter() { } 
 
         #region 字段
         /// <summary> 一级缓冲指针
@@ -269,14 +269,107 @@ namespace blqw
         /// </summary>
         public UnsafeStringWriter Append(SByte val)
         {
-            Append((Int64)val);
+            if (val == 0)
+            {
+                TryWrite();
+                _Current[_Position++] = '0';
+                return this;
+            }
+            if (val < 0)
+            {
+                TryWrite();
+                val *= -1;
+                _Current[_Position++] = '-';
+            }
+            if (val < 10)
+            {
+                TryWrite();
+                _Current[_Position++] = (char)('0' + val);
+            }
+            else if (val < 100)
+            {
+                if (TryWrite(2))
+                {
+                    Flush();
+                }
+                _Current[_Position++] = (char)('0' + val / 10);
+                _Current[_Position++] = (char)('0' + val % 10);
+            }
+            else
+            {
+                if (TryWrite(3))
+                {
+                    Flush();
+                }
+                _Current[_Position++] = (char)('0' + val / 100);
+                _Current[_Position++] = (char)('0' + val / 10 % 10);
+                _Current[_Position++] = (char)('0' + val % 10);
+            }
             return this;
         }
         /// <summary> 将 Int16 对象转换为字符串追加到当前实例。
         /// </summary>
         public UnsafeStringWriter Append(Int16 val)
         {
-            Append((Int64)val);
+            if (val == 0)
+            {
+                TryWrite();
+                _Current[_Position++] = '0';
+                return this;
+            }
+            if (val < 0)
+            {
+                TryWrite();
+                val *= -1;
+                _Current[_Position++] = '-';
+            }
+            if (val < 10)
+            {
+                TryWrite();
+                _Current[_Position++] = (char)('0' + val);
+            }
+            else if (val < 100)
+            {
+                if (TryWrite(2))
+                {
+                    Flush();
+                }
+                _Current[_Position++] = (char)('0' + val / 10);
+                _Current[_Position++] = (char)('0' + val % 10);
+            }
+            else if (val < 1000)
+            {
+                if (TryWrite(3))
+                {
+                    Flush();
+                }
+                _Current[_Position++] = (char)('0' + val / 100);
+                _Current[_Position++] = (char)('0' + val / 10 % 10);
+                _Current[_Position++] = (char)('0' + val % 10);
+            }
+            else if (val < 10000)
+            {
+                if (TryWrite(4))
+                {
+                    Flush();
+                }
+                _Current[_Position++] = (char)('0' + val / 1000);
+                _Current[_Position++] = (char)('0' + val / 100 % 10);
+                _Current[_Position++] = (char)('0' + val / 10 % 10);
+                _Current[_Position++] = (char)('0' + val % 10);
+            }
+            else
+            {
+                if (TryWrite(5))
+                {
+                    Flush();
+                }
+                _Current[_Position++] = (char)('0' + val / 10000);
+                _Current[_Position++] = (char)('0' + val / 1000 % 10);
+                _Current[_Position++] = (char)('0' + val / 100 % 10);
+                _Current[_Position++] = (char)('0' + val / 10 % 10);
+                _Current[_Position++] = (char)('0' + val % 10);
+            }
             return this;
         }
         /// <summary> 将 Int32 对象转换为字符串追加到当前实例。
@@ -292,6 +385,7 @@ namespace blqw
         {
             if (val == 0)
             {
+                TryWrite();
                 _Current[_Position++] = '0';
                 return this;
             }
@@ -321,24 +415,7 @@ namespace blqw
                     number[--pos] = (char)(val % 10L + '0');
                 }
                 var length = 64 - pos;
-                TryWrite(length);
-                int* p1 = (int*)&_Current[_Position];
-                int* p2 = (int*)&number[pos];
-                _Position += length;
-                while (length >= 4)
-                {
-                    (*p1++) = *(p2++);
-                    (*p1++) = *(p2++);
-                    length -= 4;
-                }
-                if ((length & 2) != 0)
-                {
-                    (*p1++) = *(p2++);
-                }
-                if ((length & 1) != 0)
-                {
-                    *(char*)p1 = number[pos];
-                }
+                Append(number, pos, length);
             }
             return this;
         }
@@ -354,14 +431,94 @@ namespace blqw
         /// </summary>
         public UnsafeStringWriter Append(Byte val)
         {
-            Append((UInt64)val);
+            if (val == 0)
+            {
+                TryWrite();
+                _Current[_Position++] = '0';
+            }
+            else if (val < 10)
+            {
+                TryWrite();
+                _Current[_Position++] = (char)('0' + val);
+            }
+            else if (val < 100)
+            {
+                if (TryWrite(2) == false)
+                {
+                    Flush();
+                }
+                _Current[_Position++] = (char)('0' + val / 10);
+                _Current[_Position++] = (char)('0' + val % 10);
+            }
+            else
+            {
+                if (TryWrite(3) == false)
+                {
+                    Flush();
+                }
+                _Current[_Position++] = (char)('0' + val / 100);
+                _Current[_Position++] = (char)('0' + val / 10 % 10);
+                _Current[_Position++] = (char)('0' + val % 10);
+            }
             return this;
         }
         /// <summary> 将 UInt16 对象转换为字符串追加到当前实例。
         /// </summary>
         public UnsafeStringWriter Append(UInt16 val)
         {
-            Append((UInt64)val);
+            if (val == 0)
+            {
+                TryWrite();
+                _Current[_Position++] = '0';
+                return this;
+            }
+            if (val < 10)
+            {
+                TryWrite();
+                _Current[_Position++] = (char)('0' + val);
+            }
+            else if (val < 100)
+            {
+                if (TryWrite(2))
+                {
+                    Flush();
+                }
+                _Current[_Position++] = (char)('0' + val / 10);
+                _Current[_Position++] = (char)('0' + val % 10);
+            }
+            else if (val < 1000)
+            {
+                if (TryWrite(3))
+                {
+                    Flush();
+                }
+                _Current[_Position++] = (char)('0' + val / 100);
+                _Current[_Position++] = (char)('0' + val / 10 % 10);
+                _Current[_Position++] = (char)('0' + val % 10);
+            }
+            else if (val < 10000)
+            {
+                if (TryWrite(4))
+                {
+                    Flush();
+                }
+                _Current[_Position++] = (char)('0' + val / 1000);
+                _Current[_Position++] = (char)('0' + val / 100 % 10);
+                _Current[_Position++] = (char)('0' + val / 10 % 10);
+                _Current[_Position++] = (char)('0' + val % 10);
+            }
+            else
+            {
+                if (TryWrite(5))
+                {
+                    Flush();
+                }
+                _Current[_Position++] = (char)('0' + val / 10000);
+                _Current[_Position++] = (char)('0' + val / 1000 % 10);
+                _Current[_Position++] = (char)('0' + val / 100 % 10);
+                _Current[_Position++] = (char)('0' + val / 10 % 10);
+                _Current[_Position++] = (char)('0' + val % 10);
+            }
             return this;
         }
         /// <summary> 将 UInt32 对象转换为字符串追加到当前实例。
@@ -377,6 +534,7 @@ namespace blqw
         {
             if (val == 0)
             {
+                TryWrite();
                 _Current[_Position++] = '0';
                 return this;
             }
@@ -393,21 +551,7 @@ namespace blqw
                     number[--pos] = (char)(val % 10L + '0');
                 }
                 var length = 64 - pos;
-                TryWrite(length);
-
-                while (pos < 60)
-                {
-                    ((int*)_Current)[_Position += 2] = ((int*)number)[pos += 2];
-                    ((int*)_Current)[_Position += 2] = ((int*)number)[pos += 2];
-                }
-                if (pos < 62)
-                {
-                    ((int*)_Current)[_Position += 2] = ((int*)number)[pos += 2];
-                }
-                if (pos < 63)
-                {
-                    _Current[_Position++] = number[63];
-                }
+                Append(number, pos, length);
             }
             return this;
         }
