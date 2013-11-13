@@ -12,7 +12,7 @@ namespace blqw
     {
         private Dictionary<object, object> _LoopObject = new Dictionary<object, object>();//循环引用对象缓存区
         private UnsafeStringWriter Buffer = new UnsafeStringWriter();//字符缓冲区
-           
+
         /// <summary> 将对象转换为Json字符串
         /// </summary>
         public string ToJsonString(object obj)
@@ -60,9 +60,8 @@ namespace blqw
         private static System.Reflection.Module SystemModule = typeof(int).Module;
         private void AppendValueType(object obj)
         {
-            var type = obj.GetType();
             if (obj is Enum) AppendEnum((Enum)obj);
-            else if (obj.GetType().Module == SystemModule)//如果是系统模块中的值类型对象
+            else if (obj is IConvertible)
             {
                 if (obj is Int32) AppendInt32((Int32)obj);
                 else if (obj is Boolean) AppendBoolean((Boolean)obj);
@@ -71,14 +70,26 @@ namespace blqw
                 else if (obj is Decimal) AppendDecimal((Decimal)obj);
                 else if (obj is Char) AppendChar((Char)obj);
                 else if (obj is Single) AppendSingle((Single)obj);
-                else if (obj is Guid) AppendGuid((Guid)obj);
                 else if (obj is Byte) AppendByte((Byte)obj);
                 else if (obj is Int16) AppendInt16((Int16)obj);
                 else if (obj is Int64) AppendInt64((Int64)obj);
                 else if (obj is SByte) AppendSByte((SByte)obj);
                 else if (obj is UInt32) AppendUInt32((UInt32)obj);
                 else if (obj is UInt64) AppendUInt64((UInt64)obj);
-                else AppendString(obj.ToString());
+                else if (_LoopObject.ContainsKey(obj) == false)
+                {
+                    _LoopObject.Add(obj, null);
+                    AppendObject(Convert.ChangeType(obj, ((IConvertible)obj).GetTypeCode()));
+                    _LoopObject.Remove(obj);
+                }
+                else
+                {
+                    AppendString(((IConvertible)obj).ToString(null));
+                }
+            }
+            else if (obj is Guid)
+            {
+                AppendGuid((Guid)obj);
             }
             else if (_LoopObject.ContainsKey(obj) == false)
             {
@@ -335,6 +346,8 @@ namespace blqw
                     Buffer.Append(number.ToInt64(System.Globalization.NumberFormatInfo.InvariantInfo));
                     break;
                 case TypeCode.Byte:
+                    Buffer.Append(number.ToByte(System.Globalization.NumberFormatInfo.InvariantInfo));
+                    break;
                 case TypeCode.UInt16:
                 case TypeCode.UInt32:
                 case TypeCode.UInt64:
