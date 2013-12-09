@@ -267,7 +267,16 @@ namespace blqw
                         Flush();
                         if (length > 200)
                         {
-                            _str[_index++] = new string(point, offset, length);
+                            var s = new string(point, offset, length - 1);
+                            if (_index == 3)
+                            {
+                                _str[0] = string.Concat(_str[0], _str[1], _str[2], s);
+                                _index = 1;
+                            }
+                            else
+                            {
+                                _str[_index++] = s;
+                            }
                             return;
                         }
                     }
