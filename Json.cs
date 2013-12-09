@@ -38,7 +38,6 @@ namespace blqw
         /// </summary>
         public static Object ToObject(Type type, string json)
         {
-            object obj;
             if (type == null)
             {
                 return null;
