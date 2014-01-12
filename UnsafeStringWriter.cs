@@ -571,16 +571,16 @@ namespace blqw
             else if (length <= 3)
             {
                 TryWrite(length);
+                _Current[_Position++] = val[0];
                 if (length > 2)
                 {
-                    _Current[_Position++] = val[2];
                     _Current[_Position++] = val[1];
+                    _Current[_Position++] = val[2];
                 }
                 else if (length > 1)
                 {
                     _Current[_Position++] = val[1];
                 }
-                _Current[_Position++] = val[0];
             }
             else if (TryWrite(length))
             {
