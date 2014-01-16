@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace blqw
 {
@@ -8,7 +6,6 @@ namespace blqw
     /// </summary>
     public class QuickJsonBuilder : JsonBuilder
     {
-        static Dictionary<Type, Literacy> _LitCache = new Dictionary<Type, Literacy>();
         /// <summary> 将未知对象按属性名和值转换为Json中的键值字符串写入Buffer
         /// </summary>
         /// <param name="obj">非null的位置对象</param>

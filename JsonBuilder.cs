@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Text;
 
 namespace blqw
 {
@@ -10,8 +9,8 @@ namespace blqw
     /// </summary>
     public class JsonBuilder
     {
-        private Dictionary<object, object> _LoopObject = new Dictionary<object, object>();//循环引用对象缓存区
-        private UnsafeStringWriter Buffer = new UnsafeStringWriter();//字符缓冲区
+        private readonly Dictionary<object, object> _loopObject = new Dictionary<object, object>();//循环引用对象缓存区
+        protected UnsafeStringWriter Buffer = new UnsafeStringWriter();//字符缓冲区
 
         /// <summary> 将对象转换为Json字符串
         /// </summary>
@@ -37,30 +36,43 @@ namespace blqw
         protected void AppendObject(object obj)
         {
             if (obj == null || obj is DBNull) Buffer.Append("null");
-            else if (obj is String) AppendString((String)obj);
-            else if (obj is ValueType) AppendValueType(obj);//值类型
-            else if (_LoopObject.ContainsKey(obj) == false)
-            {
-                _LoopObject.Add(obj, null);
-                if (obj is IDictionary) AppendJson((IDictionary)obj);
-                else if (obj is IDataReader) AppendDataSet((IDataReader)obj);
-                else if (obj is DataSet) AppendDataSet((DataSet)obj);
-                else if (obj is DataTable) AppendDataTable((DataTable)obj);
-                else if (obj is DataView) AppendDataView((DataView)obj);
-                else if (obj is IEnumerable) AppendArray((IEnumerable)obj);
-                else AppendOther(obj);
-                _LoopObject.Remove(obj);
-            }
             else
             {
-                Buffer.Append("undefined");
+                var s = obj as string;
+                if (s != null)
+                {
+                    AppendString(s);
+                }
+                else if (obj is ValueType)
+                {
+                    AppendValueType(obj);//值类型
+                }
+                else if (_loopObject.ContainsKey(obj) == false)
+                {
+                    _loopObject.Add(obj, null);
+                    if (obj is IDictionary) AppendJson((IDictionary)obj);
+                    else if (obj is IDataReader) AppendDataSet((IDataReader)obj);
+                    else if (obj is DataSet) AppendDataSet((DataSet)obj);
+                    else if (obj is DataTable) AppendDataTable((DataTable)obj);
+                    else if (obj is DataView) AppendDataView((DataView)obj);
+                    else if (obj is IEnumerable) AppendArray((IEnumerable)obj);
+                    else AppendOther(obj);
+                    _loopObject.Remove(obj);
+                }
+                else
+                {
+                    Buffer.Append("undefined");
+                }
             }
         }
 
-        private static System.Reflection.Module SystemModule = typeof(int).Module;
         private void AppendValueType(object obj)
         {
-            if (obj is Enum) AppendEnum((Enum)obj);
+            var @enum = obj as Enum;
+            if (@enum != null)
+            {
+                AppendEnum(@enum);
+            }
             else if (obj is IConvertible)
             {
                 if (obj is Int32) AppendInt32((Int32)obj);
@@ -76,11 +88,11 @@ namespace blqw
                 else if (obj is SByte) AppendSByte((SByte)obj);
                 else if (obj is UInt32) AppendUInt32((UInt32)obj);
                 else if (obj is UInt64) AppendUInt64((UInt64)obj);
-                else if (_LoopObject.ContainsKey(obj) == false)
+                else if (_loopObject.ContainsKey(obj) == false)
                 {
-                    _LoopObject.Add(obj, null);
+                    _loopObject.Add(obj, null);
                     AppendObject(Convert.ChangeType(obj, ((IConvertible)obj).GetTypeCode()));
-                    _LoopObject.Remove(obj);
+                    _loopObject.Remove(obj);
                 }
                 else
                 {
@@ -91,11 +103,11 @@ namespace blqw
             {
                 AppendGuid((Guid)obj);
             }
-            else if (_LoopObject.ContainsKey(obj) == false)
+            else if (_loopObject.ContainsKey(obj) == false)
             {
-                _LoopObject.Add(obj, null);
+                _loopObject.Add(obj, null);
                 AppendOther(obj);
-                _LoopObject.Remove(obj);
+                _loopObject.Remove(obj);
             }
             else
             {
@@ -140,13 +152,13 @@ namespace blqw
         }
         /// <summary> "
         /// </summary>
-        public const char Quot = '"';
+        public const char QUOT = '"';
         /// <summary> :
         /// </summary>
-        public const char Colon = ':';
+        public const char COLON = ':';
         /// <summary> ,
         /// </summary>
-        public const char Comma = ',';
+        public const char COMMA = ',';
         /// <summary> 追加Key
         /// </summary>
         /// <param name="key"></param>
@@ -159,11 +171,11 @@ namespace blqw
             }
             else
             {
-                Buffer.Append(Quot);
+                Buffer.Append(QUOT);
                 Buffer.Append(key);
-                Buffer.Append(Quot);
+                Buffer.Append(QUOT);
             }
-            Buffer.Append(Colon);
+            Buffer.Append(COLON);
         }
         /// <summary> Byte 对象转换Json字符串写入Buffer
         /// </summary>
@@ -218,7 +230,7 @@ namespace blqw
         /// <param name="value">Char 对象</param>
         protected virtual void AppendChar(Char value)
         {
-            Buffer.Append(Quot);
+            Buffer.Append(QUOT);
             switch (value)
             {
                 case '\\':
@@ -230,7 +242,7 @@ namespace blqw
                     break;
             }
             Buffer.Append(value);
-            Buffer.Append(Quot);
+            Buffer.Append(QUOT);
         }
 
         /// <summary> String 对象转换Json字符串写入Buffer
@@ -238,7 +250,7 @@ namespace blqw
         /// <param name="value">Char 对象</param>
         protected virtual void AppendString(String value)
         {
-            Buffer.Append(Quot);
+            Buffer.Append(QUOT);
             //Buffer.Append(value);
             //Buffer.Append(Quot);
             //return;
@@ -301,23 +313,23 @@ namespace blqw
                 }
             }
 
-            Buffer.Append(Quot);
+            Buffer.Append(QUOT);
         }
         /// <summary> DateTime 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="value">DateTime 对象</param>
         protected virtual void AppendDateTime(DateTime value)
         {
-            Buffer.Append(Quot);
+            Buffer.Append(QUOT);
             Buffer.Append(value);
-            Buffer.Append(Quot);
+            Buffer.Append(QUOT);
         }
         /// <summary> Guid 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="value">Guid 对象</param>
         protected virtual void AppendGuid(Guid value)
         {
-            Buffer.Append(Quot).Append(value.ToString()).Append(Quot);
+            Buffer.Append(QUOT).Append(value.ToString()).Append(QUOT);
         }
 
         /// <summary> 枚举 对象转换Json字符串写入Buffer
@@ -325,7 +337,7 @@ namespace blqw
         /// <param name="value">枚举 对象</param>
         protected virtual void AppendEnum(Enum value)
         {
-            Buffer.Append(Quot).Append(value.ToString()).Append(Quot);
+            Buffer.Append(QUOT).Append(value.ToString()).Append(QUOT);
         }
         /// <summary> 数字 类型对象转换Json字符串写入Buffer
         /// </summary>
@@ -375,7 +387,7 @@ namespace blqw
                 AppendObject(ee.Current);
                 while (ee.MoveNext())
                 {
-                    Buffer.Append(Comma);
+                    Buffer.Append(COMMA);
                     AppendObject(ee.Current);
                 }
             }
@@ -403,7 +415,7 @@ namespace blqw
                 AppendObject(ve.Current);
                 while (ke.MoveNext() && ve.MoveNext())
                 {
-                    Buffer.Append(Comma);
+                    Buffer.Append(COMMA);
                     AppendKey(ke.Current + "", true);
                     AppendObject(ve.Current);
                 }
@@ -423,7 +435,7 @@ namespace blqw
                 AppendObject(getVal(ee.Current));
                 while (ee.MoveNext())
                 {
-                    Buffer.Append(Comma);
+                    Buffer.Append(COMMA);
                     AppendObject(getVal(ee.Current));
                 }
             }
@@ -446,7 +458,7 @@ namespace blqw
                 AppendObject(getVal(ee.Current));
                 while (ee.MoveNext())
                 {
-                    Buffer.Append(Comma);
+                    Buffer.Append(COMMA);
                     AppendKey(getKey(ee.Current), true);
                     AppendObject(getVal(ee.Current));
                 }
@@ -467,7 +479,7 @@ namespace blqw
                 AppendDataTable(table);
                 while (ee.MoveNext())
                 {
-                    Buffer.Append(Comma);
+                    Buffer.Append(COMMA);
                     table = (DataTable)ee.Current;
                     AppendKey(table.TableName, true);
                     AppendDataTable(table);
@@ -500,7 +512,7 @@ namespace blqw
 
         /// <summary> IDataReader 对象转换Json字符串写入Buffer
         /// </summary>
-        /// <param name="dataset">DataSet 对象</param>
+        /// <param name="reader">IDataReader 对象</param>
         protected virtual void AppendDataSet(IDataReader reader)
         {
             Buffer.Append("{\"columns\":");
@@ -510,7 +522,7 @@ namespace blqw
             Buffer.Append('}');
         }
 
-        private IEnumerable GetDataReaderNames(IDataReader reader)
+        private static IEnumerable GetDataReaderNames(IDataRecord reader)
         {
             int c = reader.FieldCount;
             for (int i = 0; i < c; i++)
@@ -519,7 +531,7 @@ namespace blqw
             }
         }
 
-        private IEnumerable GetDataReaderValues(IDataReader reader)
+        private static IEnumerable GetDataReaderValues(IDataReader reader)
         {
             int c = reader.FieldCount;
             while (reader.Read())
