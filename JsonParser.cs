@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Collections;
 
 namespace blqw
@@ -8,6 +9,12 @@ namespace blqw
     /// </summary>
     public class JsonParser
     {
+        #region 构造函数
+        public JsonParser()
+        {
+        }
+        #endregion
+
         /// <summary> 将json字符串转换为指定对象
         /// </summary>
         public Object ToObject(Type type, string json)
@@ -29,7 +36,7 @@ namespace blqw
                 FillObject(ref arr, Literacy.Cache(eleType, true), json);
                 return ((ArrayList)arr).ToArray(eleType);
             }
-            
+            else
             {
                 var lit = Literacy.Cache(type, true);
                 var obj = lit.NewObject();
@@ -176,15 +183,18 @@ namespace blqw
                     }
                 }
             }
-            while (true)
+            else
             {
-                string skey = ReadKey(reader);      //获取Key
-                object key = Convert.ChangeType(skey, keyType);
-                object val = ReadValue(reader, elementType);//得到值
-                dict[key] = val;
-                if (reader.SkipChar(',') == false)//跳过,号
+                while (true)
                 {
-                    return;                     //失败,终止方法
+                    string skey = ReadKey(reader);      //获取Key
+                    object key = Convert.ChangeType(skey, keyType);
+                    object val = ReadValue(reader, elementType);//得到值
+                    dict[key] = val;
+                    if (reader.SkipChar(',') == false)//跳过,号
+                    {
+                        return;                     //失败,终止方法
+                    }
                 }
             }
         }
@@ -206,7 +216,7 @@ namespace blqw
         /// <summary> 跳过一个值
         /// </summary>
         /// <param name="reader"></param>
-        private static void SkipValue(UnsafeJsonReader reader)
+        private void SkipValue(UnsafeJsonReader reader)
         {
             switch (reader.Current)
             {
@@ -234,7 +244,7 @@ namespace blqw
                     }
                     do
                     {
-                        SkipKey(reader);
+                        ReadKey(reader);
                         SkipValue(reader);
                     } while (reader.SkipChar(','));
                     if (reader.Current != '}')
@@ -256,7 +266,7 @@ namespace blqw
         /// <summary> 跳过一个键
         /// </summary>
         /// <param name="reader"></param>
-        private static void SkipKey(UnsafeJsonReader reader)
+        private void SkipKey(UnsafeJsonReader reader)
         {
             if (reader.Current == '"' || reader.Current == '\'')
             {
@@ -266,17 +276,14 @@ namespace blqw
             {
                 reader.SkipWord();
             }
-            if (reader.SkipChar(':') == false)//跳过:号
-            {
-                ThrowMissingCharException(':'); //失败,终止方法
-            }
+            reader.SkipChar(':');
         }
 
         /// <summary> 获取一个键
         /// </summary>
         /// <param name="reader"></param>
         /// <returns></returns>
-        private static string ReadKey(UnsafeJsonReader reader)
+        private string ReadKey(UnsafeJsonReader reader)
         {
             string key;
             if (reader.Current == '"' || reader.Current == '\'')
@@ -353,11 +360,12 @@ namespace blqw
 
         /// <summary> 将字符串解析为指定类型
         /// </summary>
-        /// <param name="reader"></param>
+        /// <param name="str"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        private static object ParseString(UnsafeJsonReader reader, Type type)
+        private object ParseString(UnsafeJsonReader reader, Type type)
         {
+            char quot;
             string str;
             var typecode = Type.GetTypeCode(type);
             if ((typecode >= TypeCode.SByte && typecode <= TypeCode.Decimal) || typecode == TypeCode.Boolean)
@@ -366,7 +374,7 @@ namespace blqw
                 {
                     return Enum.Parse(type, reader.ReadString());
                 }
-                char quot = reader.Current;
+                quot = reader.Current;
                 var val = Convert.ChangeType(reader.ReadConsts(), type);
                 if (reader.SkipChar(quot) == false)
                 {
@@ -386,9 +394,12 @@ namespace blqw
                         {
                             return new Guid(str);
                         }
-                        return new Guid(Convert.FromBase64String(str));
+                        else
+                        {
+                            return new Guid(Convert.FromBase64String(str));
+                        }
                     }
-                    if (type == typeof(Object))
+                    else if (type == typeof(Object))
                     {
                         return str;
                     }
@@ -426,7 +437,7 @@ namespace blqw
                 FillList(list, Nullable.GetUnderlyingType(eletype) ?? eletype, reader);
                 return list.ToArray(eletype);
             }
-            if (type == typeof(object))
+            else if (type == typeof(object))
             {
                 ArrayList list = new ArrayList();
                 FillList(list, typeof(object), reader);
@@ -468,46 +479,49 @@ namespace blqw
                 FillDictionary((IDictionary)obj, st.KeyType, st.ElementType, reader);
                 return obj;
             }
-            if (type == typeof(object))
+            else if (type == typeof(object))
             {
                 obj = new Dictionary<string, object>();
                 FillDictionary((IDictionary)obj, typeof(string), typeof(object), reader);
                 return obj;
             }
-            var lit = Literacy.Cache(type, true);
-            obj = lit.NewObject();
-            FillObject(obj, lit, reader);
-            return obj;
+            else
+            {
+                var lit = Literacy.Cache(type, true);
+                obj = lit.NewObject();
+                FillObject(obj, lit, reader);
+                return obj;
+            }
         }
 
-        private static void ThrowMissingCharException(char c)
+        private void ThrowMissingCharException(char c)
         {
             throw new Exception("缺少必要符号:" + c);
         }
 
-        private static void ThrowException(string word)
+        private void ThrowException(string word)
         {
             throw new Exception("无法解析:" + word);
         }
 
-        private static void ThrowNoIList(Type type)
+        private void ThrowNoIList(Type type)
         {
             throw new InvalidCastException(type.FullName + " 没有实现IList接口,无法接收数组的值");
         }
 
-        private static void ThrowCastException(string str, Type type)
+        private void ThrowCastException(string str, Type type)
         {
             throw new InvalidCastException(string.Concat("无法将 ", str, " 转为 ", type, " 类型"));
         }
 
-        private static void ThrowNoConstructor(Type type)
+        private void ThrowNoConstructor(Type type)
         {
             throw new Exception(type.FullName + " 类型缺少无参的构造函数");
         }
 
-        private sealed class GenericCollection
+        class GenericCollection
         {
-            static readonly Dictionary<Type, GenericCollection> _Cache = new Dictionary<Type, GenericCollection>();
+            static Dictionary<Type, GenericCollection> Cache = new Dictionary<Type, GenericCollection>();
             public LiteracyNewObject Init;
             public Type ElementType;
             public Type KeyType;
@@ -515,7 +529,7 @@ namespace blqw
             public static GenericCollection GetList(Type type)
             {
                 GenericCollection list;
-                if (_Cache.TryGetValue(type, out list))
+                if (Cache.TryGetValue(type, out list))
                 {
                     return list;
                 }
@@ -523,9 +537,9 @@ namespace blqw
                 {
                     return null;
                 }
-                lock (_Cache)
+                lock (Cache)
                 {
-                    if (_Cache.TryGetValue(type, out list))
+                    if (Cache.TryGetValue(type, out list))
                     {
                         return list;
                     }
@@ -540,7 +554,7 @@ namespace blqw
                     {
                         list.ElementType = typeof(object);
                     }
-                    _Cache.Add(type, list);
+                    Cache.Add(type, list);
                     return list;
                 }
             }
@@ -548,13 +562,13 @@ namespace blqw
             public static GenericCollection GetDict(Type type)
             {
                 GenericCollection dict;
-                if (_Cache.TryGetValue(type, out dict))
+                if (Cache.TryGetValue(type, out dict))
                 {
                     return dict;
                 }
-                lock (_Cache)
+                lock (Cache)
                 {
-                    if (_Cache.TryGetValue(type, out dict))
+                    if (Cache.TryGetValue(type, out dict))
                     {
                         return dict;
                     }
@@ -578,7 +592,7 @@ namespace blqw
                     {
                         dict.ElementType = typeof(object);
                     }
-                    _Cache.Add(type, dict);
+                    Cache.Add(type, dict);
                     return dict;
                 }
             }

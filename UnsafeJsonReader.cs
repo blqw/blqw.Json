@@ -1,10 +1,12 @@
 ﻿using System;
-using System.Globalization;
+using System.Collections.Generic;
+using System.Text;
 using System.Diagnostics;
+using System.Collections;
 
 namespace blqw
 {
-    [DebuggerDisplay("当前字符: {Current}")]
+    [DebuggerDisplay("当前字符: {_Current}")]
     unsafe class UnsafeJsonReader : IDisposable
     {
         /// <summary>
@@ -15,82 +17,73 @@ namespace blqw
         /// <para>包含16:转义字符</para>
         /// <para></para>
         /// </summary>
-        private readonly static byte[] _WordChars = new byte[char.MaxValue];
-        private readonly static sbyte[] _UnicodeFlags = new sbyte[123];
-        private readonly static sbyte[, ,] _DateTimeWords;
+        readonly static byte[] WordChars = new byte[char.MaxValue];
+        readonly static sbyte[, ,] DateTimeWords;
         static UnsafeJsonReader()
         {
-            for (int i = 0; i < 123; i++)
-            {
-                _UnicodeFlags[i] = -1;
-            }
+            WordChars['-'] = 1 | 4;
+            WordChars['+'] = 1 | 4;
 
-            _WordChars['-'] = 1 | 4;
-            _WordChars['+'] = 1 | 4;
-
-            _WordChars['$'] = 1 | 2;
-            _WordChars['_'] = 1 | 2;
+            WordChars['$'] = 1 | 2;
+            WordChars['_'] = 1 | 2;
             for (char c = 'a'; c <= 'z'; c++)
             {
-                _WordChars[c] = 1 | 2;
-                _UnicodeFlags[c] = (sbyte)(c - 'a' + 10);
+                WordChars[c] = 1 | 2;
             }
             for (char c = 'A'; c <= 'Z'; c++)
             {
-                _WordChars[c] = 1 | 2;
-                _UnicodeFlags[c] = (sbyte)(c - 'A' + 10);
+                WordChars[c] = 1 | 2;
             }
 
-            _WordChars['.'] = 1 | 2 | 4;
+            WordChars['.'] = 1 | 2 | 4;
             for (char c = '0'; c <= '9'; c++)
             {
-                _WordChars[c] = 4;
-                _UnicodeFlags[c] = (sbyte)(c - '0');
+                WordChars[c] = 4;
             }
 
             //科学计数法
-            _WordChars['e'] |= 4;
-            _WordChars['E'] |= 4;
+            WordChars['e'] |= 4;
+            WordChars['E'] |= 4;
 
-            _WordChars[' '] = 8;
-            _WordChars['\t'] = 8;
-            _WordChars['\r'] = 8;
-            _WordChars['\n'] = 8;
-
-
-            _WordChars['t'] |= 16;
-            _WordChars['r'] |= 16;
-            _WordChars['n'] |= 16;
-            _WordChars['f'] |= 16;
-            _WordChars['0'] |= 16;
-            _WordChars['"'] |= 16;
-            _WordChars['\''] |= 16;
-            _WordChars['\\'] |= 16;
-            _WordChars['/'] |= 16;
+            WordChars[' '] = 8;
+            WordChars['\t'] = 8;
+            WordChars['\r'] = 8;
+            WordChars['\n'] = 8;
 
 
-            string[] a =  { "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec" };
-            string[] b =  { "mon", "tue", "wed", "thu", "fri", "sat", "sun" };
-            _DateTimeWords = new sbyte[23, 21, 25];
+            WordChars['t'] |= 16;
+            WordChars['r'] |= 16;
+            WordChars['n'] |= 16;
+            WordChars['f'] |= 16;
+            WordChars['0'] |= 16;
+            WordChars['"'] |= 16;
+            WordChars['\''] |= 16;
+            WordChars['\\'] |= 16;
+            WordChars['/'] |= 16;
+
+
+            var a = new string[] { "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec" };
+            var b = new string[] { "mon", "tue", "wed", "thu", "fri", "sat", "sun" };
+            DateTimeWords = new sbyte[23, 21, 25];
 
             for (sbyte i = 0; i < a.Length; i++)
             {
                 var d = a[i];
-                _DateTimeWords[d[0] - 97, d[1] - 97, d[2] - 97] = (sbyte)(i + 1);
+                DateTimeWords[d[0] - 97, d[1] - 97, d[2] - 97] = (sbyte)(i + 1);
             }
 
             for (sbyte i = 0; i < b.Length; i++)
             {
                 var d = b[i];
-                _DateTimeWords[d[0] - 97, d[1] - 97, d[2] - 97] = (sbyte)-(i + 1);
+                DateTimeWords[d[0] - 97, d[1] - 97, d[2] - 97] = (sbyte)-(i + 1);
             }
-            _DateTimeWords['g' - 97, 'm' - 97, 't' - 97] = sbyte.MaxValue;
+            DateTimeWords['g' - 97, 'm' - 97, 't' - 97] = sbyte.MaxValue;
         }
 
-        Char* _p;
-        int _position;
-        readonly int _length;
-        int _end;
+        Char* _P;
+        int _Position;
+        int _Length;
+        int _End;
         public UnsafeJsonReader(Char* origin, int length)
         {
             if (origin == null)
@@ -101,30 +94,31 @@ namespace blqw
             {
                 throw new ArgumentOutOfRangeException("length");
             }
-            _p = origin;
-            _length = length;
-            _end = length - 1;
-            _position = 0;
-            Current = *origin;
+            _P = origin;
+            _Length = length;
+            _End = length - 1;
+            _Position = 0;
+            _Current = *origin;
         }
 
-        public char Current { get; private set; }
+        Char _Current;
+        public Char Current { get { return _Current; } }
 
         /// <summary> 当前位置
         /// </summary>
         public int Position
         {
-            get { return _position; }
+            get { return _Position; }
             set
             {
-                if (_position >= _length)
+                if (_Position >= _Length)
                 {
                     throw new ArgumentOutOfRangeException();
                 }
-                if (_isDisposed == false)
+                if (_IsDisposed == false)
                 {
-                    _position = value;
-                    Current = _p[_position];
+                    _Position = value;
+                    _Current = _P[_Position];
                 }
             }
         }
@@ -133,39 +127,42 @@ namespace blqw
         /// </summary>
         public bool IsEnd()
         {
-            if (_position > _end)
+            if (_Position > _End)
             {
                 return true;
             }
-            if (_WordChars[Current] == 8)
+            else if (WordChars[_Current] == 8)
             {
-                while (_position < _end)
+                while (_Position < _End)
                 {
-                    _position++;
-                    Current = _p[_position];
-                    if (_WordChars[Current] != 8)
+                    _Position++;
+                    _Current = _P[_Position];
+                    if (WordChars[_Current] != 8)
                     {
                         return false;
                     }
                 }
                 return true;
             }
-            return false;
+            else
+            {
+                return false;
+            }
         }
 
         /// <summary> 移动到下一个字符,如果已经是结尾则抛出异常
         /// </summary>
         public void MoveNext()
         {
-            if (_position < _end)
+            if (_Position < _End)
             {
-                _position++;
-                Current = _p[_position];
+                _Position++;
+                _Current = _P[_Position];
             }
-            else if (_position == _end)
+            else if (_Position == _End)
             {
-                _position++;
-                Current = '\0';
+                _Position++;
+                _Current = '\0';
             }
             else
             {
@@ -182,12 +179,12 @@ namespace blqw
                 ThrowException();
             }
 
-            if (_WordChars[Current] != 3)      //只能是3 可以为开头的单词
+            if (WordChars[_Current] != 3)      //只能是3 可以为开头的单词
             {
                 ThrowException();
             }
             MoveNext();
-            while ((_WordChars[Current] & 2) != 0)//读取下一个字符 可是是单词
+            while ((WordChars[_Current] & 2) != 0)//读取下一个字符 可是是单词
             {
                 MoveNext();
             }
@@ -201,21 +198,24 @@ namespace blqw
             {
                 ThrowException();
             }
-            if (Current == c)
+            if (_Current == c)
             {
-                if (_position > _end)
+                if (_Position > _End)
                 {
-                    _position++;
-                    Current = '\0';
+                    _Position++;
+                    _Current = '\0';
                 }
                 else
                 {
-                    _position++;
-                    Current = _p[_position];
+                    _Position++;
+                    _Current = _P[_Position];
                 }
                 return true;
             }
-            return false;
+            else
+            {
+                return false;
+            }
         }
 
         /// <summary> 跳过一个字符串
@@ -226,18 +226,18 @@ namespace blqw
             {
                 ThrowException();
             }
-            Char quot = Current;
+            Char quot = _Current;
             if (quot != '"' && quot != '\'')
             {
                 ThrowException();
             }
             MoveNext();
-            while (Current != quot)//是否是结束字符
+            while (_Current != quot)//是否是结束字符
             {
                 MoveNext();
-                if (Current == '\\')//是否是转义符
+                if (_Current == '\\')//是否是转义符
                 {
-                    if ((_WordChars[Current] & 16) == 0)
+                    if ((WordChars[_Current] & 16) == 0)
                     {
                         ThrowException();
                     }
@@ -247,7 +247,7 @@ namespace blqw
             MoveNext();
         }
         //袖珍版字符串处理类
-        sealed class MiniBuffer : IDisposable
+        class MiniBuffer:IDisposable
         {
             char* _p;
             string[] _str;
@@ -255,7 +255,7 @@ namespace blqw
             int _position;
             public MiniBuffer(char* p)
             {
-                _p = p;
+                this._p = p;
             }
 
             public void AddString(char* point, int offset, int length)
@@ -307,7 +307,7 @@ namespace blqw
                     }
                     if ((length & 2) != 0)
                     {
-                        (*p1) = *(p2);
+                        (*p1++) = *(p2++);
                     }
 
                 }
@@ -353,11 +353,14 @@ namespace blqw
                 {
                     return string.Concat(_str[0], new string(_p, 0, _position));
                 }
-                if (_index == 2)
+                else if (_index == 2)
                 {
                     return string.Concat(_str[0], _str[1], new string(_p, 0, _position));
                 }
-                return string.Concat(_str[0], _str[1], _str[2], new string(_p, 0, _position));
+                else
+                {
+                    return string.Concat(_str[0], _str[1], _str[2], new string(_p, 0, _position));
+                }
             }
 
             public void Dispose()
@@ -377,21 +380,21 @@ namespace blqw
                 ThrowException();
             }
 
-            Char quot = Current;
+            Char quot = _Current;
             if (quot != '"' && quot != '\'')
             {
                 ThrowException();
             }
             MoveNext();
-            if (Current == quot)
+            if (_Current == quot)
             {
                 MoveNext();
                 return null;
             }
-            var index = _position;
+            var index = _Position;
 
             //0年,1月,2日,3时,4分,5秒,6毫秒,7星期,8+12,9gmt,10 月
-            int[] datetime = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+            int[] datetime = new int[] { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
             int numindex = 0;
             if (IsEnd())//跳过空白
             {
@@ -402,11 +405,11 @@ namespace blqw
 
             do
             {
-                if (Current >= '0' && Current <= '9')
+                if (_Current >= '0' && _Current <= '9')
                 {
                     number = ReadPositiveInteger();
                 }
-                else if (_WordChars[Current] == 3)
+                else if (WordChars[_Current] == 3)
                 {
                     var wk = GetDateTimeWord();
                     if (wk == 0) goto label_parse;
@@ -428,7 +431,7 @@ namespace blqw
                 }
                 else
                 {
-                    switch (Current)
+                    switch (_Current)
                     {
                         case '-':
                         case '/':
@@ -452,14 +455,14 @@ namespace blqw
                         case 'a':
                         case 'A':
                             MoveNext();
-                            if (Current != 'm' && Current != 'M') goto label_parse;
+                            if (_Current != 'm' && _Current != 'M') goto label_parse;
                             if (datetime[8] >= 0) goto label_parse;
                             datetime[8] = 0;
                             break;
                         case 'p':
                         case 'P':
                             MoveNext();
-                            if (Current != 'm' && Current != 'M') goto label_parse;
+                            if (_Current != 'm' && _Current != 'M') goto label_parse;
                             if (datetime[8] >= 0) goto label_parse;
                             datetime[8] = 12;
                             break;
@@ -489,13 +492,13 @@ namespace blqw
                             break;
                         case '上':
                             MoveNext();
-                            if (Current != '午') goto label_parse;
+                            if (_Current != '午') goto label_parse;
                             if (datetime[8] >= 0) goto label_parse;
                             datetime[8] = 0;
                             break;
                         case '下':
                             MoveNext();
-                            if (Current != '午') goto label_parse;
+                            if (_Current != '午') goto label_parse;
                             if (datetime[8] >= 0) goto label_parse;
                             datetime[8] = 12;
                             break;
@@ -503,7 +506,7 @@ namespace blqw
                             if (datetime[7] >= 0) goto label_parse;
                             datetime[7] = 1;
                             MoveNext();
-                            if (Current != '期') goto label_parse;
+                            if (_Current != '期') goto label_parse;
                             MoveNext();
                             MoveNext();
                             break;
@@ -517,11 +520,12 @@ namespace blqw
                             break;
                         default:
                             goto label_parse;
+                            break;
                     }
                     number = -1;
                     MoveNext();
                 }
-            } while (Current != quot);//是否是结束字符
+            } while (_Current != quot);//是否是结束字符
 
             if (datetime[2] == -1 && datetime[10] >= 0)
             {
@@ -557,13 +561,13 @@ namespace blqw
                 td = td.AddHours(datetime[9]);
             }
             return td;
-        label_parse:
+        label_parse: ;
 
-            while (Current != quot)
+            while (_Current != quot)
             {
                 MoveNext();
             }
-            var str = new string(_p, index, _position - index);
+            var str = new string(_P, index, _Position - index);
             return DateTime.Parse(str);
         }
 
@@ -575,13 +579,13 @@ namespace blqw
             char[] c = new char[3];
             for (int i = 0; i < 3; i++)
             {
-                if (Current >= 'a' && Current <= 'z')
+                if (_Current >= 'a' && _Current <= 'z')
                 {
-                    c[i] = (char)(Current - 'a');
+                    c[i] = (char)(_Current - 'a');
                 }
-                else if (Current >= 'A' && Current <= 'Z')
+                else if (_Current >= 'A' && _Current <= 'Z')
                 {
-                    c[i] = (char)(Current - 'A');
+                    c[i] = (char)(_Current - 'A');
                 }
                 else
                 {
@@ -589,23 +593,23 @@ namespace blqw
                 }
                 MoveNext();
             }
-            return _DateTimeWords[c[0], c[1], c[2]];
+            return DateTimeWords[c[0], c[1], c[2]];
         }
         /// <summary> 读取正整数,在ReadDateTime函数中使用
         /// </summary>
         /// <returns></returns>
         private int ReadPositiveInteger()
         {
-            if (Current < '0' || Current > '9')
+            if (_Current < '0' || _Current > '9')
             {
                 return -1;
             }
             int num = 0;
             do
             {
-                num = num * 10 + (Current - '0');
+                num = num * 10 + (_Current - '0');
                 MoveNext();
-            } while (Current >= '0' && Current <= '9');
+            } while (_Current >= '0' && _Current <= '9');
             return num;
         }
 
@@ -618,107 +622,107 @@ namespace blqw
             {
                 ThrowException();
             }
-            switch (Current)
+            switch (_Current)
             {
                 case 'f'://false
                     MoveNext();
-                    if (Current != 'a') ThrowException();
+                    if (_Current != 'a') ThrowException();
                     MoveNext();
-                    if (Current != 'l') ThrowException();
+                    if (_Current != 'l') ThrowException();
                     MoveNext();
-                    if (Current != 's') ThrowException();
+                    if (_Current != 's') ThrowException();
                     MoveNext();
-                    if (Current != 'e') ThrowException();
+                    if (_Current != 'e') ThrowException();
                     MoveNext();
                     return false;
                 case 't'://true
                     MoveNext();
-                    if (Current != 'r') ThrowException();
+                    if (_Current != 'r') ThrowException();
                     MoveNext();
-                    if (Current != 'u') ThrowException();
+                    if (_Current != 'u') ThrowException();
                     MoveNext();
-                    if (Current != 'e') ThrowException();
+                    if (_Current != 'e') ThrowException();
                     MoveNext();
                     return true;
                 case 'n'://null
                     MoveNext();
-                    if (Current != 'u') ThrowException();
+                    if (_Current != 'u') ThrowException();
                     MoveNext();
-                    if (Current != 'l') ThrowException();
+                    if (_Current != 'l') ThrowException();
                     MoveNext();
-                    if (Current != 'l') ThrowException();
+                    if (_Current != 'l') ThrowException();
                     MoveNext();
                     return null;
                 case 'u'://undefined
                     MoveNext();
-                    if (Current != 'n') ThrowException();
+                    if (_Current != 'n') ThrowException();
                     MoveNext();
-                    if (Current != 'd') ThrowException();
+                    if (_Current != 'd') ThrowException();
                     MoveNext();
-                    if (Current != 'e') ThrowException();
+                    if (_Current != 'e') ThrowException();
                     MoveNext();
-                    if (Current != 'f') ThrowException();
+                    if (_Current != 'f') ThrowException();
                     MoveNext();
-                    if (Current != 'i') ThrowException();
+                    if (_Current != 'i') ThrowException();
                     MoveNext();
-                    if (Current != 'n') ThrowException();
+                    if (_Current != 'n') ThrowException();
                     MoveNext();
-                    if (Current != 'e') ThrowException();
+                    if (_Current != 'e') ThrowException();
                     MoveNext();
-                    if (Current != 'd') ThrowException();
+                    if (_Current != 'd') ThrowException();
                     MoveNext();
                     return null;
                 case 'N'://NaN
                     MoveNext();
-                    if (Current != 'a') ThrowException();
+                    if (_Current != 'a') ThrowException();
                     MoveNext();
-                    if (Current != 'N') ThrowException();
+                    if (_Current != 'N') ThrowException();
                     MoveNext();
                     return double.NaN;
                 case 'I'://Infinity
                     MoveNext();
-                    if (Current != 'n') ThrowException();
+                    if (_Current != 'n') ThrowException();
                     MoveNext();
-                    if (Current != 'f') ThrowException();
+                    if (_Current != 'f') ThrowException();
                     MoveNext();
-                    if (Current != 'i') ThrowException();
+                    if (_Current != 'i') ThrowException();
                     MoveNext();
-                    if (Current != 'n') ThrowException();
+                    if (_Current != 'n') ThrowException();
                     MoveNext();
-                    if (Current != 'i') ThrowException();
+                    if (_Current != 'i') ThrowException();
                     MoveNext();
-                    if (Current != 't') ThrowException();
+                    if (_Current != 't') ThrowException();
                     MoveNext();
-                    if (Current != 'y') ThrowException();
+                    if (_Current != 'y') ThrowException();
                     MoveNext();
                     return double.PositiveInfinity;
                 case '-'://-Infinity
                     MoveNext();
-                    if ((_WordChars[Current] & 4) > 0)
+                    if ((WordChars[_Current] & 4) > 0)
                     {
-                        _position--;
-                        Current = _p[_position];
+                        _Position--;
+                        _Current = _P[_Position];
                         return ReadNumber();
                     }
-                    if (Current != 'I') ThrowException();
+                    if (_Current != 'I') ThrowException();
                     MoveNext();
-                    if (Current != 'n') ThrowException();
+                    if (_Current != 'n') ThrowException();
                     MoveNext();
-                    if (Current != 'f') ThrowException();
+                    if (_Current != 'f') ThrowException();
                     MoveNext();
-                    if (Current != 'i') ThrowException();
+                    if (_Current != 'i') ThrowException();
                     MoveNext();
-                    if (Current != 'n') ThrowException();
+                    if (_Current != 'n') ThrowException();
                     MoveNext();
-                    if (Current != 'i') ThrowException();
+                    if (_Current != 'i') ThrowException();
                     MoveNext();
-                    if (Current != 't') ThrowException();
+                    if (_Current != 't') ThrowException();
                     MoveNext();
-                    if (Current != 'y') ThrowException();
+                    if (_Current != 'y') ThrowException();
                     MoveNext();
                     return double.NegativeInfinity;
                 default:
-                    if ((_WordChars[Current] & 4) > 0)
+                    if ((WordChars[_Current] & 4) > 0)
                     {
                         return ReadNumber();
                     }
@@ -738,17 +742,17 @@ namespace blqw
             }
 
             //单词起始字符只能是1+2
-            if (_WordChars[Current] != 3)
+            if (WordChars[_Current] != 3)
             {
                 return null;
             }
 
-            var index = _position;
-            while ((_WordChars[Current] & 6) != 0)//2或者4都可以
+            var index = _Position;
+            while ((WordChars[_Current] & 6) != 0)//2或者4都可以
             {
                 MoveNext();//读取下一个字符
             }
-            return new string(_p, index, _position - index);
+            return new string(_P, index, _Position - index);
         }
 
         /// <summary> 读取数字
@@ -764,7 +768,7 @@ namespace blqw
             int pot = -1;
             bool neg = false;
 
-            switch (Current)
+            switch (_Current)
             {
                 case '.':
                     pot = 0;
@@ -779,70 +783,73 @@ namespace blqw
                 default:
                     break;
             }
-            int index = _position;
+            int index = _Position;
 
 
             while (true)
             {
-                switch ((_WordChars[Current] & 6))
+                switch ((WordChars[_Current] & 6))
                 {
                     case 0:
                         if (neg)
                         {
                             if (pot >= 0)
                             {
-                                return -ReadDecimal(index, _position);
+                                return -ReadDecimal(index, _Position);
                             }
-                            return -ReadInteger(index, _position);
+                            return -ReadInteger(index, _Position);
                         }
-                        if (pot >= 0)
+                        else if (pot >= 0)
                         {
-                            return ReadDecimal(index, _position);
+                            return ReadDecimal(index, _Position);
                         }
-                        return ReadInteger(index, _position);
+                        return ReadInteger(index, _Position);
                     case 4:
                         break;
                     case 6:
                         if (pot < 0)
                         {
-                            pot = _position;
+                            pot = _Position;
                         }
-                        else if (Current == '.')
+                        else if (_Current == '.')
                         {
                             ThrowException();
                         }
 
-                        if (Current != '.')
+                        if (_Current != '.')
                         {
                             if (neg)
                             {
                                 index--;
                             }
                             string str = null;
-                            if (Current == 'e' || Current == 'E')
+                            if (_Current == 'e' || _Current == 'E')
                             {
                                 //如果是用科学计数法计的,那么小数点后面最多保存5位
                                 //不然有可能会报错
-                                if (_position - pot > 6)
+                                if (_Position - pot > 6)
                                 {
-                                    str = new string(_p, index, pot + 6 - index);
-                                    index = _position;
+                                    str = new string(_P, index, pot + 6 - index);
+                                    index = _Position;
                                 }
                             }
                             MoveNext();
-                            while ((_WordChars[Current] & 4) != 0)
+                            while ((WordChars[_Current] & 4) != 0)
                             {
                                 MoveNext();//读取下一个字符
                             }
 
-                            str += new string(_p, index, _position - index);
+                            str += new string(_P, index, _Position - index);
                             double d;
                             if (double.TryParse(str, out d))
                             {
                                 return d;
                             }
-                            ThrowException();
-                            return null;
+                            else
+                            {
+                                ThrowException();
+                                return null;
+                            }
                         }
                         break;
                     default:
@@ -861,16 +868,16 @@ namespace blqw
         private double ReadDecimal(int index, int end)
         {
             double d1 = 0d;
-            for (; _p[index] != '.'; index++)
+            for (; _P[index] != '.'; index++)
             {
-                d1 = d1 * 10 + (_p[index] - (double)'0');
+                d1 = d1 * 10 + ((double)(_P[index]) - (double)'0');
             }
             index++;
             end--;
             double d2 = 0d;
             for (; index <= end; end--)
             {
-                d2 = d2 * 0.1 + (_p[end] - (long)'0');
+                d2 = d2 * 0.1 + ((long)(_P[end]) - (long)'0');
             }
             return d1 + d2 * 0.1;
         }
@@ -885,7 +892,7 @@ namespace blqw
             long l = 0L;
             for (; index < end; index++)
             {
-                l = l * 10 + (_p[index] - (long)'0');
+                l = l * 10 + ((long)(_P[index]) - (long)'0');
             }
             return l;
         }
@@ -899,23 +906,23 @@ namespace blqw
                 ThrowException();
             }
 
-            Char quot = Current;
+            Char quot = _Current;
             if (quot != '"' && quot != '\'')
             {
                 ThrowException();
             }
             MoveNext();
-            if (Current == quot)
+            if (_Current == quot)
             {
                 MoveNext();
                 return "";
             }
 
-            var index = _position;
+            var index = _Position;
 
             do
             {
-                if (Current == '\\')//是否是转义符
+                if (_Current == '\\')//是否是转义符
                 {
                     char[] arr = new char[255];
                     fixed (char* p = arr)
@@ -924,8 +931,8 @@ namespace blqw
                     }
                 }
                 MoveNext();
-            } while (Current != quot);//是否是结束字符
-            string str = new string(_p, index, _position - index);
+            } while (_Current != quot);//是否是结束字符
+            string str = new string(_P, index, _Position - index);
             MoveNext();
             return str;
         }
@@ -934,146 +941,82 @@ namespace blqw
         {
             do
             {
-                if (Current == '\\')//是否是转义符
+                if (_Current == '\\')//是否是转义符
                 {
-                    if ((_WordChars[Current] & 16) == 0)
+                    if ((WordChars[_Current] & 16) == 0)
                     {
                         ThrowException();
                     }
-                    buff.AddString(_p, index, _position - index);
+                    buff.AddString(_P, index, _Position - index);
                     MoveNext();
-                    switch (Current)
+                    switch (_Current)
                     {
                         case 't':
                             buff.AddChar('\t');
-                            index = _position + 1;
+                            index = _Position + 1;
                             break;
                         case 'n':
                             buff.AddChar('\n');
-                            index = _position + 1;
+                            index = _Position + 1;
                             break;
                         case 'r':
                             buff.AddChar('\r');
-                            index = _position + 1;
+                            index = _Position + 1;
                             break;
                         case '0':
                             buff.AddChar('\0');
-                            index = _position + 1;
+                            index = _Position + 1;
                             break;
                         case 'f':
                             buff.AddChar('\f');
-                            index = _position + 1;
-                            break;
-                        case 'u':
-                            index = _position + ReadUnicode(buff);
+                            index = _Position + 1;
                             break;
                         default:
-                            index = _position;
+                            index = _Position;
                             break;
                     }
                 }
                 MoveNext();
-            } while (Current != quot);//是否是结束字符
+            } while (_Current != quot);//是否是结束字符
             string str;
-            buff.AddString(_p, index, _position - index);
+            buff.AddString(_P, index, _Position - index);
             str = buff.ToString();
             buff.Dispose();
             MoveNext();
             return str;
         }
 
-        private int ReadUnicode(MiniBuffer buff)
-        {
-            MoveNext();
-            var c1 = Current;
-            var n1 = UnicodeNumber(Current);
-            if (n1 == -1)
-            {
-                buff.AddChar('\\');
-                buff.AddChar('u');
-                buff.AddChar(c1);
-                return 2;
-            }
-
-            MoveNext();
-            var c2 = Current;
-            var n2 = UnicodeNumber(Current);
-            if (n2 == -1)
-            {
-                buff.AddChar('\\');
-                buff.AddChar('u');
-                buff.AddChar(c1);
-                buff.AddChar(c2);
-                return 3;
-            }
-
-            MoveNext();
-            var c3 = Current;
-            var n3 = UnicodeNumber(Current);
-            if (n3 == -1)
-            {
-                buff.AddChar('\\');
-                buff.AddChar('u');
-                buff.AddChar(c1);
-                buff.AddChar(c2);
-                buff.AddChar(c3);
-                return 4;
-            }
-
-            MoveNext();
-            var c4 = Current;
-            var n4 = UnicodeNumber(Current);
-            if (n4 == -1)
-            {
-                buff.AddChar('\\');
-                buff.AddChar('u');
-                buff.AddChar(c1);
-                buff.AddChar(c2);
-                buff.AddChar(c3);
-                buff.AddChar(c4);
-                return 5;
-            }
-            buff.AddChar((char)(n1 * 0x1000 + n2 * 0x100 + n3 * 0x10 + n4));
-            return 5;
-        }
-
-        private static sbyte UnicodeNumber(char c)
-        {
-            if (c > 122)
-            {
-                return -1;
-            }
-            return _UnicodeFlags[c];
-        }
-
-        bool _isDisposed;
+        bool _IsDisposed;
 
         public void Dispose()
         {
-            _p = null;
-            _end = 0;
-            _isDisposed = true;
-            Current = '\0';
+            _P = null;
+            _End = 0;
+            _IsDisposed = true;
+            _Current = '\0';
         }
 
         private void ThrowException()
         {
-            if (_isDisposed)
+            if (_IsDisposed)
             {
                 throw new ObjectDisposedException("UnsafeJsonReader", "不能访问已释放的对象!");
             }
-            if (IsEnd())
+            if (this.IsEnd())
             {
                 Dispose();
                 throw new Exception("遇到意外的字符串结尾,解析失败!");
             }
-            int i = Math.Max(_position - 20, 0);
-            int j = Math.Min(_position + 20, _length);
-            string pos = _position.ToString(CultureInfo.InvariantCulture);
-            string ch = Current.ToString(CultureInfo.InvariantCulture);
-            string view = new string(_p, i, j - i);
-            Dispose();
-            throw new Exception(string.Format(ERRMESSAGE, pos, ch, view));
+            else
+            {
+                int i = Math.Max(_Position - 20, 0);
+                int j = Math.Min(_Position + 20, _Length);
+                string pos = _Position.ToString();
+                string ch = _Current.ToString();
+                string view = new string(_P, i, j - i);
+                Dispose();
+                throw new Exception(string.Format(ERRMESSAGE, pos, ch, view));
+            }
         }
 
         const string ERRMESSAGE = "位置{0}遇到意外的字符{1},解析失败!\n截取: {2}";

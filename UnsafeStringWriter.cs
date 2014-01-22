@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
+using System.Text;
 
 namespace blqw
 {
@@ -10,25 +10,29 @@ namespace blqw
     [DebuggerDisplay("长度:{Length} 内容: {DebugInfo}")]
     public unsafe class UnsafeStringWriter : IDisposable
     {
+        /// <summary> 新建 以非安全方式访问指针操作字符串直接写入内存的 对象
+        /// </summary>
+        public UnsafeStringWriter() { } 
+
         #region 字段
         /// <summary> 一级缓冲指针
         /// </summary>
-        Char* _current;
+        Char* _Current;
         /// <summary> 二级缓冲
         /// </summary>
-        readonly string[] _buffer = new string[8];
+        string[] _Buffer = new string[8];
         /// <summary> 备用二级缓冲索引
         /// </summary>
-        int _bufferIndex;
+        int _BufferIndex = 0;
         /// <summary> 总字符数
         /// </summary>
-        int _length;
+        int _Length = 0;
         /// <summary> 结束位,一级缓冲长度减一
         /// </summary>
-        int _endPosition;
+        int _EndPosition;
         /// <summary> 以及缓冲当前位置
         /// </summary>
-        int _position;
+        int _Position;
         #endregion
 
         /// <summary> 获取当前实例中的字符串总长度
@@ -37,19 +41,18 @@ namespace blqw
         {
             get
             {
-                return _length + _position;
+                return _Length + _Position;
             }
         }
 
         #region 私有方法
         /// <summary> 在调试器的变量窗口中的显示的信息
         /// </summary>
-        // ReSharper disable once UnusedMember.Local
         private string DebugInfo
         {
             get
             {
-                string str = ToString();
+                string str = this.ToString();
                 if (str.Length > 70)
                 {
                     var s = str;
@@ -64,11 +67,11 @@ namespace blqw
         /// </summary>
         private void TryWrite()
         {
-            if (_position > _endPosition)
+            if (_Position > _EndPosition)
             {
                 Flush();
             }
-            else if (_endPosition == int.MaxValue)
+            else if (_EndPosition == int.MaxValue)
             {
                 throw new Exception("指针尚未准备就绪!");
             }
@@ -81,16 +84,16 @@ namespace blqw
         /// <returns></returns>
         private bool TryWrite(int count)
         {
-            if (count >= _endPosition)
+            if (count >= _EndPosition)
             {
                 return false;
             }
-            var pre = _position + count;
-            if (pre >= _endPosition)
+            var pre = _Position + count;
+            if (pre >= _EndPosition)
             {
                 Flush();
             }
-            else if (_endPosition == int.MaxValue)
+            else if (_EndPosition == int.MaxValue)
             {
                 throw new Exception("指针尚未准备就绪!");
             }
@@ -106,19 +109,19 @@ namespace blqw
             if (val)
             {
                 TryWrite(4);
-                _current[_position++] = 't';
-                _current[_position++] = 'r';
-                _current[_position++] = 'u';
-                _current[_position++] = 'e';
+                _Current[_Position++] = 't';
+                _Current[_Position++] = 'r';
+                _Current[_Position++] = 'u';
+                _Current[_Position++] = 'e';
             }
             else
             {
                 TryWrite(5);
-                _current[_position++] = 'f';
-                _current[_position++] = 'a';
-                _current[_position++] = 'l';
-                _current[_position++] = 's';
-                _current[_position++] = 'e';
+                _Current[_Position++] = 'f';
+                _Current[_Position++] = 'a';
+                _Current[_Position++] = 'l';
+                _Current[_Position++] = 's';
+                _Current[_Position++] = 'e';
             }
             return this;
         }
@@ -131,106 +134,106 @@ namespace blqw
             #region 年
             if (a > 999)
             {
-                _current[_position++] = (char)(a / 1000 + '0');
+                _Current[_Position++] = (char)(a / 1000 + '0');
                 a = a % 1000;
-                _current[_position++] = (char)(a / 100 + '0');
+                _Current[_Position++] = (char)(a / 100 + '0');
                 a = a % 100;
-                _current[_position++] = (char)(a / 10 + '0');
+                _Current[_Position++] = (char)(a / 10 + '0');
                 a = a % 10;
             }
             else if (a > 99)
             {
-                _current[_position++] = '0';
-                _current[_position++] = (char)(a / 100 + '0');
+                _Current[_Position++] = '0';
+                _Current[_Position++] = (char)(a / 100 + '0');
                 a = a % 100;
-                _current[_position++] = (char)(a / 10 + '0');
+                _Current[_Position++] = (char)(a / 10 + '0');
                 a = a % 10;
             }
             else if (a > 9)
             {
-                _current[_position++] = '0';
-                _current[_position++] = '0';
-                _current[_position++] = (char)(a / 10 + '0');
+                _Current[_Position++] = '0';
+                _Current[_Position++] = '0';
+                _Current[_Position++] = (char)(a / 10 + '0');
                 a = a % 10;
             }
             else
             {
-                _current[_position++] = '0';
-                _current[_position++] = '0';
-                _current[_position++] = '0';
+                _Current[_Position++] = '0';
+                _Current[_Position++] = '0';
+                _Current[_Position++] = '0';
             }
 
-            _current[_position++] = (char)(a + '0');
+            _Current[_Position++] = (char)(a + '0');
             #endregion
-            _current[_position++] = '-';
+            _Current[_Position++] = '-';
             a = val.Month;
             #region 月
             if (a > 9)
             {
-                _current[_position++] = (char)(a / 10 + '0');
+                _Current[_Position++] = (char)(a / 10 + '0');
                 a = a % 10;
             }
             else
             {
-                _current[_position++] = '0';
+                _Current[_Position++] = '0';
             }
-            _current[_position++] = (char)(a + '0');
+            _Current[_Position++] = (char)(a + '0');
             #endregion
             a = val.Day;
-            _current[_position++] = '-';
+            _Current[_Position++] = '-';
             #region 日
             if (a > 9)
             {
-                _current[_position++] = (char)(a / 10 + '0');
+                _Current[_Position++] = (char)(a / 10 + '0');
                 a = a % 10;
             }
             else
             {
-                _current[_position++] = '0';
+                _Current[_Position++] = '0';
             }
-            _current[_position++] = (char)(a + '0');
+            _Current[_Position++] = (char)(a + '0');
             #endregion
             a = val.Hour;
-            _current[_position++] = ' ';
+            _Current[_Position++] = ' ';
             #region 时
             if (a > 9)
             {
-                _current[_position++] = (char)(a / 10 + '0');
+                _Current[_Position++] = (char)(a / 10 + '0');
                 a = a % 10;
             }
             else
             {
-                _current[_position++] = '0';
+                _Current[_Position++] = '0';
             }
-            _current[_position++] = (char)(a + '0');
+            _Current[_Position++] = (char)(a + '0');
             #endregion
             a = val.Minute;
-            _current[_position++] = ':';
+            _Current[_Position++] = ':';
             #region 分
             if (a > 9)
             {
-                _current[_position++] = (char)(a / 10 + '0');
+                _Current[_Position++] = (char)(a / 10 + '0');
                 a = a % 10;
             }
             else
             {
-                _current[_position++] = '0';
+                _Current[_Position++] = '0';
             }
-            _current[_position++] = (char)(a + '0');
+            _Current[_Position++] = (char)(a + '0');
             #endregion
             a = val.Second;
-            _current[_position++] = ':';
+            _Current[_Position++] = ':';
             #region 秒
             if (a > 9)
             {
-                _current[_position++] = (char)(a / 10 + '0');
+                _Current[_Position++] = (char)(a / 10 + '0');
                 a = a % 10;
             }
             else
             {
-                _current[_position++] = '0';
+                _Current[_Position++] = '0';
             }
-            _current[_position++] = (char)(a + '0');
+            _Current[_Position++] = (char)(a + '0');
             #endregion
             return this;
         }
@@ -245,7 +248,7 @@ namespace blqw
         /// </summary>
         public UnsafeStringWriter Append(Decimal val)
         {
-            Append(val.ToString(CultureInfo.InvariantCulture));
+            Append(val.ToString());
             return this;
         }
         /// <summary> 将 Double 对象转换为字符串追加到当前实例。
@@ -269,19 +272,19 @@ namespace blqw
             if (val == 0)
             {
                 TryWrite();
-                _current[_position++] = '0';
+                _Current[_Position++] = '0';
                 return this;
             }
             if (val < 0)
             {
                 TryWrite();
                 val *= -1;
-                _current[_position++] = '-';
+                _Current[_Position++] = '-';
             }
             if (val < 10)
             {
                 TryWrite();
-                _current[_position++] = (char)('0' + val);
+                _Current[_Position++] = (char)('0' + val);
             }
             else if (val < 100)
             {
@@ -289,8 +292,8 @@ namespace blqw
                 {
                     Flush();
                 }
-                _current[_position++] = (char)('0' + val / 10);
-                _current[_position++] = (char)('0' + val % 10);
+                _Current[_Position++] = (char)('0' + val / 10);
+                _Current[_Position++] = (char)('0' + val % 10);
             }
             else
             {
@@ -298,9 +301,9 @@ namespace blqw
                 {
                     Flush();
                 }
-                _current[_position++] = (char)('0' + val / 100);
-                _current[_position++] = (char)('0' + val / 10 % 10);
-                _current[_position++] = (char)('0' + val % 10);
+                _Current[_Position++] = (char)('0' + val / 100);
+                _Current[_Position++] = (char)('0' + val / 10 % 10);
+                _Current[_Position++] = (char)('0' + val % 10);
             }
             return this;
         }
@@ -311,19 +314,19 @@ namespace blqw
             if (val == 0)
             {
                 TryWrite();
-                _current[_position++] = '0';
+                _Current[_Position++] = '0';
                 return this;
             }
             if (val < 0)
             {
                 TryWrite();
                 val *= -1;
-                _current[_position++] = '-';
+                _Current[_Position++] = '-';
             }
             if (val < 10)
             {
                 TryWrite();
-                _current[_position++] = (char)('0' + val);
+                _Current[_Position++] = (char)('0' + val);
             }
             else if (val < 100)
             {
@@ -331,8 +334,8 @@ namespace blqw
                 {
                     Flush();
                 }
-                _current[_position++] = (char)('0' + val / 10);
-                _current[_position++] = (char)('0' + val % 10);
+                _Current[_Position++] = (char)('0' + val / 10);
+                _Current[_Position++] = (char)('0' + val % 10);
             }
             else if (val < 1000)
             {
@@ -340,9 +343,9 @@ namespace blqw
                 {
                     Flush();
                 }
-                _current[_position++] = (char)('0' + val / 100);
-                _current[_position++] = (char)('0' + val / 10 % 10);
-                _current[_position++] = (char)('0' + val % 10);
+                _Current[_Position++] = (char)('0' + val / 100);
+                _Current[_Position++] = (char)('0' + val / 10 % 10);
+                _Current[_Position++] = (char)('0' + val % 10);
             }
             else if (val < 10000)
             {
@@ -350,10 +353,10 @@ namespace blqw
                 {
                     Flush();
                 }
-                _current[_position++] = (char)('0' + val / 1000);
-                _current[_position++] = (char)('0' + val / 100 % 10);
-                _current[_position++] = (char)('0' + val / 10 % 10);
-                _current[_position++] = (char)('0' + val % 10);
+                _Current[_Position++] = (char)('0' + val / 1000);
+                _Current[_Position++] = (char)('0' + val / 100 % 10);
+                _Current[_Position++] = (char)('0' + val / 10 % 10);
+                _Current[_Position++] = (char)('0' + val % 10);
             }
             else
             {
@@ -361,11 +364,11 @@ namespace blqw
                 {
                     Flush();
                 }
-                _current[_position++] = (char)('0' + val / 10000);
-                _current[_position++] = (char)('0' + val / 1000 % 10);
-                _current[_position++] = (char)('0' + val / 100 % 10);
-                _current[_position++] = (char)('0' + val / 10 % 10);
-                _current[_position++] = (char)('0' + val % 10);
+                _Current[_Position++] = (char)('0' + val / 10000);
+                _Current[_Position++] = (char)('0' + val / 1000 % 10);
+                _Current[_Position++] = (char)('0' + val / 100 % 10);
+                _Current[_Position++] = (char)('0' + val / 10 % 10);
+                _Current[_Position++] = (char)('0' + val % 10);
             }
             return this;
         }
@@ -383,7 +386,7 @@ namespace blqw
             if (val == 0)
             {
                 TryWrite();
-                _current[_position++] = '0';
+                _Current[_Position++] = '0';
                 return this;
             }
 
@@ -395,7 +398,7 @@ namespace blqw
                 var pos = 63;
                 if (val < 0)
                 {
-                    _current[_position++] = '-';
+                    _Current[_Position++] = '-';
                     number[pos] = (char)(~(val % 10) + '1');
                     if (val < -10)
                     {
@@ -421,7 +424,7 @@ namespace blqw
         public UnsafeStringWriter Append(Char val)
         {
             TryWrite();
-            _current[_position++] = val;
+            _Current[_Position++] = val;
             return this;
         }
         /// <summary> 将 Byte 对象转换为字符串追加到当前实例。
@@ -431,12 +434,12 @@ namespace blqw
             if (val == 0)
             {
                 TryWrite();
-                _current[_position++] = '0';
+                _Current[_Position++] = '0';
             }
             else if (val < 10)
             {
                 TryWrite();
-                _current[_position++] = (char)('0' + val);
+                _Current[_Position++] = (char)('0' + val);
             }
             else if (val < 100)
             {
@@ -444,8 +447,8 @@ namespace blqw
                 {
                     Flush();
                 }
-                _current[_position++] = (char)('0' + val / 10);
-                _current[_position++] = (char)('0' + val % 10);
+                _Current[_Position++] = (char)('0' + val / 10);
+                _Current[_Position++] = (char)('0' + val % 10);
             }
             else
             {
@@ -453,9 +456,9 @@ namespace blqw
                 {
                     Flush();
                 }
-                _current[_position++] = (char)('0' + val / 100);
-                _current[_position++] = (char)('0' + val / 10 % 10);
-                _current[_position++] = (char)('0' + val % 10);
+                _Current[_Position++] = (char)('0' + val / 100);
+                _Current[_Position++] = (char)('0' + val / 10 % 10);
+                _Current[_Position++] = (char)('0' + val % 10);
             }
             return this;
         }
@@ -466,13 +469,13 @@ namespace blqw
             if (val == 0)
             {
                 TryWrite();
-                _current[_position++] = '0';
+                _Current[_Position++] = '0';
                 return this;
             }
             if (val < 10)
             {
                 TryWrite();
-                _current[_position++] = (char)('0' + val);
+                _Current[_Position++] = (char)('0' + val);
             }
             else if (val < 100)
             {
@@ -480,8 +483,8 @@ namespace blqw
                 {
                     Flush();
                 }
-                _current[_position++] = (char)('0' + val / 10);
-                _current[_position++] = (char)('0' + val % 10);
+                _Current[_Position++] = (char)('0' + val / 10);
+                _Current[_Position++] = (char)('0' + val % 10);
             }
             else if (val < 1000)
             {
@@ -489,9 +492,9 @@ namespace blqw
                 {
                     Flush();
                 }
-                _current[_position++] = (char)('0' + val / 100);
-                _current[_position++] = (char)('0' + val / 10 % 10);
-                _current[_position++] = (char)('0' + val % 10);
+                _Current[_Position++] = (char)('0' + val / 100);
+                _Current[_Position++] = (char)('0' + val / 10 % 10);
+                _Current[_Position++] = (char)('0' + val % 10);
             }
             else if (val < 10000)
             {
@@ -499,10 +502,10 @@ namespace blqw
                 {
                     Flush();
                 }
-                _current[_position++] = (char)('0' + val / 1000);
-                _current[_position++] = (char)('0' + val / 100 % 10);
-                _current[_position++] = (char)('0' + val / 10 % 10);
-                _current[_position++] = (char)('0' + val % 10);
+                _Current[_Position++] = (char)('0' + val / 1000);
+                _Current[_Position++] = (char)('0' + val / 100 % 10);
+                _Current[_Position++] = (char)('0' + val / 10 % 10);
+                _Current[_Position++] = (char)('0' + val % 10);
             }
             else
             {
@@ -510,11 +513,11 @@ namespace blqw
                 {
                     Flush();
                 }
-                _current[_position++] = (char)('0' + val / 10000);
-                _current[_position++] = (char)('0' + val / 1000 % 10);
-                _current[_position++] = (char)('0' + val / 100 % 10);
-                _current[_position++] = (char)('0' + val / 10 % 10);
-                _current[_position++] = (char)('0' + val % 10);
+                _Current[_Position++] = (char)('0' + val / 10000);
+                _Current[_Position++] = (char)('0' + val / 1000 % 10);
+                _Current[_Position++] = (char)('0' + val / 100 % 10);
+                _Current[_Position++] = (char)('0' + val / 10 % 10);
+                _Current[_Position++] = (char)('0' + val % 10);
             }
             return this;
         }
@@ -532,7 +535,7 @@ namespace blqw
             if (val == 0)
             {
                 TryWrite();
-                _current[_position++] = '0';
+                _Current[_Position++] = '0';
                 return this;
             }
             var arr = new char[64];
@@ -565,19 +568,19 @@ namespace blqw
             {
                 return this;
             }
-            if (length <= 3)
+            else if (length <= 3)
             {
-                TryWrite(length);
-                if (length > 2)
-                {
-                    _current[_position++] = val[2];
-                    _current[_position++] = val[1];
-                }
-                else if (length > 1)
-                {
-                    _current[_position++] = val[1];
-                }
-                _current[_position++] = val[0];
+TryWrite(length);
+if (length > 2)
+{
+    _Current[_Position++] = val[2];
+    _Current[_Position++] = val[1];
+}
+else if (length > 1)
+{
+    _Current[_Position++] = val[1];
+}
+_Current[_Position++] = val[0];
             }
             else if (TryWrite(length))
             {
@@ -586,7 +589,7 @@ namespace blqw
                     int* p2;
                     if ((length & 1) != 0)
                     {
-                        _current[_position++] = c[0];
+                        _Current[_Position++] = c[0];
                         p2 = ((int*)(c + 1));
                         length--;
                     }
@@ -594,10 +597,10 @@ namespace blqw
                     {
                         p2 = ((int*)c);
                     }
-                    int* p1 = (int*)&_current[_position];
+                    int* p1 = (int*)&_Current[_Position];
 
 
-                    _position += length;
+                    _Position += length;
                     while (length >= 8)
                     {
                         (*p1++) = *(p2++);
@@ -613,15 +616,15 @@ namespace blqw
                     }
                     if ((length & 2) != 0)
                     {
-                        (*p1) = *(p2);
+                        (*p1++) = *(p2++);
                     }
                 }
             }
             else
             {
                 Flush();
-                _buffer[_bufferIndex++] = val;
-                _length += val.Length;
+                _Buffer[_BufferIndex++] = val;
+                _Length += val.Length;
             }
             return this;
         }
@@ -640,13 +643,13 @@ namespace blqw
                     char* c = point + offset;
                     if ((length & 1) != 0)
                     {
-                        _current[_position++] = c[0];
+                        _Current[_Position++] = c[0];
                         c++;
                         length--;
                     }
-                    int* p1 = (int*)&_current[_position];
+                    int* p1 = (int*)&_Current[_Position];
                     int* p2 = ((int*)c);
-                    _position += length;
+                    _Position += length;
                     while (length >= 8)
                     {
                         (*p1++) = *(p2++);
@@ -662,14 +665,14 @@ namespace blqw
                     }
                     if ((length & 2) != 0)
                     {
-                        (*p1) = *(p2);
+                        (*p1++) = *(p2++);
                     }
                 }
                 else
                 {
                     Flush();
-                    _buffer[_bufferIndex++] = new string(point, offset, length);
-                    _length += length;
+                    _Buffer[_BufferIndex++] = new string(point, offset, length);
+                    _Length += length;
                 }
             }
 
@@ -696,8 +699,8 @@ namespace blqw
                 throw new ArgumentNullException("point");
             }
             Close();
-            _endPosition = length - 1;
-            _current = point;
+            _EndPosition = length - 1;
+            _Current = point;
             return this;
         }
         /// <summary> 关闭当前实例
@@ -708,40 +711,40 @@ namespace blqw
         /// </summary>
         public void Close()
         {
-            _buffer[0] = _buffer[1] =
-            _buffer[2] = _buffer[3] =
-            _buffer[4] = _buffer[5] =
-            _buffer[6] = _buffer[7] = null;
-            _length = 0;
-            _position = 0;
-            _endPosition = int.MaxValue;
-            _current = null;
+            _Buffer[0] = _Buffer[1] =
+            _Buffer[2] = _Buffer[3] =
+            _Buffer[4] = _Buffer[5] =
+            _Buffer[6] = _Buffer[7] = null;
+            _Length = 0;
+            _Position = 0;
+            _EndPosition = int.MaxValue;
+            _Current = null;
         }
 
         /// <summary> 清理当前实例的一级缓冲区的内容，使所有缓冲数据写入二级缓冲区。
         /// </summary>
         public void Flush()
         {
-            if (_position > 0)
+            if (_Position > 0)
             {
-                _length += _position;
-                if (_bufferIndex == 8)
+                _Length += _Position;
+                if (_BufferIndex == 8)
                 {
-                    _buffer[0] = string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3]);
-                    _buffer[1] = string.Concat(_buffer[4], _buffer[5], _buffer[6], _buffer[7]);
-                    _buffer[2] = new string(_current, 0, _position);
-                    _buffer[3] =
-                    _buffer[4] =
-                    _buffer[5] =
-                    _buffer[6] =
-                    _buffer[7] = null;
-                    _bufferIndex = 3;
+                    _Buffer[0] = string.Concat(_Buffer[0], _Buffer[1], _Buffer[2], _Buffer[3]);
+                    _Buffer[1] = string.Concat(_Buffer[4], _Buffer[5], _Buffer[6], _Buffer[7]);
+                    _Buffer[2] = new string(_Current, 0, _Position);
+                    _Buffer[3] =
+                    _Buffer[4] =
+                    _Buffer[5] =
+                    _Buffer[6] =
+                    _Buffer[7] = null;
+                    _BufferIndex = 3;
                 }
                 else
                 {
-                    _buffer[_bufferIndex++] = new string(_current, 0, _position);
+                    _Buffer[_BufferIndex++] = new string(_Current, 0, _Position);
                 }
-                _position = 0;
+                _Position = 0;
             }
         }
 
@@ -749,19 +752,23 @@ namespace blqw
         /// </summary>
         public override string ToString()
         {
-            if (_bufferIndex == 0)
+            if (_BufferIndex == 0)
             {
-                return new string(_current, 0, _position);
+                return new string(_Current, 0, _Position);
             }
-            if (_bufferIndex <= 4)
+            else if (_BufferIndex <= 4)
             {
-                return string.Concat(_buffer[0], _buffer[1], _buffer[2], new string(_current, 0, _position));
+                return string.Concat(_Buffer[0], _Buffer[1], _Buffer[2], new string(_Current, 0, _Position));
             }
-            return string.Concat(
-                                 _buffer[0], _buffer[1], _buffer[2], _buffer[3],
-                                 _buffer[4], _buffer[5], _buffer[6], _buffer[7],
-                                 new string(_current, 0, _position));
+            else
+            {
+                return string.Concat(
+                    _Buffer[0], _Buffer[1], _Buffer[2], _Buffer[3],
+                    _Buffer[4], _Buffer[5], _Buffer[6], _Buffer[7],
+                    new string(_Current, 0, _Position));
+            }
         }
+
 
         public UnsafeStringWriter Append(IEnumerable<string> arr)
         {
