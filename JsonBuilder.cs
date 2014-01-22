@@ -285,6 +285,12 @@ namespace blqw
                                 Buffer.Append('f');
                                 flag = p + 1;
                                 break;
+                            case '\0':
+                                Buffer.Append(flag, 0, (int)(p - flag));
+                                Buffer.Append('\\');
+                                Buffer.Append('0');
+                                flag = p + 1;
+                                break;
                             default:
                                 break;
                         }
