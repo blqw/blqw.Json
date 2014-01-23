@@ -251,9 +251,6 @@ namespace blqw
         protected virtual void AppendString(String value)
         {
             Buffer.Append(QUOT);
-            //Buffer.Append(value);
-            //Buffer.Append(Quot);
-            //return;
             unsafe
             {
                 var length = value.Length;
@@ -262,7 +259,7 @@ namespace blqw
                     char* p = fp;
                     char* end = fp + length;
                     char* flag = fp;
-                    while (p <= end)
+                    while (p < end)
                     {
                         char c = *p;
                         switch (c)
@@ -297,6 +294,12 @@ namespace blqw
                                 Buffer.Append('f');
                                 flag = p + 1;
                                 break;
+                            case '\0':
+                                Buffer.Append(flag, 0, (int)(p - flag));
+                                Buffer.Append('\\');
+                                Buffer.Append('0');
+                                flag = p + 1;
+                                break;
                             default:
                                 break;
                         }
@@ -306,7 +309,7 @@ namespace blqw
                     {
                         Buffer.Append(fp, 0, length);
                     }
-                    else
+                    else if (p > flag)
                     {
                         Buffer.Append(flag, 0, (int)(p - flag) - 1);
                     }
