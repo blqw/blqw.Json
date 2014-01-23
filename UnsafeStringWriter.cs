@@ -567,17 +567,17 @@ namespace blqw
             }
             if (length <= 3)
             {
+                _current[_position++] = val[0];
                 TryWrite(length);
                 if (length > 2)
                 {
-                    _current[_position++] = val[2];
                     _current[_position++] = val[1];
+                    _current[_position++] = val[2];
                 }
                 else if (length > 1)
                 {
                     _current[_position++] = val[1];
                 }
-                _current[_position++] = val[0];
             }
             else if (TryWrite(length))
             {
