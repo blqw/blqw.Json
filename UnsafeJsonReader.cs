@@ -620,6 +620,9 @@ namespace blqw
             }
             switch (Current)
             {
+                case '\'':
+                case '"':
+                    return string.Empty;
                 case 'f'://false
                     MoveNext();
                     if (Current != 'a') ThrowException();

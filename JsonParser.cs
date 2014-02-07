@@ -179,7 +179,7 @@ namespace blqw
             while (true)
             {
                 string skey = ReadKey(reader);      //获取Key
-                object key = Convert.ChangeType(skey, keyType);
+                object key = ChangeType(skey, keyType);
                 object val = ReadValue(reader, elementType);//得到值
                 dict[key] = val;
                 if (reader.SkipChar(',') == false)//跳过,号
@@ -258,6 +258,10 @@ namespace blqw
         /// <param name="reader"></param>
         private static void SkipKey(UnsafeJsonReader reader)
         {
+            if (reader.IsEnd())
+            {
+                ThrowException("字符串意外结束!");
+            }
             if (reader.Current == '"' || reader.Current == '\'')
             {
                 reader.SkipString();
@@ -278,6 +282,10 @@ namespace blqw
         /// <returns></returns>
         private static string ReadKey(UnsafeJsonReader reader)
         {
+            if (reader.IsEnd())
+            {
+                ThrowException("字符串意外结束!");
+            }
             string key;
             if (reader.Current == '"' || reader.Current == '\'')
             {
@@ -338,15 +346,7 @@ namespace blqw
                 default:
                     {
                         object val = reader.ReadConsts();
-                        if (val == null)
-                        {
-                            return null;
-                        }
-                        if (type.IsInstanceOfType(val) == false)
-                        {
-                            val = Convert.ChangeType(val, type);
-                        }
-                        return val;
+                        return ChangeType(val, type);
                     }
             }
         }
@@ -367,7 +367,8 @@ namespace blqw
                     return Enum.Parse(type, reader.ReadString());
                 }
                 char quot = reader.Current;
-                var val = Convert.ChangeType(reader.ReadConsts(), type);
+                reader.MoveNext();
+                var val = ChangeType(reader.ReadConsts(), type);
                 if (reader.SkipChar(quot) == false)
                 {
                     ThrowMissingCharException(quot);
@@ -408,7 +409,7 @@ namespace blqw
                     }
                     throw new Exception();
                 default:
-                    return Convert.ChangeType(reader.ReadString(), type);
+                    return ChangeType(reader.ReadString(), type);
             }
         }
 
@@ -478,6 +479,25 @@ namespace blqw
             obj = lit.NewObject();
             FillObject(obj, lit, reader);
             return obj;
+        }
+
+        private static object ChangeType(object val, Type type)
+        {
+            if (val == null)
+            {
+                return Activator.CreateInstance(type);
+            }
+            if (type.IsInstanceOfType(val) == false)
+            {
+                return val;
+            }
+            var str = val as string;
+            if (str != null && str.Length == 0)
+            {
+                return Activator.CreateInstance(type);
+            }
+
+            return Convert.ChangeType(val, type);
         }
 
         private static void ThrowMissingCharException(char c)
