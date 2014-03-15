@@ -16,18 +16,17 @@ namespace blqw
 
             UnsafeAppend('{');
             var ee = lit.Property.GetEnumerator();
-
-            if (ee.MoveNext())
+            var fix = "";
+            while (ee.MoveNext())
             {
                 var p = ee.Current;
-                AppendKey(p.Name, false);
-                AppendObject(p.GetValue(obj));
-                while (ee.MoveNext())
+                var value = p.GetValue(obj);
+                if (value != null)
                 {
-                    p = ee.Current;
-                    UnsafeAppend(',');
+                    UnsafeAppend(fix);
                     AppendKey(p.Name, false);
-                    AppendObject(p.GetValue(obj));
+                    AppendObject(value);
+                    fix = ",";
                 }
             }
 
