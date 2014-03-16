@@ -311,7 +311,7 @@ namespace blqw
                     }
                     else if (p > flag)
                     {
-                        Buffer.Append(flag, 0, (int)(p - flag) - 1);
+                        Buffer.Append(flag, 0, (int)(p - flag));
                     }
                 }
             }
