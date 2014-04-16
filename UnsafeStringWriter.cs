@@ -753,7 +753,7 @@ namespace blqw
             {
                 return new string(_current, 0, _position);
             }
-            if (_bufferIndex <= 4)
+            if (_bufferIndex <= 3)
             {
                 return string.Concat(_buffer[0], _buffer[1], _buffer[2], new string(_current, 0, _position));
             }
