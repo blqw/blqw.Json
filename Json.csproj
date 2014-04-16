@@ -49,7 +49,7 @@
     <Compile Include="UnsafeStringWriter.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Literacy\Literacy.csproj">
+    <ProjectReference Include="..\blqw.Literacy\Literacy.csproj">
       <Project>{ADD87DFF-E5DA-48F4-B2CA-A9CE7F4DF669}</Project>
       <Name>Literacy</Name>
       <Private>True</Private>

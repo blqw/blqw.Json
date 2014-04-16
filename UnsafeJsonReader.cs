@@ -69,8 +69,8 @@ namespace blqw
             _WordChars['/'] |= 16;
 
 
-            string[] a =  { "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec" };
-            string[] b =  { "mon", "tue", "wed", "thu", "fri", "sat", "sun" };
+            string[] a = { "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec" };
+            string[] b = { "mon", "tue", "wed", "thu", "fri", "sat", "sun" };
             _DateTimeWords = new sbyte[23, 21, 25];
 
             for (sbyte i = 0; i < a.Length; i++)
@@ -426,6 +426,14 @@ namespace blqw
                         datetime[7] = -wk;
                     }
                 }
+                else if (Current == quot)
+                {
+                    if (number >= 0)
+                    {
+                        datetime[numindex++] = number;
+                    }
+                    break;
+                }
                 else
                 {
                     switch (Current)
@@ -436,10 +444,6 @@ namespace blqw
                             datetime[numindex++] = number;
                             break;
                         case ' ':
-                            if (number >= 0)
-                            {
-                                datetime[numindex++] = number;
-                            }
                             break;
                         case ':':
                             if (numindex < 3) numindex = 3;
@@ -521,7 +525,7 @@ namespace blqw
                     number = -1;
                     MoveNext();
                 }
-            } while (Current != quot);//是否是结束字符
+            } while (Current != quot || number != -1);//是否是结束字符
 
             if (datetime[2] == -1 && datetime[10] >= 0)
             {
