@@ -1,6 +1,6 @@
 Json序列化与反序列化  
 http://cnblogs.com/blqw/p/json.html  
-方便简单,性能卓越  
+使用方便 ,性能卓越  
 ```csharp
 blqw.Json.ToJsonString(object);
 blqw.Json.ToObject<T>(string);
