@@ -682,6 +682,30 @@ namespace blqw
             Append(val.ToString(format, null));
             return this;
         }
+
+        /// <summary> 将字符串集合追加到当前实例。
+        /// </summary>
+        /// <param name="strings">字符串集合</param>
+        /// <returns></returns>
+        public UnsafeStringWriter Append(IEnumerable<string> strings)
+        {
+            foreach (var str in strings)
+            {
+                Append(str);
+            }
+            return this;
+        }
+        /// <summary> 将字符串集合追加到当前实例并追加回车换行。
+        /// </summary>
+        /// <param name="str">追加到集合的字符串</param>
+        /// <returns></returns>
+        public UnsafeStringWriter AppendLine(string str)
+        {
+            Append(str);
+            Append(Environment.NewLine);
+            return this;
+        }
+
         #endregion
 
         /// <summary> 由于调用对象将内存指针固定后,通知当前实例指针准备就绪
@@ -700,6 +724,17 @@ namespace blqw
             _current = point;
             return this;
         }
+
+        public char[] FixedPointer(ushort length = 4096)
+        {
+            var arr =  new char[length];
+            fixed (char* p = arr)
+            {
+                Ready(p, length);
+                return arr;
+            }
+        }
+
         /// <summary> 关闭当前实例
         /// <para>
         /// 该行为将清空所有缓冲区中的内容,
@@ -763,18 +798,10 @@ namespace blqw
                                  new string(_current, 0, _position));
         }
 
-        public UnsafeStringWriter Append(IEnumerable<string> arr)
-        {
-            foreach (var str in arr)
-            {
-                Append(str);
-            }
-            return this;
-        }
-
         public void Dispose()
         {
             Close();
         }
+
     }
 }
