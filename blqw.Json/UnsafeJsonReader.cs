@@ -1080,7 +1080,7 @@ namespace blqw
             string ch = Current.ToString(CultureInfo.InvariantCulture);
             string view = new string(_p, i, j - i);
             Dispose();
-            throw new Exception(string.Format(ERRMESSAGE, pos, ch, view));
+            throw new Exception(string.Format(ERR_MESSAGE, pos, ch, view));
         }
 
         const string ERR_MESSAGE = "位置{0}遇到意外的字符{1},解析失败!\n截取: {2}";
