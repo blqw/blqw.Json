@@ -458,7 +458,8 @@ namespace blqw
         private object ReadObject(UnsafeJsonReader reader, Type type)
         {
             object obj;
-            if (type.GetInterface("System.Collections.IDictionary") == typeof(IDictionary))
+
+            if (type.IsAssignableFrom(typeof(IDictionary)))
             {
                 var st = GenericCollection.GetDict(type);
                 if (st.Init == null)
