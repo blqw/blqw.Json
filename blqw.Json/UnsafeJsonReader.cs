@@ -15,7 +15,7 @@ namespace blqw
         /// <para>包含16:转义字符</para>
         /// <para></para>
         /// </summary>
-        private readonly static byte[] _WordChars = new byte[char.MaxValue];
+        private readonly static byte[] _WordChars = new byte[char.MaxValue + 1];
         private readonly static sbyte[] _UnicodeFlags = new sbyte[123];
         private readonly static sbyte[, ,] _DateTimeWords;
         static UnsafeJsonReader()
@@ -1083,7 +1083,7 @@ namespace blqw
             throw new Exception(string.Format(ERRMESSAGE, pos, ch, view));
         }
 
-        const string ERRMESSAGE = "位置{0}遇到意外的字符{1},解析失败!\n截取: {2}";
+        const string ERR_MESSAGE = "位置{0}遇到意外的字符{1},解析失败!\n截取: {2}";
     }
 
 
