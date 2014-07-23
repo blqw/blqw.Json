@@ -406,6 +406,11 @@ namespace blqw
                 {
                     number = ReadPositiveInteger();
                 }
+                else if (Current == 'T' && numindex == 2)
+                {
+                    datetime[numindex++] = number;
+                    MoveNext();
+                }
                 else if (_WordChars[Current] == 3)
                 {
                     var wk = GetDateTimeWord();
@@ -444,6 +449,10 @@ namespace blqw
                             datetime[numindex++] = number;
                             break;
                         case ' ':
+                            if (numindex == 2)
+                            {
+                                datetime[numindex++] = number;
+                            }
                             break;
                         case ':':
                             if (numindex < 3) numindex = 3;
@@ -568,6 +577,7 @@ namespace blqw
                 MoveNext();
             }
             var str = new string(_p, index, _position - index);
+            MoveNext();
             return DateTime.Parse(str);
         }
 

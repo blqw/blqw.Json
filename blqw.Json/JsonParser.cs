@@ -29,7 +29,7 @@ namespace blqw
                 FillObject(ref arr, Literacy.Cache(eleType, true), json);
                 return ((ArrayList)arr).ToArray(eleType);
             }
-            
+            else
             {
                 var lit = Literacy.Cache(type, true);
                 var obj = lit.NewObject();
@@ -106,7 +106,7 @@ namespace blqw
                             }
                             FillList((IList)obj, st.ElementType, reader);
                         }
-                        
+
                         if (reader.Current != ']')
                         {
                             ThrowMissingCharException(']');
@@ -150,7 +150,7 @@ namespace blqw
                     else
                     {
                         object val = ReadValue(reader, prop.MemberType);//得到值
-                        prop.TrySetValue(obj, val); //赋值
+                        prop.SetValue(obj, val); //赋值
                     }
                     if (reader.SkipChar(',') == false)
                     {
@@ -299,7 +299,7 @@ namespace blqw
             {
                 ThrowMissingCharException(':'); //失败,终止方法
             }
-            
+
             return key;
         }
 
@@ -487,7 +487,11 @@ namespace blqw
         {
             if (val == null)
             {
-                return Activator.CreateInstance(type);
+                if (type.IsValueType)
+                {
+                    return Activator.CreateInstance(type);
+                }
+                return null;
             }
             if (type.IsInstanceOfType(val) == false)
             {
