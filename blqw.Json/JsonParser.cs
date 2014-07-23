@@ -299,6 +299,7 @@ namespace blqw
             {
                 ThrowMissingCharException(':'); //失败,终止方法
             }
+            
             return key;
         }
 
@@ -459,7 +460,13 @@ namespace blqw
         {
             object obj;
 
-            if (type.IsAssignableFrom(typeof(IDictionary)))
+            if (type == typeof(object))
+            {
+                obj = new Dictionary<string, object>();
+                FillDictionary((IDictionary)obj, typeof(string), typeof(object), reader);
+                return obj;
+            }
+            if (typeof(IDictionary).IsAssignableFrom(type))
             {
                 var st = GenericCollection.GetDict(type);
                 if (st.Init == null)
@@ -468,12 +475,6 @@ namespace blqw
                 }
                 obj = st.Init();
                 FillDictionary((IDictionary)obj, st.KeyType, st.ElementType, reader);
-                return obj;
-            }
-            if (type == typeof(object))
-            {
-                obj = new Dictionary<string, object>();
-                FillDictionary((IDictionary)obj, typeof(string), typeof(object), reader);
                 return obj;
             }
             var lit = Literacy.Cache(type, true);
