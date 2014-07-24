@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 
 namespace blqw
 {
@@ -11,13 +12,13 @@ namespace blqw
     {
         //循环引用对象缓存区
         //private readonly Dictionary<object, object> _loopObject = new Dictionary<object, object>();
-        protected UnsafeStringWriter Buffer;//字符缓冲区
+        protected QuickStringWriter Buffer;//字符缓冲区
 
         /// <summary> 将对象转换为Json字符串
         /// </summary>
         public string ToJsonString(object obj)
         {
-            using (Buffer = new UnsafeStringWriter(4096))
+            using (Buffer = new QuickStringWriter(4096))
             {
                 AppendObject(obj);
                 return Buffer.ToString();
@@ -74,33 +75,33 @@ namespace blqw
         {
             switch (obj.GetTypeCode())
             {
-                case TypeCode.Boolean: AppendBoolean(obj.ToBoolean(null));
+                case TypeCode.Boolean: AppendBoolean(obj.ToBoolean(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.Byte: AppendByte(obj.ToByte(null));
+                case TypeCode.Byte: AppendByte(obj.ToByte(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.Char: AppendChar(obj.ToChar(null));
+                case TypeCode.Char: AppendChar(obj.ToChar(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.DateTime: AppendDateTime(obj.ToDateTime(null));
+                case TypeCode.DateTime: AppendDateTime(obj.ToDateTime(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.Decimal: AppendDecimal(obj.ToDecimal(null));
+                case TypeCode.Decimal: AppendDecimal(obj.ToDecimal(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.Double: AppendDouble(obj.ToDouble(null));
+                case TypeCode.Double: AppendDouble(obj.ToDouble(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.Int16: AppendInt16(obj.ToInt16(null));
+                case TypeCode.Int16: AppendInt16(obj.ToInt16(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.Int32: AppendInt32(obj.ToInt32(null));
+                case TypeCode.Int32: AppendInt32(obj.ToInt32(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.Int64: AppendInt64(obj.ToInt64(null));
+                case TypeCode.Int64: AppendInt64(obj.ToInt64(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.SByte: AppendSByte(obj.ToSByte(null));
+                case TypeCode.SByte: AppendSByte(obj.ToSByte(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.Single: AppendSingle(obj.ToSingle(null));
+                case TypeCode.Single: AppendSingle(obj.ToSingle(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.UInt16: AppendUInt16(obj.ToUInt16(null));
+                case TypeCode.UInt16: AppendUInt16(obj.ToUInt16(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.UInt32: AppendUInt32(obj.ToUInt32(null));
+                case TypeCode.UInt32: AppendUInt32(obj.ToUInt32(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.UInt64: AppendUInt64(obj.ToUInt64(null));
+                case TypeCode.UInt64: AppendUInt64(obj.ToUInt64(CultureInfo.InvariantCulture));
                     break;
                 default:
                     if (obj is ValueType)
@@ -411,27 +412,27 @@ namespace blqw
                 case TypeCode.Decimal:
                 case TypeCode.Double:
                 case TypeCode.Single:
-                    Buffer.Append(number.ToString(null));
+                    Buffer.Append(number.ToString(CultureInfo.InvariantCulture));
                     break;
                 case TypeCode.Int16:
-                    Buffer.Append(number.ToInt16(null));
+                    Buffer.Append(number.ToInt16(CultureInfo.InvariantCulture));
                     break;
                 case TypeCode.Int32:
                 case TypeCode.Int64:
-                    Buffer.Append(number.ToInt64(null));
+                    Buffer.Append(number.ToInt64(CultureInfo.InvariantCulture));
                     break;
                 case TypeCode.SByte:
-                    Buffer.Append(number.ToSByte(null));
+                    Buffer.Append(number.ToSByte(CultureInfo.InvariantCulture));
                     break;
                 case TypeCode.Byte:
-                    Buffer.Append(number.ToByte(null));
+                    Buffer.Append(number.ToByte(CultureInfo.InvariantCulture));
                     break;
                 case TypeCode.UInt16:
-                    Buffer.Append(number.ToUInt16(null));
+                    Buffer.Append(number.ToUInt16(CultureInfo.InvariantCulture));
                     break;
                 case TypeCode.UInt32:
                 case TypeCode.UInt64:
-                    Buffer.Append(number.ToUInt64(null));
+                    Buffer.Append(number.ToUInt64(CultureInfo.InvariantCulture));
                     break;
                 default:
                     break;
