@@ -10,7 +10,23 @@ namespace blqw
     [DebuggerDisplay("长度:{Length} 内容: {DebugInfo}")]
     public unsafe class UnsafeStringWriter : IDisposable
     {
+
+        public UnsafeStringWriter()
+            : this(4096)
+        {
+
+        }
+
+        public UnsafeStringWriter(ushort size)
+        {
+            _currIntPtr = System.Runtime.InteropServices.Marshal.AllocHGlobal(size * 2);//char是2个字节的
+            _current = (char*)_currIntPtr.ToPointer();
+
+            _endPosition = size - 1;
+        }
+
         #region 字段
+        IntPtr _currIntPtr;
         /// <summary> 一级缓冲指针
         /// </summary>
         Char* _current;
@@ -708,32 +724,6 @@ namespace blqw
 
         #endregion
 
-        /// <summary> 由于调用对象将内存指针固定后,通知当前实例指针准备就绪
-        /// </summary>
-        /// <param name="point">内存指针</param>
-        /// <param name="length">一级缓冲长度0~65536</param>
-        /// <returns></returns>
-        public UnsafeStringWriter Ready(Char* point, ushort length)
-        {
-            if (point == null)
-            {
-                throw new ArgumentNullException("point");
-            }
-            Close();
-            _endPosition = length - 1;
-            _current = point;
-            return this;
-        }
-
-        public char[] FixedPointer(ushort length = 4096)
-        {
-            var arr =  new char[length];
-            fixed (char* p = arr)
-            {
-                Ready(p, length);
-                return arr;
-            }
-        }
 
         /// <summary> 关闭当前实例
         /// <para>
@@ -798,10 +788,22 @@ namespace blqw
                                  new string(_current, 0, _position));
         }
 
+
+        #region Dispose
+        private int _disposeMark = 0;
+
         public void Dispose()
         {
+            var mark = System.Threading.Interlocked.Exchange(ref _disposeMark, 1);
+            if (mark == 1)
+            {
+                return;
+            }
             Close();
-        }
+            System.Runtime.InteropServices.Marshal.FreeHGlobal(_currIntPtr);
+            GC.SuppressFinalize(this);
+        } 
+        #endregion
 
     }
 }

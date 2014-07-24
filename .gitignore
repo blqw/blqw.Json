@@ -154,3 +154,7 @@ $RECYCLE.BIN/
 
 # Mac desktop service store files
 .DS_Store
+/blqw.Json/core/UsingLock.cs
+/blqw.Json/core/ExtendMethods/Type.cs
+/blqw.Json/core/Properties/AssemblyInfo.cs
+/blqw.Json/core/blqw.Core.csproj

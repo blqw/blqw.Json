@@ -9,6 +9,12 @@ blqw.Json.ToObject(Type,string);
 ```
 
 ####更新说明
+* 2014.07.24
+优化性能  
+优化代码结构
+修正AppendChar方法中的BUG  
+增加对特殊字符 \a,\b,\v,\f 的处理  
+  
 * 2014.07.23  
 修正几处关于时间类型的已知BUG  
 增加单元测试,测试数据与Newtonsoft对比  

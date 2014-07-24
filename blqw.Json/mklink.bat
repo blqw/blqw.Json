@@ -1,1 +1,1 @@
-mklink /h /j Literacy ..\..\blqw.Literacy\Literacy\Literacy\
+mklink /h /j core ..\..\blqw-core\blqw.Core

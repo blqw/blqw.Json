@@ -131,6 +131,10 @@ namespace blqw
 
         private void FillObject(object obj, Literacy lit, UnsafeJsonReader reader)
         {
+            if (reader.IsEnd())
+            {
+                ThrowException("字符串意外结束!");
+            }
             if (reader.Current == '}') return;
             if (obj is IDictionary)
             {
@@ -162,6 +166,10 @@ namespace blqw
 
         private void FillDictionary(IDictionary dict, Type keyType, Type elementType, UnsafeJsonReader reader)
         {
+            if (reader.IsEnd())
+            {
+                ThrowException("字符串意外结束!");
+            }
             if (reader.Current == '}') return;
             if (keyType == typeof(string) || keyType == typeof(object))
             {
@@ -191,6 +199,10 @@ namespace blqw
 
         private void FillList(IList list, Type elementType, UnsafeJsonReader reader)
         {
+            if (reader.IsEnd())
+            {
+                ThrowException("字符串意外结束!");
+            }
             if (reader.Current == ']') return;
             while (true)
             {
@@ -208,6 +220,10 @@ namespace blqw
         /// <param name="reader"></param>
         private static void SkipValue(UnsafeJsonReader reader)
         {
+            if (reader.IsEnd())
+            {
+                ThrowException("字符串意外结束!");
+            }
             switch (reader.Current)
             {
                 case '[':
