@@ -5,28 +5,40 @@ using System.Globalization;
 
 namespace blqw
 {
-    /// <summary> 以非安全方式访问指针操作字符串直接写入内存,以提高字符串拼接效率
+    /// <summary> 高效的字符串拼接类, 无法继承此类
     /// </summary>
     [DebuggerDisplay("长度:{Length} 内容: {DebugInfo}")]
-    public unsafe class UnsafeStringWriter : IDisposable
+    public unsafe sealed class QuickStringWriter : IDisposable
     {
-
-        public UnsafeStringWriter()
+        /// <summary> 初始化对象,使用默认大小的缓冲区(4096字节)
+        /// </summary>
+        public QuickStringWriter()
             : this(4096)
         {
 
         }
 
-        public UnsafeStringWriter(ushort size)
+        /// <summary> 初始化对象,并指定缓冲区大小
+        /// </summary>
+        /// <param name="size"></param>
+        public QuickStringWriter(ushort size)
         {
-            _currIntPtr = System.Runtime.InteropServices.Marshal.AllocHGlobal(size * 2);//char是2个字节的
-            _current = (char*)_currIntPtr.ToPointer();
-
+            //确定最后一个字符的位置  长度-1
             _endPosition = size - 1;
+            //生成字符串缓冲指针 ,一个char是2个字节,所以要乘以2
+            _currIntPtr = System.Runtime.InteropServices.Marshal.AllocHGlobal(size * 2);
+            _current = (char*)_currIntPtr.ToPointer();
+            //申请数字缓冲区内存 ,20个char足够放下long 和 ulong
+            _numberIntPtr = System.Runtime.InteropServices.Marshal.AllocHGlobal(20 * 2);
+            _number = (char*)_numberIntPtr.ToPointer();
         }
 
         #region 字段
-        IntPtr _currIntPtr;
+        /// <summary> 数字缓冲指针
+        /// </summary>
+        private unsafe char* _number;
+        private readonly IntPtr _numberIntPtr;
+        private readonly IntPtr _currIntPtr;
         /// <summary> 一级缓冲指针
         /// </summary>
         Char* _current;
@@ -115,9 +127,103 @@ namespace blqw
         #endregion
 
         #region Append
+        private static char HexToChar(int a)
+        {
+            a &= 15;
+            return a > 9 ? (char)(a - 10 + 0x61) : (char)(a + 0x30);
+        }
+
+        /// <summary> 将 Guid 对象转换为字符串追加到当前实例。
+        /// </summary>
+        public QuickStringWriter Append(Guid val, char format = 'd')
+        {
+            int flag;
+            switch (format)
+            {
+                case 'd':
+                case 'D':
+                    flag = 1;
+                    TryWrite(36);
+                    break;
+                case 'N':
+                case 'n':
+                    flag = 0;
+                    TryWrite(32);
+                    break;
+                case 'P':
+                case 'p':
+                    TryWrite(38);
+                    _current[_position++] = '(';
+                    flag = ')';
+                    break;
+                case 'B':
+                case 'b':
+                    TryWrite(38);
+                    _current[_position++] = '{';
+                    flag = '}';
+                    break;
+                default:
+                    Append(val.ToString(format.ToString()));
+                    return this;
+            }
+            var bs = val.ToByteArray();
+            _current[_position++] = HexToChar(bs[3] >> 4);
+            _current[_position++] = HexToChar(bs[3]);
+            _current[_position++] = HexToChar(bs[2] >> 4);
+            _current[_position++] = HexToChar(bs[2]);
+            _current[_position++] = HexToChar(bs[1] >> 4);
+            _current[_position++] = HexToChar(bs[1]);
+            _current[_position++] = HexToChar(bs[0] >> 4);
+            _current[_position++] = HexToChar(bs[0]);
+            if (flag > 0)
+            {
+                _current[_position++] = '-';
+            }
+            _current[_position++] = HexToChar(bs[5] >> 4);
+            _current[_position++] = HexToChar(bs[5]);
+            _current[_position++] = HexToChar(bs[4] >> 4);
+            _current[_position++] = HexToChar(bs[4]);
+            if (flag > 0)
+            {
+                _current[_position++] = '-';
+            }
+            _current[_position++] = HexToChar(bs[7] >> 4);
+            _current[_position++] = HexToChar(bs[7]);
+            _current[_position++] = HexToChar(bs[6] >> 4);
+            _current[_position++] = HexToChar(bs[6]);
+            if (flag > 0)
+            {
+                _current[_position++] = '-';
+            }
+            _current[_position++] = HexToChar(bs[8] >> 4);
+            _current[_position++] = HexToChar(bs[8]);
+            _current[_position++] = HexToChar(bs[9] >> 4);
+            _current[_position++] = HexToChar(bs[9]);
+            if (flag > 0)
+            {
+                _current[_position++] = '-';
+            }
+            _current[_position++] = HexToChar(bs[10] >> 4);
+            _current[_position++] = HexToChar(bs[10]);
+            _current[_position++] = HexToChar(bs[11] >> 4);
+            _current[_position++] = HexToChar(bs[11]);
+            _current[_position++] = HexToChar(bs[12] >> 4);
+            _current[_position++] = HexToChar(bs[12]);
+            _current[_position++] = HexToChar(bs[13] >> 4);
+            _current[_position++] = HexToChar(bs[13]);
+            _current[_position++] = HexToChar(bs[14] >> 4);
+            _current[_position++] = HexToChar(bs[14]);
+            _current[_position++] = HexToChar(bs[15] >> 4);
+            _current[_position++] = HexToChar(bs[15]);
+            if (flag > 1)
+            {
+                _current[_position++] = (char)flag;
+            }
+            return this;
+        }
         /// <summary> 将 Boolean 对象转换为字符串追加到当前实例。
         /// </summary>
-        public UnsafeStringWriter Append(Boolean val)
+        public QuickStringWriter Append(Boolean val)
         {
             if (val)
             {
@@ -140,7 +246,7 @@ namespace blqw
         }
         /// <summary> 将 DateTime 对象转换为字符串追加到当前实例。
         /// </summary>
-        public UnsafeStringWriter Append(DateTime val)
+        public QuickStringWriter Append(DateTime val)
         {
             TryWrite(18);
             int a = val.Year;
@@ -250,151 +356,51 @@ namespace blqw
             #endregion
             return this;
         }
-        /// <summary> 将 Guid 对象转换为字符串追加到当前实例。
-        /// </summary>
-        public UnsafeStringWriter Append(Guid val)
-        {
-            Append(val.ToString());
-            return this;
-        }
         /// <summary> 将 Decimal 对象转换为字符串追加到当前实例。
         /// </summary>
-        public UnsafeStringWriter Append(Decimal val)
+        public QuickStringWriter Append(Decimal val)
         {
             Append(val.ToString(CultureInfo.InvariantCulture));
             return this;
         }
         /// <summary> 将 Double 对象转换为字符串追加到当前实例。
         /// </summary>
-        public UnsafeStringWriter Append(Double val)
+        public QuickStringWriter Append(Double val)
         {
-            Append(Convert.ToString(val));
+            Append(val.ToString(CultureInfo.InvariantCulture));
             return this;
         }
         /// <summary> 将 Single 对象转换为字符串追加到当前实例。
         /// </summary>
-        public UnsafeStringWriter Append(Single val)
+        public QuickStringWriter Append(Single val)
         {
-            Append(Convert.ToString(val));
+            Append(val.ToString(CultureInfo.InvariantCulture));
             return this;
         }
         /// <summary> 将 SByte 对象转换为字符串追加到当前实例。
         /// </summary>
-        public UnsafeStringWriter Append(SByte val)
+        public QuickStringWriter Append(SByte val)
         {
-            if (val == 0)
-            {
-                TryWrite();
-                _current[_position++] = '0';
-                return this;
-            }
-            if (val < 0)
-            {
-                TryWrite();
-                val *= -1;
-                _current[_position++] = '-';
-            }
-            if (val < 10)
-            {
-                TryWrite();
-                _current[_position++] = (char)('0' + val);
-            }
-            else if (val < 100)
-            {
-                if (TryWrite(2))
-                {
-                    Flush();
-                }
-                _current[_position++] = (char)('0' + val / 10);
-                _current[_position++] = (char)('0' + val % 10);
-            }
-            else
-            {
-                if (TryWrite(3))
-                {
-                    Flush();
-                }
-                _current[_position++] = (char)('0' + val / 100);
-                _current[_position++] = (char)('0' + val / 10 % 10);
-                _current[_position++] = (char)('0' + val % 10);
-            }
+            Append((long)val);
             return this;
         }
         /// <summary> 将 Int16 对象转换为字符串追加到当前实例。
         /// </summary>
-        public UnsafeStringWriter Append(Int16 val)
+        public QuickStringWriter Append(Int16 val)
         {
-            if (val == 0)
-            {
-                TryWrite();
-                _current[_position++] = '0';
-                return this;
-            }
-            if (val < 0)
-            {
-                TryWrite();
-                val *= -1;
-                _current[_position++] = '-';
-            }
-            if (val < 10)
-            {
-                TryWrite();
-                _current[_position++] = (char)('0' + val);
-            }
-            else if (val < 100)
-            {
-                if (TryWrite(2))
-                {
-                    Flush();
-                }
-                _current[_position++] = (char)('0' + val / 10);
-                _current[_position++] = (char)('0' + val % 10);
-            }
-            else if (val < 1000)
-            {
-                if (TryWrite(3))
-                {
-                    Flush();
-                }
-                _current[_position++] = (char)('0' + val / 100);
-                _current[_position++] = (char)('0' + val / 10 % 10);
-                _current[_position++] = (char)('0' + val % 10);
-            }
-            else if (val < 10000)
-            {
-                if (TryWrite(4))
-                {
-                    Flush();
-                }
-                _current[_position++] = (char)('0' + val / 1000);
-                _current[_position++] = (char)('0' + val / 100 % 10);
-                _current[_position++] = (char)('0' + val / 10 % 10);
-                _current[_position++] = (char)('0' + val % 10);
-            }
-            else
-            {
-                if (TryWrite(5))
-                {
-                    Flush();
-                }
-                _current[_position++] = (char)('0' + val / 10000);
-                _current[_position++] = (char)('0' + val / 1000 % 10);
-                _current[_position++] = (char)('0' + val / 100 % 10);
-                _current[_position++] = (char)('0' + val / 10 % 10);
-                _current[_position++] = (char)('0' + val % 10);
-            }
+            Append((long)val);
             return this;
         }
         /// <summary> 将 Int32 对象转换为字符串追加到当前实例。
         /// </summary>
-        public UnsafeStringWriter Append(Int32 val)
+        public QuickStringWriter Append(Int32 val)
         {
-            Append((Int64)val);
+            Append((long)val);
             return this;
         }
         /// <summary> 将 Int64 对象转换为字符串追加到当前实例。
         /// </summary>
-        public UnsafeStringWriter Append(Int64 val)
+        public QuickStringWriter Append(Int64 val)
         {
             if (val == 0)
             {
@@ -403,38 +409,38 @@ namespace blqw
                 return this;
             }
 
-            char[] arr = new char[64];
-            fixed (char* a = arr)
-            {
-                char* number = a;
+            var zero = (long)'0';
 
-                var pos = 63;
-                if (val < 0)
+            var pos = 19;
+            var f = val < 0;
+            if (f)
+            {
+                _number[pos] = (char)(~(val % 10L) + (long)'1');
+                if (val < -10)
                 {
-                    _current[_position++] = '-';
-                    number[pos] = (char)(~(val % 10) + '1');
-                    if (val < -10)
-                    {
-                        val = val / -10;
-                        number[--pos] = (char)(val % 10 + '0');
-                    }
+                    val = val / -10;
+                    _number[--pos] = (char)(val % 10L + zero);
                 }
-                else
-                {
-                    number[pos] = (char)(val % 10 + '0');
-                }
-                while ((val = val / 10L) != 0L)
-                {
-                    number[--pos] = (char)(val % 10L + '0');
-                }
-                var length = 64 - pos;
-                Append(number, pos, length);
             }
+            else
+            {
+                _number[pos] = (char)(val % 10L + zero);
+            }
+            while ((val = val / 10L) != 0L)
+            {
+                _number[--pos] = (char)(val % 10L + zero);
+            }
+            if (f)
+            {
+                _number[--pos] = '-';
+            }
+            var length = 20 - pos;
+            Append(_number, pos, length);
             return this;
         }
         /// <summary> 将 Char 对象转换为字符串追加到当前实例。
         /// </summary>
-        public UnsafeStringWriter Append(Char val)
+        public QuickStringWriter Append(Char val)
         {
             TryWrite();
             _current[_position++] = val;
@@ -442,7 +448,7 @@ namespace blqw
         }
         /// <summary> 将 Byte 对象转换为字符串追加到当前实例。
         /// </summary>
-        public UnsafeStringWriter Append(Byte val)
+        public QuickStringWriter Append(Byte val)
         {
             if (val == 0)
             {
@@ -477,73 +483,21 @@ namespace blqw
         }
         /// <summary> 将 UInt16 对象转换为字符串追加到当前实例。
         /// </summary>
-        public UnsafeStringWriter Append(UInt16 val)
+        public QuickStringWriter Append(UInt16 val)
         {
-            if (val == 0)
-            {
-                TryWrite();
-                _current[_position++] = '0';
-                return this;
-            }
-            if (val < 10)
-            {
-                TryWrite();
-                _current[_position++] = (char)('0' + val);
-            }
-            else if (val < 100)
-            {
-                if (TryWrite(2))
-                {
-                    Flush();
-                }
-                _current[_position++] = (char)('0' + val / 10);
-                _current[_position++] = (char)('0' + val % 10);
-            }
-            else if (val < 1000)
-            {
-                if (TryWrite(3))
-                {
-                    Flush();
-                }
-                _current[_position++] = (char)('0' + val / 100);
-                _current[_position++] = (char)('0' + val / 10 % 10);
-                _current[_position++] = (char)('0' + val % 10);
-            }
-            else if (val < 10000)
-            {
-                if (TryWrite(4))
-                {
-                    Flush();
-                }
-                _current[_position++] = (char)('0' + val / 1000);
-                _current[_position++] = (char)('0' + val / 100 % 10);
-                _current[_position++] = (char)('0' + val / 10 % 10);
-                _current[_position++] = (char)('0' + val % 10);
-            }
-            else
-            {
-                if (TryWrite(5))
-                {
-                    Flush();
-                }
-                _current[_position++] = (char)('0' + val / 10000);
-                _current[_position++] = (char)('0' + val / 1000 % 10);
-                _current[_position++] = (char)('0' + val / 100 % 10);
-                _current[_position++] = (char)('0' + val / 10 % 10);
-                _current[_position++] = (char)('0' + val % 10);
-            }
+            Append((UInt64)val);
             return this;
         }
         /// <summary> 将 UInt32 对象转换为字符串追加到当前实例。
         /// </summary>
-        public UnsafeStringWriter Append(UInt32 val)
+        public QuickStringWriter Append(UInt32 val)
         {
             Append((UInt64)val);
             return this;
         }
         /// <summary> 将 UInt64 对象转换为字符串追加到当前实例。
         /// </summary>
-        public UnsafeStringWriter Append(UInt64 val)
+        public QuickStringWriter Append(UInt64 val)
         {
             if (val == 0)
             {
@@ -551,26 +505,22 @@ namespace blqw
                 _current[_position++] = '0';
                 return this;
             }
-            var arr = new char[64];
-            fixed (char* a = arr)
+            var zero = (ulong)'0';
+
+            var pos = 19;
+            _number[pos] = (char)(val % 10 + zero);
+
+            while ((val = val / (ulong)10) != (ulong)0)
             {
-                char* number = a;
-                var pos = 63;
-
-                number[pos] = (char)(val % 10 + '0');
-
-                while ((val = val / 10L) != 0L)
-                {
-                    number[--pos] = (char)(val % 10L + '0');
-                }
-                var length = 64 - pos;
-                Append(number, pos, length);
+                _number[--pos] = (char)(val % (ulong)10 + zero);
             }
+            var length = 20 - pos;
+            Append(_number, pos, length);
             return this;
         }
         /// <summary> 将字符串追加到当前实例。
         /// </summary>
-        public UnsafeStringWriter Append(String val)
+        public QuickStringWriter Append(String val)
         {
             if (val == null)
             {
@@ -647,7 +597,7 @@ namespace blqw
         /// <param name="offset">指针偏移量</param>
         /// <param name="length">字符长度</param>
         /// <returns></returns>
-        internal UnsafeStringWriter Append(char* point, int offset, int length)
+        public QuickStringWriter Append(char* point, int offset, int length)
         {
             if (length > 0)
             {
@@ -693,9 +643,9 @@ namespace blqw
         }
         /// <summary> 将可格式化对象,按指定的格式转换为字符串追加到当前实例。
         /// </summary>
-        public UnsafeStringWriter AppendFormat(IFormattable val, string format)
+        public QuickStringWriter AppendFormat(string format, params object[] args)
         {
-            Append(val.ToString(format, null));
+            Append(string.Format(format, args));
             return this;
         }
 
@@ -703,7 +653,7 @@ namespace blqw
         /// </summary>
         /// <param name="strings">字符串集合</param>
         /// <returns></returns>
-        public UnsafeStringWriter Append(IEnumerable<string> strings)
+        public QuickStringWriter Append(IEnumerable<string> strings)
         {
             foreach (var str in strings)
             {
@@ -715,10 +665,60 @@ namespace blqw
         /// </summary>
         /// <param name="str">追加到集合的字符串</param>
         /// <returns></returns>
-        public UnsafeStringWriter AppendLine(string str)
+        public QuickStringWriter AppendLine(string str)
         {
             Append(str);
             Append(Environment.NewLine);
+            return this;
+        }
+
+        /// <summary> 将任意对象追加到当前实例。
+        /// </summary>
+        /// <param name="obj">对象实例</param>
+        /// <returns></returns>
+        public QuickStringWriter AppendLine(object obj)
+        {
+            if (obj == null)
+            {
+                return this;
+            }
+            var conv = obj as IConvertible;
+            if (conv != null)
+            {
+                switch (conv.GetTypeCode())
+                {
+                    case TypeCode.Boolean: Append(conv.ToBoolean(CultureInfo.InvariantCulture));
+                        break;
+                    case TypeCode.Char: Append(conv.ToChar(CultureInfo.InvariantCulture));
+                        break;
+                    case TypeCode.DateTime: Append(conv.ToDateTime(CultureInfo.InvariantCulture));
+                        break;
+                    case TypeCode.SByte:
+                    case TypeCode.Int16:
+                    case TypeCode.Int32:
+                    case TypeCode.Int64: Append(conv.ToInt64(CultureInfo.InvariantCulture));
+                        break;
+                    case TypeCode.Decimal:
+                    case TypeCode.Double:
+                    case TypeCode.Single: Append(conv.ToString(CultureInfo.InvariantCulture));
+                        break;
+                    case TypeCode.Byte:
+                    case TypeCode.UInt16:
+                    case TypeCode.UInt32:
+                    case TypeCode.UInt64: Append(conv.ToUInt64(CultureInfo.InvariantCulture));
+                        break;
+                    default: Append(obj.ToString());
+                        break;
+                }
+            }
+            else if (obj is Guid)
+            {
+                Append((Guid)obj);
+            }
+            else
+            {
+                Append(obj.ToString());
+            }
             return this;
         }
 
@@ -752,15 +752,15 @@ namespace blqw
                 _length += _position;
                 if (_bufferIndex == 8)
                 {
-                    _buffer[0] = string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3]);
-                    _buffer[1] = string.Concat(_buffer[4], _buffer[5], _buffer[6], _buffer[7]);
-                    _buffer[2] = new string(_current, 0, _position);
+                    _buffer[0] = string.Concat(_buffer);
+                    _buffer[1] = new string(_current, 0, _position);
+                    _buffer[2] =
                     _buffer[3] =
                     _buffer[4] =
                     _buffer[5] =
                     _buffer[6] =
                     _buffer[7] = null;
-                    _bufferIndex = 3;
+                    _bufferIndex = 2;
                 }
                 else
                 {
@@ -782,8 +782,7 @@ namespace blqw
             {
                 return string.Concat(_buffer[0], _buffer[1], _buffer[2], new string(_current, 0, _position));
             }
-            return string.Concat(
-                                 _buffer[0], _buffer[1], _buffer[2], _buffer[3],
+            return string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3],
                                  _buffer[4], _buffer[5], _buffer[6], _buffer[7],
                                  new string(_current, 0, _position));
         }
@@ -801,8 +800,9 @@ namespace blqw
             }
             Close();
             System.Runtime.InteropServices.Marshal.FreeHGlobal(_currIntPtr);
+            System.Runtime.InteropServices.Marshal.FreeHGlobal(_numberIntPtr);
             GC.SuppressFinalize(this);
-        } 
+        }
         #endregion
 
     }
