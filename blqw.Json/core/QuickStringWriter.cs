@@ -38,6 +38,8 @@ namespace blqw
         /// </summary>
         private unsafe char* _number;
         private readonly IntPtr _numberIntPtr;
+        /// <summary> 指针句柄
+        /// </summary>
         private readonly IntPtr _currIntPtr;
         /// <summary> 一级缓冲指针
         /// </summary>
@@ -54,7 +56,7 @@ namespace blqw
         /// <summary> 结束位,一级缓冲长度减一
         /// </summary>
         int _endPosition;
-        /// <summary> 以及缓冲当前位置
+        /// <summary> 一级缓冲当前位置
         /// </summary>
         int _position;
         #endregion
@@ -724,6 +726,17 @@ namespace blqw
 
         #endregion
 
+        /// <summary> 清空所有的数据
+        /// </summary>
+        public void Clear()
+        {
+            _buffer[0] = _buffer[1] =
+            _buffer[2] = _buffer[3] =
+            _buffer[4] = _buffer[5] =
+            _buffer[6] = _buffer[7] = null;
+            _length = 0;
+            _position = 0;
+        }
 
         /// <summary> 关闭当前实例
         /// <para>
@@ -733,12 +746,7 @@ namespace blqw
         /// </summary>
         public void Close()
         {
-            _buffer[0] = _buffer[1] =
-            _buffer[2] = _buffer[3] =
-            _buffer[4] = _buffer[5] =
-            _buffer[6] = _buffer[7] = null;
-            _length = 0;
-            _position = 0;
+            Clear();
             _endPosition = int.MaxValue;
             _current = null;
         }
