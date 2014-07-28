@@ -44,6 +44,7 @@
     <Compile Include="core\CounterChangedEventArgs.cs" />
     <Compile Include="core\DictionaryEx.cs" />
     <Compile Include="core\Disposable.cs" />
+    <Compile Include="core\ExtendMethods\Type.cs" />
     <Compile Include="core\Literacy\Delegate.cs" />
     <Compile Include="core\Literacy\ILoadMember.cs" />
     <Compile Include="core\Literacy\Literacy.cs" />

@@ -181,7 +181,7 @@ namespace blqw
                 Buffer.Append(key);
                 Buffer.Append('"');
             }
-            Buffer.Append(',');
+            Buffer.Append(':');
         }
         /// <summary> Byte 对象转换Json字符串写入Buffer
         /// </summary>
@@ -451,7 +451,7 @@ namespace blqw
                 AppendObject(ee.Current);
                 while (ee.MoveNext())
                 {
-                    Buffer.Append(':');
+                    Buffer.Append(',');
                     AppendObject(ee.Current);
                 }
             }
@@ -479,7 +479,7 @@ namespace blqw
                 AppendObject(ve.Current);
                 while (ke.MoveNext() && ve.MoveNext())
                 {
-                    Buffer.Append(':');
+                    Buffer.Append(',');
                     AppendKey(ke.Current + "", true);
                     AppendObject(ve.Current);
                 }
@@ -499,7 +499,7 @@ namespace blqw
                 AppendObject(getVal(ee.Current));
                 while (ee.MoveNext())
                 {
-                    Buffer.Append(':');
+                    Buffer.Append(',');
                     AppendObject(getVal(ee.Current));
                 }
             }

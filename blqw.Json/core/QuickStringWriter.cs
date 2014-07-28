@@ -768,15 +768,10 @@ namespace blqw
                 _length += _position;
                 if (_bufferIndex == 8)
                 {
-                    _buffer[0] = string.Concat(_buffer);
-                    _buffer[1] = new string(_current, 0, _position);
-                    _buffer[2] =
-                    _buffer[3] =
-                    _buffer[4] =
-                    _buffer[5] =
-                    _buffer[6] =
-                    _buffer[7] = null;
-                    _bufferIndex = 2;
+                    _buffer[0] = string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3],
+                                 _buffer[4], _buffer[5], _buffer[6], _buffer[7],
+                                 new string(_current, 0, _position));
+                    _bufferIndex = 1;
                 }
                 else
                 {
@@ -790,17 +785,29 @@ namespace blqw
         /// </summary>
         public override string ToString()
         {
-            if (_bufferIndex == 0)
+            switch (_bufferIndex)
             {
-                return new string(_current, 0, _position);
+                case 0:
+                    return new string(_current, 0, _position);
+                case 1:
+                    return string.Concat(_buffer[0], new string(_current, 0, _position));
+                case 2:
+                    return string.Concat(_buffer[0], _buffer[1], new string(_current, 0, _position));
+                case 3:
+                    return string.Concat(_buffer[0], _buffer[1], _buffer[2], new string(_current, 0, _position));
+                case 4:
+                    return string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3],                                         new string(_current, 0, _position));
+                case 5:
+                    return string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3],                                         _buffer[4],new string(_current, 0, _position));
+                case 6:
+                    return string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3],                                         _buffer[4], _buffer[5],new string(_current, 0, _position));
+                case 7:
+                    return string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3],                                         _buffer[4], _buffer[5], _buffer[6],                                         new string(_current, 0, _position));
+                case 8:
+                    return string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3],                                         _buffer[4], _buffer[5], _buffer[6], _buffer[7],                                         new string(_current, 0, _position));
+                default:
+                    throw new NotSupportedException();
             }
-            if (_bufferIndex <= 3)
-            {
-                return string.Concat(_buffer[0], _buffer[1], _buffer[2], new string(_current, 0, _position));
-            }
-            return string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3],
-                                 _buffer[4], _buffer[5], _buffer[6], _buffer[7],
-                                 new string(_current, 0, _position));
         }
 
 

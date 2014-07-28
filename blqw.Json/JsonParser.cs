@@ -501,26 +501,61 @@ namespace blqw
 
         private static object ChangeType(object val, Type type)
         {
+            object value;
+            if (TryChangeType(val, type, out value))
+            {
+                return value;
+            }
             if (val == null)
             {
-                if (type.IsValueType)
+                throw new InvalidCastException("从 null 到" + ExtendMethod.DisplayName(type) + "转换失败");
+            }
+            throw new InvalidCastException("从" + ExtendMethod.DisplayName(val.GetType()) + "到" + ExtendMethod.DisplayName(type) + "转换失败");
+        }
+
+        private static bool TryChangeType<T>(object arg, Type type, out T value)
+        {
+            if (type.IsInstanceOfType(arg))
+            {
+                value = (T)arg;
+                return true;
+            }
+            if (arg == null || arg is DBNull)
+            {
+                value = default(T);
+                if (!type.IsValueType)
                 {
-                    return Activator.CreateInstance(type);
+                    return true;
                 }
-                return null;
-            }
-            if (type.IsInstanceOfType(val) == false)
-            {
-                return val;
-            }
-            var str = val as string;
-            if (str != null && str.Length == 0)
-            {
-                return Activator.CreateInstance(type);
+                else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                {
+                    return true;
+                }
+                return false;
             }
 
-            return Convert.ChangeType(val, type);
+            if (type.IsEnum)
+            {
+                value = (T)Enum.ToObject(type, arg);
+                return true;
+            }
+            else if (type.IsValueType && type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                type = type.GetGenericArguments()[0];
+            }
+            try
+            {
+
+                value = (T)Convert.ChangeType(arg, type);
+                return true;
+            }
+            catch
+            {
+                value = default(T);
+                return false;
+            }
         }
+
 
         private static void ThrowMissingCharException(char c)
         {

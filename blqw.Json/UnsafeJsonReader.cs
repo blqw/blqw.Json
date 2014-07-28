@@ -804,19 +804,15 @@ namespace blqw
                 switch ((_WordChars[Current] & 6))
                 {
                     case 0:
-                        if (neg)
+                        if (pot >= 0)
                         {
-                            if (pot >= 0)
+                            if (neg)
                             {
                                 return -ReadDecimal(index, _position);
                             }
-                            return -ReadInteger(index, _position);
-                        }
-                        if (pot >= 0)
-                        {
                             return ReadDecimal(index, _position);
                         }
-                        return ReadInteger(index, _position);
+                        return ReadInteger(index, _position, neg);
                     case 4:
                         break;
                     case 6:
@@ -897,14 +893,45 @@ namespace blqw
         /// <param name="index"></param>
         /// <param name="end"></param>
         /// <returns></returns>
-        private long ReadInteger(int index, int end)
+        private IConvertible ReadInteger(int index, int end, bool neg)
         {
-            long l = 0L;
+            var length = end - index;
+            if (length > 19)
+            {
+                if (neg)
+                {
+                    return -ReadDecimal(index, _position);
+                }
+                return ReadDecimal(index, _position);
+            }
+            ulong ul = 0uL;
             for (; index < end; index++)
             {
-                l = l * 10 + (_p[index] - (long)'0');
+                ul = ul * 10 + (_p[index] - (ulong)'0');
             }
-            return l;
+
+            if (!neg)
+            {
+                if (ul > long.MaxValue)
+                {
+                    return ul;
+                }
+                if (ul > int.MaxValue)
+                {
+                    return (long)ul;
+                }
+                return (int)ul;
+            }
+            else if (ul > long.MaxValue)
+            {
+                return (double)ul;
+            }
+            long l = (long)ul * (long)-1;
+            if (l < int.MinValue)
+            {
+                return l;
+            }
+            return (int)l;
         }
 
         /// <summary> 读取字符串
