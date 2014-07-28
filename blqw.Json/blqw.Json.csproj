@@ -53,8 +53,13 @@
     <Compile Include="core\LoadResourceDll.cs" />
     <Compile Include="core\QuickStringWriter.cs" />
     <Compile Include="core\WinApi.cs" />
+    <Compile Include="JsonObject\IJsonObject.cs" />
     <Compile Include="Json.cs" />
     <Compile Include="JsonBuilder.cs" />
+    <Compile Include="JsonObject\JsonArray.cs" />
+    <Compile Include="JsonObject\JsonObject.cs" />
+    <Compile Include="JsonObject\JsonTypeCode.cs" />
+    <Compile Include="JsonObject\JsonValue.cs" />
     <Compile Include="JsonParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QuickJsonBuilder.cs" />

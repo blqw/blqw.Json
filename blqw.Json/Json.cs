@@ -48,5 +48,6 @@ namespace blqw
             }
             return new JsonParser().ToObject(type, json);
         }
+
     }
 }
