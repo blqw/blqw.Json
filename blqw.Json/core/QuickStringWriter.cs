@@ -43,22 +43,22 @@ namespace blqw
         private readonly IntPtr _currIntPtr;
         /// <summary> 一级缓冲指针
         /// </summary>
-        Char* _current;
+        private char* _current;
         /// <summary> 二级缓冲
         /// </summary>
-        readonly string[] _buffer = new string[8];
+        private readonly string[] _buffer = new string[8];
         /// <summary> 备用二级缓冲索引
         /// </summary>
-        int _bufferIndex;
+        private int _bufferIndex;
         /// <summary> 总字符数
         /// </summary>
-        int _length;
+        private int _length;
         /// <summary> 结束位,一级缓冲长度减一
         /// </summary>
-        int _endPosition;
+        private int _endPosition;
         /// <summary> 一级缓冲当前位置
         /// </summary>
-        int _position;
+        private int _position;
         #endregion
 
         /// <summary> 获取当前实例中的字符串总长度
@@ -723,7 +723,15 @@ namespace blqw
             }
             return this;
         }
-
+        /// <summary> 将可格式化对象,经过格式化参数处理后,追加到当前实例。
+        /// </summary>
+        /// <param name="val">可格式化对象</param>
+        /// <param name="format">格式化参数</param>
+        /// <returns></returns>
+        public QuickStringWriter Append(IFormattable val,string format)
+        {
+            return Append(val.ToString(format, null));
+        }
         #endregion
 
         /// <summary> 清空所有的数据

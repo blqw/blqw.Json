@@ -19,19 +19,19 @@ namespace Demo
             TimeTest.TestCount = 100000;
             TimeTest.TestObject = obj1;
             TimeTest.TestQuickJsonBuilder();
-            TimeTest.TestFastJson();
+            //TimeTest.TestFastJson();
 
             Console.WriteLine("========================");
             TimeTest.TestCount = 2000;
             TimeTest.TestObject = obj2;
             TimeTest.TestQuickJsonBuilder();
-            TimeTest.TestFastJson();
+           // TimeTest.TestFastJson();
 
             Console.WriteLine("========================"); ;
             TimeTest.TestCount = 250;
             TimeTest.TestObject = obj3;
             TimeTest.TestQuickJsonBuilder();
-            TimeTest.TestFastJson();
+           // TimeTest.TestFastJson();
 
             //var obj2 = Newtonsoft.Json.JsonConvert.DeserializeObject<ResultDTO>(jsonStr);
             //var jsonStr1 = blqw.Json.ToJsonString(obj1);
