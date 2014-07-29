@@ -30,7 +30,18 @@ namespace blqw
             }
         }
 
-        public string[] Keys
+        public IJsonObject this[int index]
+        {
+            get
+            {
+                if (index >= 0 && index <= _list.Count)
+                {
+                    return JsonObject.ToJsonObject(_list[index]);
+                }
+                return JsonValue.Undefined;
+            }
+        }
+        public ICollection<string> Keys
         {
             get { throw new NotImplementedException(); }
         }
@@ -39,11 +50,14 @@ namespace blqw
         {
             get { throw new NotImplementedException(); }
         }
+
         public bool IsUndefined { get; private set; }
 
         public IEnumerator GetEnumerator()
         {
             return _list.GetEnumerator();
         }
+
+
     }
 }

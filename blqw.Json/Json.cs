@@ -49,5 +49,12 @@ namespace blqw
             return new JsonParser().ToObject(type, json);
         }
 
+        public static IJsonObject ToJsonObject(string json)
+        {
+            var obj = ToObject(json);
+            return JsonObject.ToJsonObject(obj);
+        }
+
+
     }
 }

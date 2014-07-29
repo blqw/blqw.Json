@@ -12,6 +12,14 @@ namespace Demo
     {
         static void Main(string[] args)
         {
+
+User user = User.TestUser();
+IJsonObject jobj = Json.ToJsonObject(Json.ToJsonString(user));
+Console.WriteLine(user.Name == jobj["Name"].ToString());
+Console.WriteLine(user.LoginHistory[0] == Convert.ToDateTime(jobj["LoginHistory"][0]));
+Console.WriteLine(user.Info.Phone["手机"] == jobj["Info"]["Phone"]["手机"].ToString());
+
+
             var obj1 = User.TestUser();
             var obj2 = blqw.Json.ToObject<ResultDTO>(File.ReadAllText("json1.txt"));
             var obj3 = blqw.Json.ToObject<List<Object2>>(File.ReadAllText("json2.txt"));
@@ -25,13 +33,13 @@ namespace Demo
             TimeTest.TestCount = 2000;
             TimeTest.TestObject = obj2;
             TimeTest.TestQuickJsonBuilder();
-           // TimeTest.TestFastJson();
+            // TimeTest.TestFastJson();
 
             Console.WriteLine("========================"); ;
             TimeTest.TestCount = 250;
             TimeTest.TestObject = obj3;
             TimeTest.TestQuickJsonBuilder();
-           // TimeTest.TestFastJson();
+            // TimeTest.TestFastJson();
 
             //var obj2 = Newtonsoft.Json.JsonConvert.DeserializeObject<ResultDTO>(jsonStr);
             //var jsonStr1 = blqw.Json.ToJsonString(obj1);

@@ -9,17 +9,17 @@ namespace blqw
     {
         internal static IJsonObject ToJsonObject(object obj)
         {
-            if (obj is IDictionary<string, object>)
+            if (obj is string)
+            {
+                return new JsonValue((string)obj);
+            }
+            else if (obj is IDictionary<string, object>)
             {
                 return new JsonObject((IDictionary<string, object>)obj);
             }
             else if (obj is IList)
             {
                 return new JsonArray((IList)obj);
-            }
-            else if (obj is string)
-            {
-                return new JsonValue((string)obj);
             }
             else if (obj == null)
             {
@@ -28,8 +28,8 @@ namespace blqw
             return JsonValue.Undefined;
         }
 
-
         public JsonObject(IDictionary<string, object> dict)
+            : this()
         {
             _dict = dict;
         }
@@ -40,20 +40,25 @@ namespace blqw
         {
             get
             {
-                object obj;
-                if (_dict.TryGetValue(key, out obj))
+                object value;
+                if (_dict.TryGetValue(key, out value))
                 {
-                    return ToJsonObject(obj);
+                    return ToJsonObject(value);
                 }
                 return JsonValue.Undefined;
             }
         }
 
-        public IEnumerable<string> Keys
+        public IJsonObject this[int index]
         {
-            get 
-            { 
-                return _dict.Keys; 
+            get { return this[index + ""]; }
+        }
+
+        public ICollection<string> Keys
+        {
+            get
+            {
+                return _dict.Keys;
             }
         }
 
@@ -61,93 +66,96 @@ namespace blqw
         {
             get { return JsonTypeCode.Object; }
         }
+
         public bool IsUndefined { get; private set; }
 
         public void Add(string key, object value)
         {
-            throw new NotImplementedException();
+            _dict.Add(key, value);
         }
 
         public bool ContainsKey(string key)
         {
-            throw new NotImplementedException();
-        }
-
-        ICollection<string> IDictionary<string, object>.Keys
-        {
-            get { throw new NotImplementedException(); }
+            return _dict.ContainsKey(key);
         }
 
         public bool Remove(string key)
         {
-            throw new NotImplementedException();
+            return _dict.Remove(key);
         }
 
         public bool TryGetValue(string key, out object value)
         {
-            throw new NotImplementedException();
+            return _dict.TryGetValue(key, out value);
         }
 
         public ICollection<object> Values
         {
-            get { throw new NotImplementedException(); }
+            get { return _dict.Values; }
         }
 
         object IDictionary<string, object>.this[string key]
         {
             get
             {
-                throw new NotImplementedException();
+                object value;
+                if (_dict.TryGetValue(key, out value))
+                {
+                    return value;
+                }
+                return null;
             }
             set
             {
-                throw new NotImplementedException();
+                _dict[key] = value;
             }
         }
 
         public void Add(KeyValuePair<string, object> item)
         {
-            throw new NotImplementedException();
+            _dict.Add(item);
         }
 
         public void Clear()
         {
-            throw new NotImplementedException();
+            _dict.Clear();
         }
 
         public bool Contains(KeyValuePair<string, object> item)
         {
-            throw new NotImplementedException();
+            return _dict.Contains(item);
         }
 
         public void CopyTo(KeyValuePair<string, object>[] array, int arrayIndex)
         {
-            throw new NotImplementedException();
+            _dict.CopyTo(array, arrayIndex);
         }
 
         public int Count
         {
-            get { throw new NotImplementedException(); }
+            get { return _dict.Count; }
         }
 
         public bool IsReadOnly
         {
-            get { throw new NotImplementedException(); }
+            get { return _dict.IsReadOnly; }
         }
 
         public bool Remove(KeyValuePair<string, object> item)
         {
-            throw new NotImplementedException();
+            return _dict.Remove(item);
         }
 
         public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
         {
-            throw new NotImplementedException();
+            return _dict.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            throw new NotImplementedException();
+            return _dict.GetEnumerator();
         }
+
+
     }
 }

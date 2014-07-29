@@ -728,7 +728,7 @@ namespace blqw
         /// <param name="val">可格式化对象</param>
         /// <param name="format">格式化参数</param>
         /// <returns></returns>
-        public QuickStringWriter Append(IFormattable val,string format)
+        public QuickStringWriter Append(IFormattable val, string format)
         {
             return Append(val.ToString(format, null));
         }
@@ -796,15 +796,15 @@ namespace blqw
                 case 3:
                     return string.Concat(_buffer[0], _buffer[1], _buffer[2], new string(_current, 0, _position));
                 case 4:
-                    return string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3],                                         new string(_current, 0, _position));
+                    return string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3], new string(_current, 0, _position));
                 case 5:
-                    return string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3],                                         _buffer[4],new string(_current, 0, _position));
+                    return string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3], _buffer[4], new string(_current, 0, _position));
                 case 6:
-                    return string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3],                                         _buffer[4], _buffer[5],new string(_current, 0, _position));
+                    return string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3], _buffer[4], _buffer[5], new string(_current, 0, _position));
                 case 7:
-                    return string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3],                                         _buffer[4], _buffer[5], _buffer[6],                                         new string(_current, 0, _position));
+                    return string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3], _buffer[4], _buffer[5], _buffer[6], new string(_current, 0, _position));
                 case 8:
-                    return string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3],                                         _buffer[4], _buffer[5], _buffer[6], _buffer[7],                                         new string(_current, 0, _position));
+                    return string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3], _buffer[4], _buffer[5], _buffer[6], _buffer[7], new string(_current, 0, _position));
                 default:
                     throw new NotSupportedException();
             }
@@ -816,16 +816,33 @@ namespace blqw
 
         public void Dispose()
         {
-            var mark = System.Threading.Interlocked.Exchange(ref _disposeMark, 1);
-            if (mark == 1)
+            var mark = System.Threading.Interlocked.Exchange(ref _disposeMark, 2);
+            if (mark > 1)
             {
                 return;
             }
-            Close();
+            if (mark == 1)
+            {
+                Close();
+            }
+            else
+            {
+                GC.SuppressFinalize(this);
+            }
             System.Runtime.InteropServices.Marshal.FreeHGlobal(_currIntPtr);
             System.Runtime.InteropServices.Marshal.FreeHGlobal(_numberIntPtr);
-            GC.SuppressFinalize(this);
         }
+
+        ~QuickStringWriter()
+        {
+            if (_disposeMark > 0)
+            {
+                return;
+            }
+            System.Threading.Interlocked.Increment(ref _disposeMark);
+            Dispose();
+        }
+
         #endregion
 
     }

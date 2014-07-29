@@ -9,6 +9,16 @@ blqw.Json.ToObject(Type,string);
 ```
 
 ####更新说明
+* 2014.07.29  
+新增 IJsonObject 类型
+```csharp
+User user = User.TestUser();
+IJsonObject jobj = Json.ToJsonObject(Json.ToJsonString(user));
+Console.WriteLine(user.Name == jobj["Name"].ToString());
+Console.WriteLine(user.LoginHistory[0] == Convert.ToDateTime(jobj["LoginHistory"][0]));
+Console.WriteLine(user.Info.Phone["手机"] == jobj["Info"]["Phone"]["手机"].ToString());
+```
+
 * 2014.07.24
 优化性能  
 优化代码结构
