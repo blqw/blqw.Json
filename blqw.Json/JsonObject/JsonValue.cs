@@ -8,13 +8,13 @@ namespace blqw
     {
         public readonly static JsonValue Undefined = new JsonValue(null) { IsUndefined = true };
 
-        public JsonValue(string value)
+        public JsonValue(IConvertible value)
             : this()
         {
             _value = value;
         }
 
-        private string _value;
+        private IConvertible _value;
 
         public IJsonObject this[string key]
         {
@@ -40,94 +40,92 @@ namespace blqw
 
         public override string ToString()
         {
-            return _value;
+            return _value.ToString(null);
         }
-
-
 
         TypeCode IConvertible.GetTypeCode()
         {
-            return System.TypeCode.String;
+            return _value.GetTypeCode();
         }
 
         bool IConvertible.ToBoolean(IFormatProvider provider)
         {
-            return bool.Parse(_value);
+            return _value.ToBoolean(provider);
         }
 
         byte IConvertible.ToByte(IFormatProvider provider)
         {
-            return byte.Parse(_value, provider);
+            return _value.ToByte(provider);
         }
 
         char IConvertible.ToChar(IFormatProvider provider)
         {
-            return char.Parse(_value);
+            return _value.ToChar(provider);
         }
 
         DateTime IConvertible.ToDateTime(IFormatProvider provider)
         {
-            return DateTime.Parse(_value, provider);
+            return _value.ToDateTime(provider);
         }
 
         decimal IConvertible.ToDecimal(IFormatProvider provider)
         {
-            return decimal.Parse(_value, provider);
+            return _value.ToDecimal(provider);
         }
 
         double IConvertible.ToDouble(IFormatProvider provider)
         {
-            return double.Parse(_value, provider);
+            return _value.ToDouble(provider);
         }
 
         short IConvertible.ToInt16(IFormatProvider provider)
         {
-            return short.Parse(_value, provider);
+            return _value.ToInt16(provider);
         }
 
         int IConvertible.ToInt32(IFormatProvider provider)
         {
-            return int.Parse(_value, provider);
+            return _value.ToInt32(provider);
         }
 
         long IConvertible.ToInt64(IFormatProvider provider)
         {
-            return long.Parse(_value, provider);
+            return _value.ToInt64(provider);
         }
 
         sbyte IConvertible.ToSByte(IFormatProvider provider)
         {
-            return sbyte.Parse(_value, provider);
+            return _value.ToSByte(provider);
         }
 
         float IConvertible.ToSingle(IFormatProvider provider)
         {
-            return float.Parse(_value, provider);
+            return _value.ToSingle(provider);
         }
 
         string IConvertible.ToString(IFormatProvider provider)
         {
-            return _value;
+            return _value.ToString(provider);
         }
 
         object IConvertible.ToType(Type conversionType, IFormatProvider provider)
         {
-            return ((IConvertible)_value).ToType(conversionType, provider);
+            return _value.ToType(conversionType, provider);
         }
 
         ushort IConvertible.ToUInt16(IFormatProvider provider)
         {
-            return ushort.Parse(_value, provider);
+            return _value.ToUInt16(provider);
         }
 
         uint IConvertible.ToUInt32(IFormatProvider provider)
         {
-            return uint.Parse(_value, provider);
+            return _value.ToUInt32(provider);
         }
 
         ulong IConvertible.ToUInt64(IFormatProvider provider)
         {
-            return ulong.Parse(_value, provider);
+            return _value.ToUInt64(provider);
         }
     }
 }

@@ -21,11 +21,15 @@ namespace blqw
             {
                 return new JsonArray((IList)obj);
             }
+            else if (obj is IConvertible)
+            {
+                return new JsonValue((IConvertible)obj);
+            }
             else if (obj == null)
             {
                 return new JsonValue(null);
             }
-            return JsonValue.Undefined;
+            return new JsonValue(obj.ToString());
         }
 
         public JsonObject(IDictionary<string, object> dict)

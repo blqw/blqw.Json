@@ -36,12 +36,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AttributeCollection.cs" />
     <Compile Include="Delegate.cs" />
     <Compile Include="ILoadMember.cs" />
     <Compile Include="Literacy.cs" />
     <Compile Include="ObjectProperty.cs" />
     <Compile Include="ObjectPropertyCollection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TypeCodeEx.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

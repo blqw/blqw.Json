@@ -30,7 +30,7 @@ namespace Demo
             user.Info.Phone.Add("电话", "82580000");
             user.Info.Phone.Add("短号", "10086");
             user.Info.Phone.Add("QQ", "21979018");
-            user.Double = Double.NegativeInfinity;
+            user.Double = System.Double.NegativeInfinity;
             // user.Self = user; //这里是用来测试循环引用的解析情况
             return user;
         }
@@ -49,6 +49,8 @@ namespace Demo
         /// <summary> 性别
         /// </summary>
         public UserSex Sex { get; set; }
+
+
         /// <summary> 是否删除标记
         /// </summary>
         public bool IsDeleted { get; set; }
@@ -58,7 +60,7 @@ namespace Demo
         /// <summary> 联系信息
         /// </summary>
         public UserInfo Info { get; set; }
-        public Double Double { get; set; }
+        public object Double { get; set; }
     }
     /// <summary> 用户性别
     /// </summary>

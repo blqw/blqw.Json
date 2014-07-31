@@ -13,11 +13,13 @@ namespace Demo
         static void Main(string[] args)
         {
 
-User user = User.TestUser();
-IJsonObject jobj = Json.ToJsonObject(Json.ToJsonString(user));
-Console.WriteLine(user.Name == jobj["Name"].ToString());
-Console.WriteLine(user.LoginHistory[0] == Convert.ToDateTime(jobj["LoginHistory"][0]));
-Console.WriteLine(user.Info.Phone["手机"] == jobj["Info"]["Phone"]["手机"].ToString());
+            User user = User.TestUser();
+            var u = blqw.Json.ToObject<User>(Json.ToJsonString(user));
+            IJsonObject jobj = Json.ToJsonObject(Json.ToJsonString(user));
+            Console.WriteLine(user.Double.ToString() == jobj["Double"].ToString());
+            Console.WriteLine(user.Name == jobj["Name"].ToString());
+            Console.WriteLine(user.LoginHistory[0] == Convert.ToDateTime(jobj["LoginHistory"][0]));
+            Console.WriteLine(user.Info.Phone["手机"] == jobj["Info"]["Phone"]["手机"].ToString());
 
 
             var obj1 = User.TestUser();

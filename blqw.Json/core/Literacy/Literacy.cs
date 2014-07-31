@@ -110,31 +110,34 @@ namespace blqw
         /// </summary>
         private static readonly Type[] TypesObjectObjects = { typeof(Object), typeof(object[]) };
 
+        /// <summary> 序列
+        /// </summary>
+        internal static int Sequence = 0;
         #endregion
 
         /// <summary> 对象类型
         /// </summary>
-        public Type Type
-        {
-            get;
-            private set;
-        }
+        public Type Type { get; private set; }
 
         /// <summary> 对象属性集合
         /// </summary>
-        public ObjectPropertyCollection Property
-        {
-            get;
-            private set;
-        }
+        public ObjectPropertyCollection Property { get; private set; }
 
         /// <summary> 对象字段集合
         /// </summary>
-        public ObjectPropertyCollection Field
-        {
-            get;
-            private set;
-        }
+        public ObjectPropertyCollection Field { get; private set; }
+
+        /// <summary> 自增id 与ObjectProperty共享序列
+        /// </summary>
+        public readonly int ID;
+
+        /// <summary> Guid
+        /// </summary>
+        public readonly Guid UID;
+
+        /// <summary> 指定对象类型
+        /// </summary>
+        public readonly TypeCodeEx TypeCode;
 
         #region 私有的
 
@@ -191,6 +194,36 @@ namespace blqw
                         Property.Add(a);
                     }
                 }
+            }
+            ID = Interlocked.Increment(ref Sequence);
+            UID = Guid.NewGuid();
+            TypeCode = (TypeCodeEx)Type.GetTypeCode(type);
+            if (TypeCode == TypeCodeEx.Object)
+            {
+                if (type == typeof(System.Collections.IList))
+                {
+                    TypeCode = TypeCodeEx.IList;
+                }
+                else if (type == typeof(System.Collections.IDictionary))
+                {
+                    TypeCode = TypeCodeEx.IDictionary;
+                }
+                else if (type == typeof(TimeSpan))
+                {
+                    TypeCode = TypeCodeEx.TimeSpan;
+                }
+                else if (type == typeof(Guid))
+                {
+                    TypeCode = TypeCodeEx.Guid;
+                }
+                else if (type == typeof(System.Text.StringBuilder))
+                {
+                    TypeCode = TypeCodeEx.StringBuilder;
+                }
+            }
+            else if (type.IsEnum)
+            {
+                TypeCode = TypeCodeEx.Enum;
             }
         }
 
@@ -364,6 +397,13 @@ namespace blqw
 
         #endregion
 
+        private AttributeCollection _attributes;
+
+        public AttributeCollection Attributes
+        {
+            get { return _attributes ?? (_attributes = new AttributeCollection(Type)); }
+        }
+
         #region 静态的
 
         /// <summary> IL构造一个用于调用对象构造函数的委托
@@ -379,7 +419,7 @@ namespace blqw
             }
             if (type.IsValueType && (argTypes == null || argTypes.Length == 0))
             {
-                var dm = new DynamicMethod("", TypeObject, TypesObjects, true);
+                var dm = new DynamicMethod("", TypeObject, TypesObjects, type, true);
                 var il = dm.GetILGenerator();
                 il.Emit(OpCodes.Ldloca_S, il.DeclareLocal(type));
                 il.Emit(OpCodes.Initobj, type);
@@ -412,7 +452,7 @@ namespace blqw
                 return null;
             }
             Type type = ctor.DeclaringType;
-            var dm = new DynamicMethod("", TypeObject, TypesObjects, true);
+            var dm = new DynamicMethod("", TypeObject, TypesObjects, ctor.ReflectedType, true);
             var ps = ctor.GetParameters();
             var il = dm.GetILGenerator();
 
@@ -441,7 +481,7 @@ namespace blqw
             {
                 return null;
             }
-            var dm = new DynamicMethod("", TypeObject, TypesObject, true);
+            var dm = new DynamicMethod("", TypeObject, TypesObject, prop.ReflectedType, true);
             var il = dm.GetILGenerator();
             var met = prop.GetGetMethod(true);
             if (met == null)
@@ -481,7 +521,7 @@ namespace blqw
             {
                 return null;
             }
-            var dm = new DynamicMethod("", TypeObject, TypesObject, true);
+            var dm = new DynamicMethod("", TypeObject, TypesObject, field.ReflectedType, true);
             var il = dm.GetILGenerator();
             if (field.IsStatic)
             {
@@ -513,7 +553,7 @@ namespace blqw
             {
                 throw new NotSupportedException("不支持值类型成员的赋值操作");
             }
-            var dm = new DynamicMethod("", null, Types2Object, true);
+            var dm = new DynamicMethod("", null, Types2Object, prop.ReflectedType, true);
             var set = prop.GetSetMethod(true);
             if (set == null)
             {
@@ -552,7 +592,7 @@ namespace blqw
             {
                 return null;
             }
-            var dm = new DynamicMethod("", null, Types2Object, true);
+            var dm = new DynamicMethod("", null, Types2Object, field.ReflectedType, true);
             var il = dm.GetILGenerator();
 
             if (field.IsStatic)
@@ -583,7 +623,7 @@ namespace blqw
                 return null;
             }
 
-            var dm = new DynamicMethod("", TypeObject, TypesObjectObjects, true);
+            var dm = new DynamicMethod("", TypeObject, TypesObjectObjects, method.ReflectedType, true);
 
             var il = dm.GetILGenerator();
 

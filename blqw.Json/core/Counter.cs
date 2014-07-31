@@ -131,7 +131,7 @@ namespace blqw
 
         /// <summary> 计数器引用标记,调用计数器的Add方法可获得该对象,释放对象时,减少计数器的计数值
         /// </summary>
-        private sealed class CounterToken : Disposable, IDisposable
+        private sealed class CounterToken : Disposable
         {
             /// <summary> 宿主计数器
             /// </summary>
@@ -149,14 +149,6 @@ namespace blqw
                 _counter.OnIncrement();
                 base.DisposeManaged += _counter.OnDecrement;
             }
-
-            /// <summary> 析构函数
-            /// </summary>
-            ~CounterToken()
-            {
-                base.Destructor();
-            }
-
             /// <summary> 重新实现比较的方法
             /// </summary>
             /// <param name="obj"></param>
@@ -174,7 +166,6 @@ namespace blqw
             {
                 return base.GetHashCode();
             }
-
         }
 
     }

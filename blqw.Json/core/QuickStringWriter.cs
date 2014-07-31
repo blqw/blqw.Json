@@ -362,43 +362,37 @@ namespace blqw
         /// </summary>
         public QuickStringWriter Append(Decimal val)
         {
-            Append(val.ToString(CultureInfo.InvariantCulture));
-            return this;
+            return Append(val.ToString(CultureInfo.InvariantCulture));
         }
         /// <summary> 将 Double 对象转换为字符串追加到当前实例。
         /// </summary>
         public QuickStringWriter Append(Double val)
         {
-            Append(val.ToString(CultureInfo.InvariantCulture));
-            return this;
+            return Append(val.ToString(CultureInfo.InvariantCulture));
         }
         /// <summary> 将 Single 对象转换为字符串追加到当前实例。
         /// </summary>
         public QuickStringWriter Append(Single val)
         {
-            Append(val.ToString(CultureInfo.InvariantCulture));
-            return this;
+            return Append(val.ToString(CultureInfo.InvariantCulture));
         }
         /// <summary> 将 SByte 对象转换为字符串追加到当前实例。
         /// </summary>
         public QuickStringWriter Append(SByte val)
         {
-            Append((long)val);
-            return this;
+            return Append((long)val); ;
         }
         /// <summary> 将 Int16 对象转换为字符串追加到当前实例。
         /// </summary>
         public QuickStringWriter Append(Int16 val)
         {
-            Append((long)val);
-            return this;
+            return Append((long)val);
         }
         /// <summary> 将 Int32 对象转换为字符串追加到当前实例。
         /// </summary>
         public QuickStringWriter Append(Int32 val)
         {
-            Append((long)val);
-            return this;
+            return Append((long)val);
         }
         /// <summary> 将 Int64 对象转换为字符串追加到当前实例。
         /// </summary>
@@ -452,50 +446,19 @@ namespace blqw
         /// </summary>
         public QuickStringWriter Append(Byte val)
         {
-            if (val == 0)
-            {
-                TryWrite();
-                _current[_position++] = '0';
-            }
-            else if (val < 10)
-            {
-                TryWrite();
-                _current[_position++] = (char)('0' + val);
-            }
-            else if (val < 100)
-            {
-                if (TryWrite(2) == false)
-                {
-                    Flush();
-                }
-                _current[_position++] = (char)('0' + val / 10);
-                _current[_position++] = (char)('0' + val % 10);
-            }
-            else
-            {
-                if (TryWrite(3) == false)
-                {
-                    Flush();
-                }
-                _current[_position++] = (char)('0' + val / 100);
-                _current[_position++] = (char)('0' + val / 10 % 10);
-                _current[_position++] = (char)('0' + val % 10);
-            }
-            return this;
+            return Append((UInt64)val);
         }
         /// <summary> 将 UInt16 对象转换为字符串追加到当前实例。
         /// </summary>
         public QuickStringWriter Append(UInt16 val)
         {
-            Append((UInt64)val);
-            return this;
+            return Append((UInt64)val);
         }
         /// <summary> 将 UInt32 对象转换为字符串追加到当前实例。
         /// </summary>
         public QuickStringWriter Append(UInt32 val)
         {
-            Append((UInt64)val);
-            return this;
+            return Append((UInt64)val);
         }
         /// <summary> 将 UInt64 对象转换为字符串追加到当前实例。
         /// </summary>
@@ -592,6 +555,19 @@ namespace blqw
                 _length += val.Length;
             }
             return this;
+        }
+        /// <summary> 
+        /// </summary>
+        /// <param name="charArray"></param>
+        /// <param name="offset"></param>
+        /// <param name="length"></param>
+        /// <returns></returns>
+        public QuickStringWriter Append(char[] charArray, int offset, int length)
+        {
+            fixed (char* p = charArray)
+            {
+                return Append(p, offset, length);
+            }
         }
         /// <summary> 将内存中的字符串追加到当前实例。
         /// </summary>

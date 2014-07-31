@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 
 namespace blqw
 {
-    public class Disposable
+    public class Disposable : IDisposable
     {
         public Disposable(object obj)
         {

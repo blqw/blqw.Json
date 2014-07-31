@@ -8,7 +8,7 @@ namespace blqw
 {
     /// <summary> 载入资源中的动态链接库(dll)文件
     /// </summary>
-    static class LoadResourceDll
+    public static class LoadResourceDll
     {
         /// <summary> 已加载DLL
         /// </summary>
@@ -57,7 +57,7 @@ namespace blqw
             AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolve;
             //获取所有资源文件文件名
             var res = ass.GetManifestResourceNames();
-            var regex = new Regex("^" + pattern.Replace(".", "\\.").Replace("*", ".*").Replace("_", ".") + "$", RegexOptions.IgnoreCase);
+            var regex = new Regex(pattern.Replace(".", "\\.").Replace("*", ".*").Replace("_", ".") + "$", RegexOptions.IgnoreCase);
             foreach (var r in res)
             {
                 //如果是dll,则加载

@@ -8,11 +8,11 @@ namespace blqw
     {
         /// <summary> 检查当前参数所表示的类型是否为数字
         /// </summary>
-#if NF2
-        public static bool IsNumber(Type t)
-#else
-        public static bool IsNumber(this Type t) 
+        public static bool IsNumber(
+#if !NF2
+this
 #endif
+         Type t)
         {
             if (t == null)
             {
@@ -24,11 +24,11 @@ namespace blqw
 
         /// <summary> 检查一个类型是否为可空值类型
         /// </summary>
-#if NF2
-        public static bool IsNullable(Type t)
-#else
-        public static bool IsNullable(this Type t) 
+        public static bool IsNullable(
+#if !NF2
+this
 #endif
+         Type t)
         {
             return (t.IsValueType && t.IsGenericType && !t.IsGenericTypeDefinition && object.ReferenceEquals(t.GetGenericTypeDefinition(), typeof(Nullable<>)));
         }
@@ -37,11 +37,11 @@ namespace blqw
         /// </summary>
         /// <param name="t">当前类型(父类)</param>
         /// <param name="child">指定类型(子类)</param>
-#if NF2
-        public static bool IsChild(Type t, Type child)
-#else
-        public static bool IsChild(this Type t, Type child)
+        public static bool IsChild(
+#if !NF2
+this
 #endif
+         Type t, Type child)
         {
             return t != null && t.IsAssignableFrom(child);
         }
@@ -51,11 +51,11 @@ namespace blqw
         /// <param name="t">当前类型(父类)</param>
         /// <param name="obj">指定对象</param>
         /// <returns>存在继承关系返回true,否则返回false</returns>
-#if NF2
-        public static bool IsChild(Type t, object obj)
-#else
-        public static bool IsChild(this Type t, object obj)
+        public static bool IsChild(
+#if !NF2
+this
 #endif
+         Type t, object obj)
         {
             return t != null && t.IsInstanceOfType(obj);
         }
@@ -63,11 +63,11 @@ namespace blqw
         ///<summary> 获取一个类型名称的友好展现形式
         /// </summary>
         /// <param name="t"></param>
-#if NF2
-        public static string DisplayName(Type t)
-#else
-        public static string DisplayName(this Type t)
+        public static string DisplayName(
+#if !NF2
+this
 #endif
+         Type t)
         {
             if (t == null)
             {
@@ -126,5 +126,39 @@ namespace blqw
             return name;
         }
 
+        public static bool IsPrimitive(
+#if !NF2
+            this
+#endif
+        Type type)
+        {
+            if (Type.GetTypeCode(type) == TypeCode.Object)
+            {
+                if (type == typeof(Guid))
+                {
+                    return true;
+                }
+                else if (IsNullable(type))
+                {
+                    return IsPrimitive(type.GetGenericArguments()[0]);
+                }
+            }
+            else
+            {
+                if (type.IsPrimitive)
+                {
+                    return true;
+                }
+                else if (type == typeof(DateTime))
+                {
+                    return true;
+                }
+                else if (type == typeof(string))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }
