@@ -38,10 +38,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Attribute\JsonFormatAttribute.cs" />
+    <Compile Include="Attribute\NonJsonAttribute.cs" />
+    <Compile Include="Attribute\JsonNameAttribute.cs" />
     <Compile Include="core\Assertor.cs" />
     <Compile Include="core\CodeTimer.cs" />
     <Compile Include="core\Counter.cs" />
     <Compile Include="core\CounterChangedEventArgs.cs" />
+    <Compile Include="core\DataConverter.cs" />
     <Compile Include="core\DictionaryEx.cs" />
     <Compile Include="core\Disposable.cs" />
     <Compile Include="core\ExtendMethods\Type.cs" />
@@ -70,6 +74,7 @@
   <ItemGroup>
     <None Include="mklink.bat" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
