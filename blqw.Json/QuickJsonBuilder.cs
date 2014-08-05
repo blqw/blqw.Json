@@ -6,6 +6,17 @@ namespace blqw
     /// </summary>
     public class QuickJsonBuilder : JsonBuilder
     {
+        public QuickJsonBuilder()
+            : base(JsonBuilderSettings.Default)
+        {
+
+        }
+
+        public QuickJsonBuilder(JsonBuilderSettings settings)
+            : base(settings)
+        {
+
+        }
         /// <summary> 将未知对象按属性名和值转换为Json中的键值字符串写入Buffer
         /// </summary>
         /// <param name="obj">非null的位置对象</param>

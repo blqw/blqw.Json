@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Data;
 using System.Collections;
+using blqw;
 
 namespace UnitTestProject1
 {
@@ -86,7 +87,7 @@ namespace UnitTestProject1
         /// <summary> 邮政编码
         /// </summary>
         public int ZipCode { get; set; }
-    } 
+    }
     #endregion
 
     public class Object1
@@ -112,7 +113,7 @@ namespace UnitTestProject1
         public uint VALUE { get; set; }
         public string VTYPE { get; set; }
     }
-    
+
 
     [TestClass]
     public class UnitTest1
@@ -130,6 +131,50 @@ namespace UnitTestProject1
             Test2<Object2[]>(File.ReadAllText("json2.txt"));
             Test2<List<Object2>>(File.ReadAllText("json2.txt"));
             Test2<User>(userJson);
+
+            //时间处理
+            DateTime date = new DateTime(2014, 1, 2, 3, 4, 5, 6);
+            Assert.AreEqual("{\"date\":\"2014-01-02 03:04:05\"}", new blqw.QuickJsonBuilder().ToJsonString(new { date = date }));
+            Assert.AreEqual("{\"date\":\"2014-01-02\"}", new blqw.QuickJsonBuilder( blqw.JsonBuilderSettings.FormatDate).ToJsonString(new { date = date }));
+            Assert.AreEqual("{\"date\":\"03:04:05\"}", new blqw.QuickJsonBuilder(blqw.JsonBuilderSettings.FormatTime).ToJsonString(new { date = date }));
+            Assert.AreEqual("{\"date\":\"2014-01-02\"}", new blqw.QuickJsonBuilder().ToJsonString(new { date = date.Date }));
+            Assert.AreEqual("{\"date\":\"\"}", new blqw.QuickJsonBuilder(blqw.JsonBuilderSettings.FormatTime | blqw.JsonBuilderSettings.IgnoreEmptyTime).ToJsonString(new { date = date.Date }));
+
+            //枚举
+            Assert.AreEqual("{\"key\":\"Applications\"}", new blqw.QuickJsonBuilder().ToJsonString(new { key = ConsoleKey.Applications }));
+            Assert.AreEqual("{\"key\":93}", new blqw.QuickJsonBuilder(JsonBuilderSettings.EnumToNumber).ToJsonString(new { key = ConsoleKey.Applications }));
+
+            //数字
+            Assert.AreEqual("{\"number\":1}", new blqw.QuickJsonBuilder().ToJsonString(new { number = 1 }));
+            Assert.AreEqual("{\"number\":\"1\"}", new blqw.QuickJsonBuilder(JsonBuilderSettings.QuotWrapNumber).ToJsonString(new { number = 1 }));
+
+            //布尔
+            Assert.AreEqual("{\"bool\":true}", new blqw.QuickJsonBuilder().ToJsonString(new { @bool = true }));
+            Assert.AreEqual("{\"bool\":false}", new blqw.QuickJsonBuilder().ToJsonString(new { @bool = false }));
+            Assert.AreEqual("{\"bool\":\"true\"}", new blqw.QuickJsonBuilder(JsonBuilderSettings.QuotWrapBoolean).ToJsonString(new { @bool = true }));
+            Assert.AreEqual("{\"bool\":\"false\"}", new blqw.QuickJsonBuilder(JsonBuilderSettings.QuotWrapBoolean).ToJsonString(new { @bool = false }));
+            Assert.AreEqual("{\"bool\":1}", new blqw.QuickJsonBuilder(JsonBuilderSettings.BooleanToNumber).ToJsonString(new { @bool = true }));
+            Assert.AreEqual("{\"bool\":0}", new blqw.QuickJsonBuilder(JsonBuilderSettings.BooleanToNumber).ToJsonString(new { @bool = false }));
+
+            //循环引用
+            try
+            {
+                user.Self = user;
+                blqw.Json.ToJsonString(user);
+                Assert.Fail("循环引用测试失败1");
+            }
+            catch (Exception)
+            {
+            }
+            try
+            {
+                user.Self = user;
+                new blqw.QuickJsonBuilder(JsonBuilderSettings.CheckLoopRef).ToJsonString(user);
+            }
+            catch (Exception)
+            {
+                Assert.Fail("循环引用测试失败2");
+            }
         }
 
         public void Test1<T>(string jsonString)
@@ -243,7 +288,7 @@ namespace UnitTestProject1
                     }
                 }
             }
-        } 
+        }
         #endregion
     }
 

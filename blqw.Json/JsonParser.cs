@@ -6,7 +6,7 @@ namespace blqw
 {
     /// <summary> 用于将Json字符串转换为C#对象
     /// </summary>
-    public class JsonParser
+    public sealed class JsonParser
     {
         /// <summary> 将json字符串转换为指定对象
         /// </summary>
@@ -555,7 +555,6 @@ namespace blqw
                 return false;
             }
         }
-
 
         private static void ThrowMissingCharException(char c)
         {

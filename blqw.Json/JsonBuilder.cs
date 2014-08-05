@@ -11,68 +11,20 @@ namespace blqw
     public class JsonBuilder
     {
         //循环引用对象缓存区
-        //private readonly Dictionary<object, object> _loopObject = new Dictionary<object, object>();
-        protected QuickStringWriter Buffer;//字符缓冲区
+        private IList _loopObject;
 
-        /// <summary> 将对象转换为Json字符串
-        /// </summary>
-        public string ToJsonString(object obj)
-        {
-            using (Buffer = new QuickStringWriter(4096))
-            {
-                AppendObject(obj);
-                return Buffer.ToString();
-            }
-        }
-        /// <summary> 将 任意对象 转换Json字符串写入Buffer
-        /// </summary>
-        /// <param name="obj">任意对象</param>
-        protected void AppendObject(object obj)
-        {
-            if (obj == null || obj is DBNull)
-            {
-                Buffer.Append("null");
-            }
-            else
-            {
-                var s = obj as string;
-                if (s != null)
-                {
-                    AppendString(s);
-                }
-                else
-                {
-                    var conv = obj as IConvertible;
-                    if (conv != null)
-                    {
-                        AppendConvertible(conv);
-                    }
-                    else if (obj is Guid)
-                    {
-                        AppendGuid((Guid)obj);
-                    }
-                    else// if (_loopObject.ContainsKey(obj) == false)
-                    {
-                        //_loopObject.Add(obj, null);
-                        if (obj is IDictionary) AppendJson((IDictionary)obj);
-                        else if (obj is IDataReader) AppendDataSet((IDataReader)obj);
-                        else if (obj is DataSet) AppendDataSet((DataSet)obj);
-                        else if (obj is DataTable) AppendDataTable((DataTable)obj);
-                        else if (obj is DataView) AppendDataView((DataView)obj);
-                        else if (obj is IEnumerable) AppendArray((IEnumerable)obj);
-                        else AppendOther(obj);
-                        //_loopObject.Remove(obj);
-                    }
-                    //else
-                    //{
-                    //    Buffer.Append("undefined");
-                    //}
-                }
-            }
-        }
+        //private Dictionary<int,
+
+        #region private
 
         private void AppendConvertible(IConvertible obj)
         {
+            var @enum = obj as Enum;
+            if (@enum != null)
+            {
+                AppendEnum(@enum);
+                return;
+            }
             switch (obj.GetTypeCode())
             {
                 case TypeCode.Boolean: AppendBoolean(obj.ToBoolean(CultureInfo.InvariantCulture));
@@ -104,32 +56,304 @@ namespace blqw
                 case TypeCode.UInt64: AppendUInt64(obj.ToUInt64(CultureInfo.InvariantCulture));
                     break;
                 default:
-                    if (obj is ValueType)
-                    {
-                        var @enum = obj as Enum;
-                        if (@enum != null)
-                        {
-                            AppendEnum(@enum);
-                        }
-                        else
-                        {
-                            AppendOther(obj);
-                        }
-                    }
-                    else // if (_loopObject.ContainsKey(obj) == false)
-                    {
-                        //_loopObject.Add(obj, null);
-                        AppendOther(obj);
-                        //_loopObject.Remove(obj);
-                    }
-                    //else
-                    //{
-                    //    Buffer.Append("undefined");
-                    //}
+                    AppendCheckLoopRef(obj);
                     break;
             }
         }
-        
+
+        private void AppendCheckLoopRef(object obj)
+        {
+            if (obj is ValueType)
+            {
+                if (obj is IConvertible) AppendOther(obj);
+                else if (obj is IDictionary) AppendJson((IDictionary)obj);
+                else if (obj is IDataReader) AppendDataSet((IDataReader)obj);
+                else if (obj is IEnumerable) AppendArray((IEnumerable)obj);
+                else AppendOther(obj);
+            }
+            else if (CheckLoopRef == false)
+            {
+                if (obj is IConvertible) AppendOther(obj);
+                else if (obj is IDictionary) AppendJson((IDictionary)obj);
+                else if (obj is IDataReader) AppendDataSet((IDataReader)obj);
+                else if (obj is IEnumerable) AppendArray((IEnumerable)obj);
+                else if (obj is DataSet) AppendDataSet((DataSet)obj);
+                else if (obj is DataTable) AppendDataTable((DataTable)obj);
+                else if (obj is DataView) AppendDataView((DataView)obj);
+                else AppendOther(obj);
+            }
+            else if (_loopObject.Contains(obj) == false)
+            {
+                var index = _loopObject.Add(obj);
+                if (obj is IConvertible) AppendOther(obj);
+                else if (obj is IDictionary) AppendJson((IDictionary)obj);
+                else if (obj is IDataReader) AppendDataSet((IDataReader)obj);
+                else if (obj is IEnumerable) AppendArray((IEnumerable)obj);
+                else if (obj is DataSet) AppendDataSet((DataSet)obj);
+                else if (obj is DataTable) AppendDataTable((DataTable)obj);
+                else if (obj is DataView) AppendDataView((DataView)obj);
+                else AppendOther(obj);
+                _loopObject.RemoveAt(index);
+            }
+            else
+            {
+                Buffer.Append("undefined");
+            }
+        }
+
+        private static IEnumerable GetDataReaderNames(IDataRecord reader)
+        {
+            int c = reader.FieldCount;
+            for (int i = 0; i < c; i++)
+            {
+                yield return reader.GetName(i);
+            }
+        }
+
+        private static IEnumerable GetDataReaderValues(IDataReader reader)
+        {
+            int c = reader.FieldCount;
+            while (reader.Read())
+            {
+                object[] values = new object[c];
+                reader.GetValues(values);
+                yield return values;
+            }
+        }
+
+        private static string EscapeString(string str)
+        {
+            var size = str.Length * 2;
+            if (size > ushort.MaxValue)
+            {
+                size = ushort.MaxValue;
+            }
+            QuickStringWriter buffer = null;
+            try
+            {
+                buffer.Append('"');
+                unsafe
+                {
+                    var length = str.Length;
+                    fixed (char* fp = str)
+                    {
+                        char* p = fp;
+                        char* end = fp + length;
+                        char* flag = fp;
+                        while (p < end)
+                        {
+                            char c = *p;
+                            switch (c)
+                            {
+                                case '\\':
+                                case '"':
+                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size).Append('"');
+                                    buffer.Append(flag, 0, (int)(p - flag));
+                                    buffer.Append('\\');
+                                    flag = p;
+                                    break;
+                                case '\n':
+                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size).Append('"');
+                                    buffer.Append(flag, 0, (int)(p - flag));
+                                    buffer.Append('\\');
+                                    buffer.Append('n');
+                                    flag = p + 1;
+                                    break;
+                                case '\r':
+                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size).Append('"');
+                                    buffer.Append(flag, 0, (int)(p - flag));
+                                    buffer.Append('\\');
+                                    buffer.Append('r');
+                                    flag = p + 1;
+                                    break;
+                                case '\t':
+                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size).Append('"');
+                                    buffer.Append(flag, 0, (int)(p - flag));
+                                    buffer.Append('\\');
+                                    buffer.Append('t');
+                                    flag = p + 1;
+                                    break;
+                                case '\f':
+                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size).Append('"');
+                                    buffer.Append(flag, 0, (int)(p - flag));
+                                    buffer.Append('\\');
+                                    buffer.Append('f');
+                                    flag = p + 1;
+                                    break;
+                                case '\0':
+                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size).Append('"');
+                                    buffer.Append(flag, 0, (int)(p - flag));
+                                    buffer.Append('\\');
+                                    buffer.Append('0');
+                                    flag = p + 1;
+                                    break;
+                                case '\a':
+                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size).Append('"');
+                                    buffer.Append(flag, 0, (int)(p - flag));
+                                    buffer.Append('\\');
+                                    buffer.Append('a');
+                                    flag = p + 1;
+                                    break;
+                                case '\b':
+                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size).Append('"');
+                                    buffer.Append(flag, 0, (int)(p - flag));
+                                    buffer.Append('\\');
+                                    buffer.Append('b');
+                                    flag = p + 1;
+                                    break;
+                                case '\v':
+                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size).Append('"');
+                                    buffer.Append(flag, 0, (int)(p - flag));
+                                    buffer.Append('\\');
+                                    buffer.Append('v');
+                                    flag = p + 1;
+                                    break;
+                                default:
+                                    break;
+                            }
+                            p++;
+                        }
+                        if (flag == fp)
+                        {
+                            if (buffer == null)
+                            {
+                                return string.Concat("\"" + str + "\"");
+                            }
+                            buffer.Append(fp, 0, length);
+                        }
+                        else if (p > flag)
+                        {
+                            if (buffer == null) buffer = new QuickStringWriter((ushort)size).Append('"');
+                            buffer.Append(flag, 0, (int)(p - flag));
+                        }
+                    }
+                }
+                buffer.Append('"');
+                return buffer.ToString();
+            }
+            finally
+            {
+                if (buffer != null)
+                {
+                    buffer.Dispose();
+                }
+            }
+
+
+        }
+
+        private int depth;
+        #endregion
+
+        protected QuickStringWriter Buffer;//字符缓冲区
+
+        public JsonBuilder()
+            : this(JsonBuilderSettings.Default)
+        {
+
+        }
+
+        public JsonBuilder(JsonBuilderSettings settings)
+        {
+            FormatDate = (settings & JsonBuilderSettings.FormatDate) != 0;
+            FormatTime = (settings & JsonBuilderSettings.FormatTime) != 0;
+            SerializableField = (settings & JsonBuilderSettings.SerializableField) != 0;
+            QuotWrapNumber = (settings & JsonBuilderSettings.QuotWrapNumber) != 0;
+            BooleanToNumber = (settings & JsonBuilderSettings.BooleanToNumber) != 0;
+            EnumToNumber = (settings & JsonBuilderSettings.EnumToNumber) != 0;
+            CheckLoopRef = (settings & JsonBuilderSettings.CheckLoopRef) != 0;
+            IgnoreEmptyTime = (settings & JsonBuilderSettings.IgnoreEmptyTime) != 0;
+            QuotWrapBoolean = (settings & JsonBuilderSettings.QuotWrapBoolean) != 0;
+        }
+
+        #region settings
+
+        /// <summary> 格式化 DateTime 对象中的日期
+        /// </summary>
+        public bool FormatDate;
+        /// <summary> 格式化 DateTime 对象中的时间
+        /// </summary>
+        public bool FormatTime;
+        /// <summary> 同时序列化字段
+        /// </summary>
+        public bool SerializableField;
+        /// <summary> 使用双引号包装数字的值
+        /// </summary>
+        public bool QuotWrapNumber;
+        /// <summary> 将布尔值转为数字值 true = 1 ,false = 0
+        /// </summary>
+        public bool BooleanToNumber;
+        /// <summary> 将枚举转为对应的数字值
+        /// </summary>
+        public bool EnumToNumber;
+        /// <summary> 检查循环引用,发现循环应用时输出 undefined
+        /// </summary>
+        public bool CheckLoopRef;
+        /// <summary> 格式化 DateTime 对象中的时间时忽略(00:00:00.000000) ,存在FormatTime时才生效
+        /// </summary>
+        public bool IgnoreEmptyTime;
+        /// <summary> 使用双引号包装布尔的值
+        /// </summary>
+        public bool QuotWrapBoolean;
+        #endregion
+
+        /// <summary> 将对象转换为Json字符串
+        /// </summary>
+        public string ToJsonString(object obj)
+        {
+            using (Buffer = new QuickStringWriter(4096))
+            {
+                if (CheckLoopRef)
+                {
+                    _loopObject = new ArrayList(64);
+                }
+                AppendObject(obj);
+                var json = Buffer.ToString();
+                _loopObject = null;
+                return json;
+            }
+        }
+        /// <summary> 将 任意对象 转换Json字符串写入Buffer
+        /// </summary>
+        /// <param name="obj">任意对象</param>
+        protected void AppendObject(object obj)
+        {
+            if (obj == null || obj is DBNull)
+            {
+                Buffer.Append("null");
+            }
+            else
+            {
+                var s = obj as string;
+                if (s != null)
+                {
+                    AppendString(s);
+                }
+                else
+                {
+                    depth++;
+                    if (depth > 128)
+                    {
+                        throw new NotSupportedException("对象过于复杂或存在循环引用");
+                    }
+                    var conv = obj as IConvertible;
+                    if (conv != null)
+                    {
+                        AppendConvertible(conv);
+                    }
+                    else if (obj is Guid)
+                    {
+                        AppendGuid((Guid)obj);
+                    }
+                    else
+                    {
+                        AppendCheckLoopRef(obj);
+                    }
+                    depth--;
+                }
+            }
+        }
+
         /// <summary> 非安全方式向Buffer追加一个字符(该方法不会验证字符的有效性)
         /// </summary>
         /// <param name="value">向Buffer追加的字符</param>
@@ -183,55 +407,71 @@ namespace blqw
             }
             Buffer.Append(':');
         }
-        /// <summary> Byte 对象转换Json字符串写入Buffer
+        /// <summary> 将 Byte 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="value">Byte 对象</param>
         protected virtual void AppendByte(Byte value) { AppendNumber(value); }
-        /// <summary> Decimal 对象转换Json字符串写入Buffer
+        /// <summary> 将 Decimal 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="value">Decimal 对象</param>
         protected virtual void AppendDecimal(Decimal value) { AppendNumber(value); }
-        /// <summary> Int16 对象转换Json字符串写入Buffer
+        /// <summary> 将 Int16 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="value">Int16 对象</param>
         protected virtual void AppendInt16(Int16 value) { AppendNumber(value); }
-        /// <summary> Int32 对象转换Json字符串写入Buffer
+        /// <summary> 将 Int32 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="value">Int32 对象</param>
         protected virtual void AppendInt32(Int32 value) { AppendNumber(value); }
-        /// <summary> Int64 对象转换Json字符串写入Buffer
+        /// <summary> 将 Int64 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="value">Int64 对象</param>
         protected virtual void AppendInt64(Int64 value) { AppendNumber(value); }
-        /// <summary> SByte 对象转换Json字符串写入Buffer
+        /// <summary> 将 SByte 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="value">SByte 对象</param>
         protected virtual void AppendSByte(SByte value) { AppendNumber(value); }
-        /// <summary> UInt16 对象转换Json字符串写入Buffer
+        /// <summary> 将 UInt16 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="value">UInt16 对象</param>
         protected virtual void AppendUInt16(UInt16 value) { AppendNumber(value); }
-        /// <summary> UInt32 对象转换Json字符串写入Buffer
+        /// <summary> 将 UInt32 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="value">UInt32 对象</param>
         protected virtual void AppendUInt32(UInt32 value) { AppendNumber(value); }
-        /// <summary> UInt64 对象转换Json字符串写入Buffer
+        /// <summary> 将 UInt64 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="value">UInt64 对象</param>
         protected virtual void AppendUInt64(UInt64 value) { AppendNumber(value); }
-        /// <summary> Double 对象转换Json字符串写入Buffer
+        /// <summary> 将 Double 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="value">Double 对象</param>
         protected virtual void AppendDouble(Double value) { AppendNumber(value); }
-        /// <summary> Single 对象转换Json字符串写入Buffer
+        /// <summary> 将 Single 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="value">Single 对象</param>
         protected virtual void AppendSingle(Single value) { AppendNumber(value); }
-        /// <summary> Boolean 对象转换Json字符串写入Buffer
+        /// <summary> 将 Boolean 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="value">Boolean 对象</param>
-        protected virtual void AppendBoolean(Boolean value) { Buffer.Append(value); }
-        /// <summary> Char 对象转换Json字符串写入Buffer
+        protected virtual void AppendBoolean(Boolean value)
+        {
+            if (BooleanToNumber)
+            {
+                AppendNumber(value ? 1 : 0);
+            }
+            else if (QuotWrapBoolean)
+            {
+                Buffer.Append('"');
+                Buffer.Append(value);
+                Buffer.Append('"');
+            }
+            else
+            {
+                Buffer.Append(value);
+            }
+        }
+        /// <summary> 将 Char 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="value">Char 对象</param>
         protected virtual void AppendChar(Char value)
@@ -286,8 +526,70 @@ namespace blqw
             }
             Buffer.Append('"');
         }
-
-        /// <summary> String 对象转换Json字符串写入Buffer
+        /// <summary> 将 可格式化 对象转换Json字符串写入Buffer
+        /// </summary>
+        /// <param name="val">可格式化对象</param>
+        /// <param name="format">格式化参数</param>
+        /// <param name="provider">格式化机制</param>
+        protected virtual void AppendFormattable(IFormattable formattable, string format, IFormatProvider provider)
+        {
+            if (formattable is DateTime)
+            {
+                if (string.Equals(format, "yyyy-MM-dd HH:mm:ss", StringComparison.Ordinal))
+                {
+                    Buffer.Append('"');
+                    Buffer.Append((DateTime)formattable, true, true, false);
+                    Buffer.Append('"');
+                }
+                else if (string.Equals(format, "yyyy-MM-dd HH:mm:ss.fff", StringComparison.Ordinal))
+                {
+                    Buffer.Append('"');
+                    Buffer.Append((DateTime)formattable, true, true, true);
+                    Buffer.Append('"');
+                }
+                else if (string.Equals(format, "HH:mm:ss", StringComparison.Ordinal))
+                {
+                    Buffer.Append('"');
+                    Buffer.Append((DateTime)formattable, false, true, false);
+                    Buffer.Append('"');
+                }
+                else if (string.Equals(format, "HH:mm:ss.fff", StringComparison.Ordinal))
+                {
+                    Buffer.Append('"');
+                    Buffer.Append((DateTime)formattable, false, true, true);
+                    Buffer.Append('"');
+                }
+                else if (string.Equals(format, "yyyy-MM-dd", StringComparison.Ordinal))
+                {
+                    Buffer.Append('"');
+                    Buffer.Append((DateTime)formattable, false, false, false);
+                    Buffer.Append('"');
+                }
+                else if (string.Equals(format, "fff", StringComparison.Ordinal))
+                {
+                    Buffer.Append('"');
+                    Buffer.Append((DateTime)formattable, false, false, true);
+                    Buffer.Append('"');
+                }
+                else
+                {
+                    Buffer.Append('"');
+                    AppendString(formattable.ToString(format, provider));
+                    Buffer.Append('"');
+                }
+            }
+            else if (formattable is Guid && (format == null || format.Length == 1))
+            {
+                Buffer.Append('"');
+                Buffer.Append((Guid)formattable, format[0]);
+                Buffer.Append('"');
+            }
+            else
+            {
+                AppendString(formattable.ToString(format, provider));
+            }
+        }
+        /// <summary> 将 String 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="value">Char 对象</param>
         protected virtual void AppendString(String value)
@@ -378,31 +680,44 @@ namespace blqw
 
             Buffer.Append('"');
         }
-        /// <summary> DateTime 对象转换Json字符串写入Buffer
+        /// <summary> 将 DateTime 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="value">DateTime 对象</param>
         protected virtual void AppendDateTime(DateTime value)
         {
             Buffer.Append('"');
-            Buffer.Append(value);
+            if (FormatTime && IgnoreEmptyTime)
+            {
+                Buffer.Append(value, FormatDate, value.Millisecond > 0 || value.Hour > 0 || value.Minute > 0 || value.Second > 0, false);
+            }
+            else
+            {
+                Buffer.Append(value, FormatDate, FormatTime, false);
+            }
             Buffer.Append('"');
         }
-        /// <summary> Guid 对象转换Json字符串写入Buffer
+        /// <summary> 将 Guid 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="value">Guid 对象</param>
         protected virtual void AppendGuid(Guid value)
         {
             Buffer.Append('"').Append(value).Append('"');
         }
-
-        /// <summary> 枚举 对象转换Json字符串写入Buffer
+        /// <summary> 将 枚举 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="value">枚举 对象</param>
         protected virtual void AppendEnum(Enum value)
         {
-            Buffer.Append('"').Append(value.ToString()).Append('"');
+            if (EnumToNumber)
+            {
+                AppendNumber(value);
+            }
+            else
+            {
+                Buffer.Append('"').Append(value.ToString()).Append('"');
+            }
         }
-        /// <summary> 数字 类型对象转换Json字符串写入Buffer
+        /// <summary> 将 数字 类型对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="number">数字对象</param>
         protected virtual void AppendNumber(IConvertible number)
@@ -412,34 +727,96 @@ namespace blqw
                 case TypeCode.Decimal:
                 case TypeCode.Double:
                 case TypeCode.Single:
-                    Buffer.Append(number.ToString(CultureInfo.InvariantCulture));
+                    if (QuotWrapNumber)
+                    {
+                        Buffer.Append('"');
+                        Buffer.Append(number.ToString(CultureInfo.InvariantCulture));
+                        Buffer.Append('"');
+                    }
+                    else
+                    {
+                        Buffer.Append(number.ToString(CultureInfo.InvariantCulture));
+                    }
                     break;
                 case TypeCode.Int16:
-                    Buffer.Append(number.ToInt16(CultureInfo.InvariantCulture));
+                    if (QuotWrapNumber)
+                    {
+                        Buffer.Append('"');
+                        Buffer.Append(number.ToInt16(CultureInfo.InvariantCulture));
+                        Buffer.Append('"');
+                    }
+                    else
+                    {
+                        Buffer.Append(number.ToInt16(CultureInfo.InvariantCulture));
+                    }
                     break;
                 case TypeCode.Int32:
                 case TypeCode.Int64:
-                    Buffer.Append(number.ToInt64(CultureInfo.InvariantCulture));
+                    if (QuotWrapNumber)
+                    {
+                        Buffer.Append('"');
+                        Buffer.Append(number.ToInt64(CultureInfo.InvariantCulture));
+                        Buffer.Append('"');
+                    }
+                    else
+                    {
+                        Buffer.Append(number.ToInt64(CultureInfo.InvariantCulture));
+                    }
                     break;
                 case TypeCode.SByte:
-                    Buffer.Append(number.ToSByte(CultureInfo.InvariantCulture));
+                    if (QuotWrapNumber)
+                    {
+                        Buffer.Append('"');
+                        Buffer.Append(number.ToSByte(CultureInfo.InvariantCulture));
+                        Buffer.Append('"');
+                    }
+                    else
+                    {
+                        Buffer.Append(number.ToSByte(CultureInfo.InvariantCulture));
+                    }
                     break;
                 case TypeCode.Byte:
-                    Buffer.Append(number.ToByte(CultureInfo.InvariantCulture));
+                    if (QuotWrapNumber)
+                    {
+                        Buffer.Append('"');
+                        Buffer.Append(number.ToByte(CultureInfo.InvariantCulture));
+                        Buffer.Append('"');
+                    }
+                    else
+                    {
+                        Buffer.Append(number.ToByte(CultureInfo.InvariantCulture));
+                    }
                     break;
                 case TypeCode.UInt16:
-                    Buffer.Append(number.ToUInt16(CultureInfo.InvariantCulture));
+                    if (QuotWrapNumber)
+                    {
+                        Buffer.Append('"');
+                        Buffer.Append(number.ToUInt16(CultureInfo.InvariantCulture));
+                        Buffer.Append('"');
+                    }
+                    else
+                    {
+                        Buffer.Append(number.ToUInt16(CultureInfo.InvariantCulture));
+                    }
                     break;
                 case TypeCode.UInt32:
                 case TypeCode.UInt64:
-                    Buffer.Append(number.ToUInt64(CultureInfo.InvariantCulture));
+                    if (QuotWrapNumber)
+                    {
+                        Buffer.Append('"');
+                        Buffer.Append(number.ToUInt64(CultureInfo.InvariantCulture));
+                        Buffer.Append('"');
+                    }
+                    else
+                    {
+                        Buffer.Append(number.ToUInt64(CultureInfo.InvariantCulture));
+                    }
                     break;
                 default:
                     break;
             }
         }
-
-        /// <summary> 数组 对象转换Json中的数组字符串写入Buffer
+        /// <summary> 将 数组 对象转换Json中的数组字符串写入Buffer
         /// </summary>
         /// <param name="array">数组对象</param>
         protected virtual void AppendArray(IEnumerable array)
@@ -457,14 +834,14 @@ namespace blqw
             }
             Buffer.Append(']');
         }
-        /// <summary> 键值对 对象转换Json中的键值字符串写入Buffer
+        /// <summary> 将 键值对 对象转换Json中的键值字符串写入Buffer
         /// </summary>
         /// <param name="dict">键值对 对象</param>
         protected virtual void AppendJson(IDictionary dict)
         {
             AppendJson(dict.Keys, dict.Values);
         }
-        /// <summary> 键枚举 和 值枚举 转换Json中的键值字符串写入Buffer
+        /// <summary> 将 键枚举 和 值枚举 转换Json中的键值字符串写入Buffer
         /// </summary>
         /// <param name="keys">键枚举</param>
         /// <param name="values">值枚举</param>
@@ -529,7 +906,7 @@ namespace blqw
             }
             Buffer.Append('}');
         }
-        /// <summary> DataSet 对象转换Json字符串写入Buffer
+        /// <summary> 将 DataSet 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="dataset">DataSet 对象</param>
         protected virtual void AppendDataSet(DataSet dataset)
@@ -551,18 +928,39 @@ namespace blqw
             }
             Buffer.Append('}');
         }
-        /// <summary> DataTable 对象转换Json字符串写入Buffer
+        /// <summary> 将 DataTable 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="table">DataTable 对象</param>
         protected virtual void AppendDataTable(DataTable table)
         {
-            Buffer.Append("{\"columns\":");
-            AppendArray(table.Columns, o => ((DataColumn)o).ColumnName);
-            Buffer.Append(",\"rows\":");
-            AppendArray(table.Rows, o => ((DataRow)o).ItemArray);
-            Buffer.Append('}');
+            //Buffer.Append("{\"columns\":");
+            //AppendArray(table.Columns, o => ((DataColumn)o).ColumnName);
+            //Buffer.Append(",\"rows\":");
+            //AppendArray(table.Rows, o => ((DataRow)o).ItemArray);
+            //Buffer.Append('}');
+
+            Buffer.Append('[');
+
+            var ee = table.Rows.GetEnumerator();
+            if (ee.MoveNext())
+            {
+                var names = new string[table.Columns.Count];
+                var columns = table.Columns;
+                for (int i = 0; i < names.Length; i++)
+                {
+                    names[i] = EscapeString(columns[i].ColumnName);
+                }
+                AppendJson(names, ((DataRow)ee.Current).ItemArray);
+                while (ee.MoveNext())
+                {
+                    Buffer.Append(',');
+                    AppendJson(names, ((DataRow)ee.Current).ItemArray);
+                }
+            }
+
+            Buffer.Append(']');
         }
-        /// <summary> DataView 对象转换Json字符串写入Buffer
+        /// <summary> 将 DataView 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="tableView">DataView 对象</param>
         protected virtual void AppendDataView(DataView tableView)
@@ -573,8 +971,7 @@ namespace blqw
             AppendArray(tableView, o => ((DataRowView)o).Row.ItemArray);
             Buffer.Append('}');
         }
-
-        /// <summary> IDataReader 对象转换Json字符串写入Buffer
+        /// <summary> 将 IDataReader 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="reader">IDataReader 对象</param>
         protected virtual void AppendDataSet(IDataReader reader)
@@ -584,26 +981,6 @@ namespace blqw
             Buffer.Append(",\"rows\":");
             AppendArray(GetDataReaderValues(reader));
             Buffer.Append('}');
-        }
-
-        private static IEnumerable GetDataReaderNames(IDataRecord reader)
-        {
-            int c = reader.FieldCount;
-            for (int i = 0; i < c; i++)
-            {
-                yield return reader.GetName(i);
-            }
-        }
-
-        private static IEnumerable GetDataReaderValues(IDataReader reader)
-        {
-            int c = reader.FieldCount;
-            while (reader.Read())
-            {
-                object[] values = new object[c];
-                reader.GetValues(values);
-                yield return values;
-            }
         }
     }
 }

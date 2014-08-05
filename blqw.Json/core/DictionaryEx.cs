@@ -35,9 +35,9 @@ namespace blqw
 
         /// <summary> 初始化 DictionaryEx , key不存在时返回defaultValue
         /// </summary>
-        /// <param name="defaultValue">默认值</param>
         /// <param name="comparer">比较键时要使用对象,如果为null则使用默认比较方法</param>
-        public DictionaryEx(TValue defaultValue, IEqualityComparer<TKey> comparer)
+        /// <param name="defaultValue">默认值</param>
+        public DictionaryEx(IEqualityComparer<TKey> comparer, TValue defaultValue = default(TValue))
         {
             _items = new Dictionary<TKey, TValue>(comparer);
             _defaultValue = defaultValue;
@@ -46,9 +46,9 @@ namespace blqw
 
         /// <summary> 初始化 DictionaryEx 只读集合, key不存在时返回defaultValue
         /// </summary>
-        /// <param name="defaultValue">默认值</param>
         /// <param name="dictionary">内部字典</param>
-        public DictionaryEx(TValue defaultValue, IDictionary<TKey, TValue> dictionary)
+        /// <param name="defaultValue">默认值</param>
+        public DictionaryEx(IDictionary<TKey, TValue> dictionary, TValue defaultValue = default(TValue))
         {
             Assertor.AreNull(dictionary, "dictionary");
             _items = dictionary;
@@ -59,10 +59,10 @@ namespace blqw
 
         /// <summary> 初始化 DictionaryEx, key不存在时返回defaultValue
         /// </summary>
-        /// <param name="defaultValue">默认值</param>
         /// <param name="dictionary">内部字典</param>
         /// <param name="isReadOnly">是否只读</param>
-        public DictionaryEx(TValue defaultValue, IDictionary<TKey, TValue> dictionary, bool isReadOnly)
+        /// <param name="defaultValue">默认值</param>
+        public DictionaryEx(IDictionary<TKey, TValue> dictionary, bool isReadOnly, TValue defaultValue = default(TValue))
         {
             Assertor.AreNull(dictionary, "dictionary");
             _items = dictionary;

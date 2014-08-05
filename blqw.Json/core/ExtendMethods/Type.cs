@@ -35,29 +35,29 @@ this
 
         /// <summary> 检查指定类型是否是当前类型的子类
         /// </summary>
-        /// <param name="t">当前类型(父类)</param>
+        /// <param name="parent">当前类型(父类)</param>
         /// <param name="child">指定类型(子类)</param>
         public static bool IsChild(
 #if !NF2
 this
 #endif
-         Type t, Type child)
+         Type parent, Type child)
         {
-            return t != null && t.IsAssignableFrom(child);
+            return parent != null && parent.IsAssignableFrom(child);
         }
 
         /// <summary> 检查指定对象是否是当前类型(或其子类类型)的实例
         /// </summary>
-        /// <param name="t">当前类型(父类)</param>
+        /// <param name="parent">当前类型(父类)</param>
         /// <param name="obj">指定对象</param>
         /// <returns>存在继承关系返回true,否则返回false</returns>
         public static bool IsChild(
 #if !NF2
 this
 #endif
-         Type t, object obj)
+         Type parent, object obj)
         {
-            return t != null && t.IsInstanceOfType(obj);
+            return parent != null && parent.IsInstanceOfType(obj);
         }
 
         ///<summary> 获取一个类型名称的友好展现形式

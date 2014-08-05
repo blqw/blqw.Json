@@ -7,7 +7,7 @@ namespace blqw
     /// <summary> 指示指示某个实现IFormattable的字段或属性在序列化Json时所使用的自定义格式
     /// </summary>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
-    public class JsonFormatAttribute : Attribute
+    public sealed class JsonFormatAttribute : Attribute
     {
         /// <summary> 指示指示某个实现IFormattable的字段或属性在序列化Json时所使用的自定义格式
         /// </summary>
