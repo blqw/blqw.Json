@@ -11,16 +11,23 @@ namespace blqw
     {
         /// <summary> 对象成员集合
         /// </summary>
-        private DictionaryEx<string, JsonMember> _members = new DictionaryEx<string, JsonMember>(StringComparer.OrdinalIgnoreCase);
+        private DictionaryEx<string, JsonMember> _members;
+        private JsonMember[] _memberArray;
+
         /// <summary> 对象构造函数委托
         /// </summary>
         private LiteracyNewObject _ctor;
+
+        /// <summary> 对象类型
+        /// </summary>
+        public readonly Type Type;
 
         /// <summary> 从指定的 Type 创建新的 JsonType 对象,该方法必须保证类型公开的构造函数有且只有一个
         /// </summary>
         public JsonType(Type type)
         {
             Assertor.AreNull(type, "type");
+            Type = type;
             _ctor = Literacy.CreateNewObject(type);
             if (_ctor == null)
             {
@@ -29,6 +36,7 @@ namespace blqw
                 Assertor.AreTrue<ArgumentException>(ctors.Length > 1, "构造函数调用不明确");
                 _ctor = Literacy.CreateNewObject(ctors[0]);
             }
+            Init();
         }
 
         /// <summary> 从指定的 Type 创建新的 JsonType 对象,并指定构造函数
@@ -37,8 +45,10 @@ namespace blqw
         {
             Assertor.AreNull(type, "type");
             Assertor.AreNull(ctor, "ctor");
+            Type = type;
             Assertor.AreTrue<ArgumentException>(type == ctor.ReflectedType, "ctor不属于当前类型");
             _ctor = Literacy.CreateNewObject(ctor);
+            Init();
         }
 
         /// <summary> 从指定的 Type 创建新的 JsonType 对象,并指定构造函数的参数
@@ -46,9 +56,38 @@ namespace blqw
         public JsonType(Type type, Type[] ctorArgsType)
         {
             Assertor.AreNull(type, "type");
+            Type = type;
             _ctor = Literacy.CreateNewObject(type, ctorArgsType);
             Assertor.AreTrue<ArgumentException>(_ctor == null, "没有找到符合条件的构造函数");
+            Init();
         }
+
+        private void Init()
+        {
+            _members = new DictionaryEx<string, JsonMember>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var p in Type.GetProperties())
+            {
+                var jm = JsonMember.Create(p);
+                if (jm != null)
+                {
+                    Assertor.AreTrue(_members.ContainsKey(jm.JsonName), "JsonName重复:" + jm.JsonName);
+                    _members[jm.JsonName] = jm;
+                }
+            }
+            foreach (var p in Type.GetFields())
+            {
+                var jm = JsonMember.Create(p);
+                if (jm != null)
+                {
+                    Assertor.AreTrue(_members.ContainsKey(jm.JsonName), "JsonName重复:" + jm.JsonName);
+                    _members[jm.JsonName] = jm;
+                }
+            }
+            _memberArray = new JsonMember[ _members.Values.Count];
+            _members.Values.CopyTo(_memberArray, 0);
+        }
+
 
         /// <summary> 根据 Json成员名称查找相关属性,并指定是否区分大小写,未找到返回null
         /// </summary>
@@ -75,13 +114,6 @@ namespace blqw
             return _ctor(args);
         }
 
-        /// <summary> 添加 JsonMember 到当前实例的成员集合
-        /// </summary>
-        internal void Add(JsonMember jmember)
-        {
-            _members[jmember.JsonName] = jmember;
-        }
-
         /// <summary> 枚举所有成员
         /// </summary>
         public IEnumerator<JsonMember> GetEnumerator()
@@ -96,7 +128,7 @@ namespace blqw
 
         /// <summary> 枚举字段
         /// </summary>
-        public IEnumerable<JsonMember> Fields
+        public IEnumerator<JsonMember> Fields
         {
             get
             {
@@ -112,7 +144,7 @@ namespace blqw
 
         /// <summary> 枚举属性
         /// </summary>
-        public IEnumerable<JsonMember> Properties
+        public IEnumerator<JsonMember> Properties
         {
             get
             {
@@ -124,6 +156,31 @@ namespace blqw
                     }
                 }
             }
+        }
+
+        /// <summary> 枚举所有成员
+        /// </summary>
+        public JsonMember[] Members
+        {
+            get
+            {
+                return _memberArray;
+            }
+        }
+
+        public override bool Equals(object obj)
+        {
+            var jtype = obj as JsonType;
+            if (jtype == null)
+            {
+                return false;
+            }
+            return this.Type.Equals(jtype.Type);
+        }
+
+        public override int GetHashCode()
+        {
+            return this.Type.GetHashCode();
         }
     }
 }

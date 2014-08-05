@@ -58,7 +58,10 @@
     <Compile Include="core\Literacy\ObjectPropertyCollection.cs" />
     <Compile Include="core\Literacy\TypeCodeEx.cs" />
     <Compile Include="core\LoadResourceDll.cs" />
-    <Compile Include="core\QuickStringWriter.cs" />
+    <Compile Include="core\QuickStringWriter.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="core\UsingLock2.cs" />
     <Compile Include="core\WinApi.cs" />
     <Compile Include="JsonBuilderSettings.cs" />
     <Compile Include="JsonObject\IJsonObject.cs" />

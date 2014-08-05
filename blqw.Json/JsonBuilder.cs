@@ -121,7 +121,7 @@ namespace blqw
             }
         }
 
-        private static string EscapeString(string str)
+        public static string EscapeString(string str)
         {
             var size = str.Length * 2;
             if (size > ushort.MaxValue)
@@ -242,7 +242,8 @@ namespace blqw
 
         }
 
-        private int depth;
+        private int _depth;
+
         #endregion
 
         protected QuickStringWriter Buffer;//字符缓冲区
@@ -331,8 +332,8 @@ namespace blqw
                 }
                 else
                 {
-                    depth++;
-                    if (depth > 128)
+                    _depth++;
+                    if (_depth > 128)
                     {
                         throw new NotSupportedException("对象过于复杂或存在循环引用");
                     }
@@ -349,7 +350,7 @@ namespace blqw
                     {
                         AppendCheckLoopRef(obj);
                     }
-                    depth--;
+                    _depth--;
                 }
             }
         }

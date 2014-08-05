@@ -12,7 +12,7 @@ namespace blqw
         /// <summary> 创建Json成员对象,如果成员被指定为忽略反序列化则返回null
         /// </summary>
         /// <param name="member">对象成员信息</param>
-        public JsonMember Create(MemberInfo member)
+        public static JsonMember Create(MemberInfo member)
         {
             var jsonIgnore = (JsonIgnoreAttribute)Attribute.GetCustomAttribute(member, typeof(JsonIgnoreAttribute));
             if (jsonIgnore != null)
@@ -39,7 +39,7 @@ namespace blqw
                 Member = new ObjectProperty((FieldInfo)member);
             }
             var name = Member.Attributes.First<JsonNameAttribute>();
-            JsonName = name != null ? name.Name : member.Name;
+            JsonName = name != null ? JsonBuilder.EscapeString(name.Name) : string.Concat("\"", member.Name, "\"");
             var format = Member.Attributes.First<JsonFormatAttribute>();
             if (format != null && ExtendMethod.IsChild(typeof(IFormattable), member.ReflectedType))
             {
