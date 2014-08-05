@@ -30,22 +30,38 @@ namespace blqw
         /// </summary>
         private JsonMember(MemberInfo member)
         {
+            JsonFormatAttribute format;
             if (member is PropertyInfo)
             {
                 Member = new ObjectProperty((PropertyInfo)member);
+                format = Member.Attributes.First<JsonFormatAttribute>();
+                if (format != null)
+                {
+                    if (!ExtendMethod.IsChild(typeof(IFormattable), ((PropertyInfo)member).PropertyType))
+                    {
+                        format = null;
+                    }
+                }
             }
             else
             {
                 Member = new ObjectProperty((FieldInfo)member);
+                format = Member.Attributes.First<JsonFormatAttribute>();
+                if (format != null)
+                {
+                    if (!ExtendMethod.IsChild(typeof(IFormattable), ((FieldInfo)member).FieldType))
+                    {
+                        format = null;
+                    }
+                }
             }
             var name = Member.Attributes.First<JsonNameAttribute>();
             JsonName = name != null ? JsonBuilder.EscapeString(name.Name) : string.Concat("\"", member.Name, "\"");
-            var format = Member.Attributes.First<JsonFormatAttribute>();
-            if (format != null && ExtendMethod.IsChild(typeof(IFormattable), member.ReflectedType))
+            if (format != null)
             {
                 MustFormat = true;
                 FormatString = format.Format;
-                Provider = format.Provider;
+                FormatProvider = format.Provider;
             }
         }
         /// <summary> Literacy组件的成员访问对象
@@ -62,7 +78,7 @@ namespace blqw
         public string FormatString { get; private set; }
         /// <summary> 序列化时使用的格式化机制
         /// </summary>
-        public IFormatProvider Provider { get; private set; }
+        public IFormatProvider FormatProvider { get; private set; }
         /// <summary> 指示当前成员是否忽略序列化操作
         /// </summary>
         public bool NonSerialized { get; private set; }

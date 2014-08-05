@@ -131,7 +131,6 @@ namespace blqw
             QuickStringWriter buffer = null;
             try
             {
-                buffer.Append('"');
                 unsafe
                 {
                     var length = str.Length;
@@ -265,6 +264,7 @@ namespace blqw
             CheckLoopRef = (settings & JsonBuilderSettings.CheckLoopRef) != 0;
             IgnoreEmptyTime = (settings & JsonBuilderSettings.IgnoreEmptyTime) != 0;
             QuotWrapBoolean = (settings & JsonBuilderSettings.QuotWrapBoolean) != 0;
+            IgnoreNullMember = (settings & JsonBuilderSettings.IgnoreNullMember) != 0;
         }
 
         #region settings
@@ -296,6 +296,9 @@ namespace blqw
         /// <summary> 使用双引号包装布尔的值
         /// </summary>
         public bool QuotWrapBoolean;
+        /// <summary> 忽略值是null的属性
+        /// </summary>
+        public bool IgnoreNullMember;
         #endregion
 
         /// <summary> 将对象转换为Json字符串
@@ -381,11 +384,14 @@ namespace blqw
             {
                 if (p.CanRead)
                 {
-                    Buffer.Append(fix);
-                    AppendKey(p.Name, false);
                     object value = p.GetValue(obj, null);
-                    AppendObject(value);
-                    fix = ",";
+                    if (value != null || !IgnoreNullMember)
+                    {
+                        Buffer.Append(fix);
+                        AppendKey(p.Name, false);
+                        AppendObject(value);
+                        fix = ",";
+                    }
                 }
             }
             Buffer.Append('}');
@@ -574,9 +580,7 @@ namespace blqw
                 }
                 else
                 {
-                    Buffer.Append('"');
                     AppendString(formattable.ToString(format, provider));
-                    Buffer.Append('"');
                 }
             }
             else if (formattable is Guid && (format == null || format.Length == 1))

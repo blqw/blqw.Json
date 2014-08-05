@@ -9,10 +9,23 @@ namespace blqw
     /// </summary>
     public sealed class JsonType : IEnumerable<JsonMember>
     {
-        /// <summary> 对象成员集合
-        /// </summary>
+        private static OrderlyList<JsonType> _Cache = new OrderlyList<JsonType>();
+
+        public static JsonType Get(Type type)
+        {
+            var hashCode = type.GetHashCode();
+            var jtype = _Cache[hashCode];
+            if (jtype == null)
+            {
+                jtype = new JsonType(type);
+                _Cache.Add(hashCode, jtype);
+            }
+            return jtype;
+        }
+
         private DictionaryEx<string, JsonMember> _members;
         private JsonMember[] _memberArray;
+        private JsonMember[] _propertyArray;
 
         /// <summary> 对象构造函数委托
         /// </summary>
@@ -62,6 +75,8 @@ namespace blqw
             Init();
         }
 
+        /// <summary> 初始化
+        /// </summary>
         private void Init()
         {
             _members = new DictionaryEx<string, JsonMember>(StringComparer.OrdinalIgnoreCase);
@@ -75,6 +90,9 @@ namespace blqw
                     _members[jm.JsonName] = jm;
                 }
             }
+
+            _propertyArray = new JsonMember[_members.Values.Count];
+            _members.Values.CopyTo(_propertyArray, 0);
             foreach (var p in Type.GetFields())
             {
                 var jm = JsonMember.Create(p);
@@ -84,10 +102,9 @@ namespace blqw
                     _members[jm.JsonName] = jm;
                 }
             }
-            _memberArray = new JsonMember[ _members.Values.Count];
+            _memberArray = new JsonMember[_members.Values.Count];
             _members.Values.CopyTo(_memberArray, 0);
         }
-
 
         /// <summary> 根据 Json成员名称查找相关属性,并指定是否区分大小写,未找到返回null
         /// </summary>
@@ -126,39 +143,17 @@ namespace blqw
             return _members.Values.GetEnumerator();
         }
 
-        /// <summary> 枚举字段
+        /// <summary> 属性集合
         /// </summary>
-        public IEnumerator<JsonMember> Fields
+        public JsonMember[] Properties
         {
             get
             {
-                foreach (var item in _members.Values)
-                {
-                    if (item.Member.Field)
-                    {
-                        yield return item;
-                    }
-                }
+                return _propertyArray;
             }
         }
 
-        /// <summary> 枚举属性
-        /// </summary>
-        public IEnumerator<JsonMember> Properties
-        {
-            get
-            {
-                foreach (var item in _members.Values)
-                {
-                    if (item.Member.Field == false)
-                    {
-                        yield return item;
-                    }
-                }
-            }
-        }
-
-        /// <summary> 枚举所有成员
+        /// <summary> 属性和字段集合
         /// </summary>
         public JsonMember[] Members
         {

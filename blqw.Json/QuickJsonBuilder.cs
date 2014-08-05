@@ -6,7 +6,6 @@ namespace blqw
     /// </summary>
     public class QuickJsonBuilder : JsonBuilder
     {
-        private static OrderlyList<JsonType> Cache = new OrderlyList<JsonType>();
 
         public QuickJsonBuilder()
             : base(JsonBuilderSettings.Default)
@@ -27,18 +26,11 @@ namespace blqw
         {
             UnsafeAppend('{');
 
-            Type type = obj.GetType();
-            var hashCode = type.GetHashCode();
-            var jtype = Cache[hashCode];
-            if (jtype == null)
-            {
-                jtype = new JsonType(type);
-                Cache.Add(hashCode, jtype);
-            }
-
-            var ms = jtype.Members;
+            var jtype = JsonType.Get(obj.GetType());
+            var ms = SerializableField ? jtype.Members : jtype.Properties;
             bool b = false;
-            for (int i = 0; i < ms.Length; i++)
+            var length = ms.Length;
+            for (int i = 0; i < length; i++)
             {
                 var member = ms[i];
                 if (member.NonSerialized == false)
@@ -47,35 +39,24 @@ namespace blqw
                     if (p.CanRead)
                     {
                         var value = p.GetValue(obj);
-                        if (value != null)
+                        if (value != null || !IgnoreNullMember)
                         {
                             if (b) UnsafeAppend(',');
                             UnsafeAppend(member.JsonName);
                             UnsafeAppend(':');
-                            //AppendKey(member.JsonName, false);
-                            AppendObject(value);
+                            if (member.MustFormat)
+                            {
+                                AppendFormattable((IFormattable)value, member.FormatString, member.FormatProvider);
+                            }
+                            else
+                            {
+                                AppendObject(value);
+                            }
                             if (!b) b = true;
                         }
                     }
                 }
             }
-
-            //Literacy lit = Literacy.Cache(type, true);
-            //var ee = lit.Property.GetEnumerator();
-            //var fix = "";
-            //while (ee.MoveNext())
-            //{
-            //    var p = ee.Current;
-            //    var value = p.GetValue(obj);
-            //    if (value != null)
-            //    {
-            //        UnsafeAppend(fix);
-            //        AppendKey(p.Name, false);
-            //        AppendObject(value);
-            //        fix = ",";
-            //    }
-            //}
-
             UnsafeAppend('}');
         }
 

@@ -175,6 +175,26 @@ namespace UnitTestProject1
             {
                 Assert.Fail("循环引用测试失败2");
             }
+
+
+            //忽略null属性
+            Assert.AreEqual("{\"a\":null,\"b\":1}", new blqw.QuickJsonBuilder(JsonBuilderSettings.None).ToJsonString(new { a = (string)null,b = 1 }));
+            Assert.AreEqual("{\"b\":1}", new blqw.QuickJsonBuilder(JsonBuilderSettings.IgnoreNullMember).ToJsonString(new { a = (string)null, b = 1 }));
+
+            //特性测试
+            var test2 = new AttrTest { ID = 1, Name = "a", Time = new DateTime(2014, 1, 2, 3, 4, 5, 6) };
+            Assert.AreEqual("{\"name\":\"a\"}", new blqw.QuickJsonBuilder(JsonBuilderSettings.None).ToJsonString(test2));
+            Assert.AreEqual("{\"name\":\"a\",\"Time\":\"2014年1月2日\"}", new blqw.QuickJsonBuilder(JsonBuilderSettings.SerializableField).ToJsonString(test2));
+        }
+
+        class AttrTest
+        {
+            [JsonIgnore]
+            public int ID { get; set; }
+            [JsonName("name")]
+            public string Name { get; set; }
+            [JsonFormat("yyyy年M月d日")]
+            public DateTime Time;
         }
 
         public void Test1<T>(string jsonString)

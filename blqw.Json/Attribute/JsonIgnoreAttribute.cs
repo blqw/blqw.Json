@@ -23,6 +23,8 @@ namespace blqw
             NonDeserialize = nonDeserialize;
         }
 
+        /// <summary> 指示
+        /// </summary>
         public bool NonDeserialize { get; private set; }
     }
 }

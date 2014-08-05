@@ -9,6 +9,7 @@ namespace blqw
     [Flags, Serializable]
     public enum JsonBuilderSettings
     {
+        None = 0,
         /// <summary> 格式化 DateTime 对象中的日期
         /// </summary>
         FormatDate = 1 << 1,
@@ -36,8 +37,11 @@ namespace blqw
         /// <summary> 使用双引号包装布尔的值
         /// </summary>
         QuotWrapBoolean = 1 << 9,
-        /// <summary> 默认序列化设置 FormatDate | FormatTime | IgnoreEmptyTime
+        /// <summary> 忽略值是null的属性
         /// </summary>
-        Default = FormatDate | FormatTime | IgnoreEmptyTime,
+        IgnoreNullMember = 1 << 10,
+        /// <summary> 默认序列化设置 FormatDate | FormatTime | IgnoreEmptyTime | IgnoreNullMember
+        /// </summary>
+        Default = FormatDate | FormatTime | IgnoreEmptyTime | IgnoreNullMember,
     }
 }
