@@ -158,9 +158,22 @@ namespace blqw
             }
         }
 
+        /// <summary> 如果parent不是type类型或其子类或接口 则抛出异常
+        /// </summary>
+        /// <param name="parent">限定类型</param>
+        /// <param name="type">参数值</param>
+        /// <param name="name">参数名称</param>
+        public static void AreType(Type parent, Type type, string name)
+        {
+            if (ExtendMethod.IsChild(parent, type) == false)
+            {
+                throw new ArgumentOutOfRangeException(name, type + " 值不是指定的类型 '" + type + "'");
+            }
+        }
+
         /// <summary> 如果value不是数字类型 则抛出异常
         /// </summary>
-        /// <param name="value">参数值</param>
+        /// <param name="type">参数值</param>
         /// <param name="name">参数名称</param>
         public static void AreNumberType(object value, string name)
         {

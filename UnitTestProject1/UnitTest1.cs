@@ -123,14 +123,14 @@ namespace UnitTestProject1
         {
             var user = User.TestUser();
             var userJson = blqw.Json.ToJsonString(user);
-            Test1<Object1>(File.ReadAllText("json1.txt"));
-            Test1<Object2[]>(File.ReadAllText("json2.txt"));
-            Test1<List<Object2>>(File.ReadAllText("json2.txt"));
-            Test1<User>(userJson);
-            Test2<Object1>(File.ReadAllText("json1.txt"));
-            Test2<Object2[]>(File.ReadAllText("json2.txt"));
-            Test2<List<Object2>>(File.ReadAllText("json2.txt"));
-            Test2<User>(userJson);
+            TestNewtonsoftResult<Object1>(File.ReadAllText("json1.txt"));
+            TestNewtonsoftResult<Object2[]>(File.ReadAllText("json2.txt"));
+            TestNewtonsoftResult<List<Object2>>(File.ReadAllText("json2.txt"));
+            TestNewtonsoftResult<User>(userJson);
+            TestSafeResult<Object1>(File.ReadAllText("json1.txt"));
+            TestSafeResult<Object2[]>(File.ReadAllText("json2.txt"));
+            TestSafeResult<List<Object2>>(File.ReadAllText("json2.txt"));
+            TestSafeResult<User>(userJson);
 
             //时间处理
             DateTime date = new DateTime(2014, 1, 2, 3, 4, 5, 6);
@@ -197,20 +197,20 @@ namespace UnitTestProject1
             public DateTime Time;
         }
 
-        public void Test1<T>(string jsonString)
+        public void TestNewtonsoftResult<T>(string jsonString)
         {
             var obj1 = blqw.Json.ToObject<T>(jsonString);
             var obj2 = Newtonsoft.Json.JsonConvert.DeserializeObject<T>(jsonString);
             AssertEquals(obj1, obj2);
         }
 
-        public void Test2<T>(string jsonString)
+        public void TestSafeResult<T>(string jsonString)
         {
             var obj1 = blqw.Json.ToObject<T>(jsonString);
             var jsonString1 = blqw.Json.ToJsonString(obj1);
             var obj2 = blqw.Json.ToObject<T>(jsonString1);
-            AssertEquals(obj1, obj2);
             var jsonString2 = blqw.Json.ToJsonString(obj2);
+            AssertEquals(obj1, obj2);
             Assert.AreEqual(jsonString1, jsonString2);
         }
 
@@ -256,10 +256,10 @@ namespace UnitTestProject1
 
         public static void AssertEquals<T>(T t1, T t2, string title = null)
         {
-            if (t1 == null || (t1.GetType().IsValueType && t1.GetHashCode() == 0))
-            {
-                return;
-            }
+            //if (t1 == null || (t1.GetType().IsValueType && t1.GetHashCode() == 0))
+            //{
+            //    return;
+            //}
             if (t1 == null || t2 == null)
             {
                 if (t1 != null || t2 != null)

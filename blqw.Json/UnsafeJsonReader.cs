@@ -153,6 +153,17 @@ namespace blqw
             return false;
         }
 
+        /// <summary> 检查是否已经到结尾,忽略空白和回车,如果已达结尾,则抛出异常
+        /// </summary>
+        public void CheckEnd()
+        {
+            if (IsEnd())
+            {
+                ThrowException();
+            }
+        }
+
+
         /// <summary> 移动到下一个字符,如果已经是结尾则抛出异常
         /// </summary>
         public void MoveNext()
@@ -193,13 +204,15 @@ namespace blqw
             }
         }
 
-        /// <summary> 跳过一个指定字符,忽略空白,如果字符串意外结束抛出异常
+        /// <summary> 跳过一个指定字符,忽略空白和回车,如果字符串意外结束抛出异常
         /// </summary>
-        public bool SkipChar(char c)
+        /// <param name="c">需要判断和跳过的字符</param>
+        /// <param name="throwOnError">失败是否抛出异常</param>
+        public bool SkipChar(char c, bool throwOnError)
         {
             if (IsEnd())
             {
-                ThrowException();
+                ThrowMissCharException(c);
             }
             if (Current == c)
             {
@@ -214,6 +227,10 @@ namespace blqw
                     Current = _p[_position];
                 }
                 return true;
+            }
+            if (throwOnError)
+            {
+                ThrowMissCharException(c);
             }
             return false;
         }
@@ -1100,7 +1117,12 @@ namespace blqw
             Current = '\0';
         }
 
-        private void ThrowException()
+        private void ThrowMissCharException(char c)
+        {
+            ThrowException("缺少字符:" + c + " 当前字符:{0}");
+        }
+
+        private void ThrowException(string title = "遇到意外的字符:{0}")
         {
             if (_isDisposed)
             {
@@ -1109,7 +1131,7 @@ namespace blqw
             if (IsEnd())
             {
                 Dispose();
-                throw new Exception("遇到意外的字符串结尾,解析失败!");
+                throw new NotSupportedException("遇到意外的字符串结尾,解析失败!");
             }
             int i = Math.Max(_position - 20, 0);
             int j = Math.Min(_position + 20, _length);
@@ -1117,10 +1139,10 @@ namespace blqw
             string ch = Current.ToString(CultureInfo.InvariantCulture);
             string view = new string(_p, i, j - i);
             Dispose();
-            throw new Exception(string.Format(ERR_MESSAGE, pos, ch, view));
+            throw new NotSupportedException(string.Format(ERR_MESSAGE, view, pos, string.Format(title, ch)));
         }
 
-        const string ERR_MESSAGE = "位置{0}遇到意外的字符{1},解析失败!\n截取: {2}";
+        const string ERR_MESSAGE = "解析失败!{2}\n截取: {0}\n位置{1},";
     }
 
 

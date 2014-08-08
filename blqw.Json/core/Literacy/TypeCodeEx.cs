@@ -28,11 +28,19 @@ namespace blqw
         DateTime = 16,
         String = 18,
 
-        Guid = 10019,
-        TimeSpan = 10020,
+        Guid = 99,
+        TimeSpan = 98,
+
         IList = 10021,
         IDictionary = 10022,
         StringBuilder = 10023,
-        Enum = 10024,
+        IListT = 10025,
+        IDictionaryT = 10026,
+        IEnumerable = 10027,
+        IDataReader = 10028,
+        DataSet = 10029,
+        DataTable = 10030,
+        DataView = 10031,
+        AnonymousType = 1032,
     }
 }

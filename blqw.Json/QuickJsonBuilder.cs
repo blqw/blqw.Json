@@ -27,9 +27,9 @@ namespace blqw
             UnsafeAppend('{');
 
             var jtype = JsonType.Get(obj.GetType());
-            var ms = SerializableField ? jtype.Members : jtype.Properties;
+            var ms = jtype.Members;
             bool b = false;
-            var length = ms.Length;
+            var length = SerializableField ? ms.Length : jtype.PropertyCount;
             for (int i = 0; i < length; i++)
             {
                 var member = ms[i];
@@ -42,8 +42,7 @@ namespace blqw
                         if (value != null || !IgnoreNullMember)
                         {
                             if (b) UnsafeAppend(',');
-                            UnsafeAppend(member.JsonName);
-                            UnsafeAppend(':');
+                            AppendKey(member.JsonName, false);
                             if (member.MustFormat)
                             {
                                 AppendFormattable((IFormattable)value, member.FormatString, member.FormatProvider);

@@ -88,7 +88,7 @@ namespace blqw
 
         #endregion
 
-        #region static
+        #region private static
 
         /// <summary> typeof(Object)
         /// </summary>
@@ -197,34 +197,7 @@ namespace blqw
             }
             ID = Interlocked.Increment(ref Sequence);
             UID = Guid.NewGuid();
-            TypeCode = (TypeCodeEx)Type.GetTypeCode(type);
-            if (TypeCode == TypeCodeEx.Object)
-            {
-                if (type == typeof(System.Collections.IList))
-                {
-                    TypeCode = TypeCodeEx.IList;
-                }
-                else if (type == typeof(System.Collections.IDictionary))
-                {
-                    TypeCode = TypeCodeEx.IDictionary;
-                }
-                else if (type == typeof(TimeSpan))
-                {
-                    TypeCode = TypeCodeEx.TimeSpan;
-                }
-                else if (type == typeof(Guid))
-                {
-                    TypeCode = TypeCodeEx.Guid;
-                }
-                else if (type == typeof(System.Text.StringBuilder))
-                {
-                    TypeCode = TypeCodeEx.StringBuilder;
-                }
-            }
-            else if (type.IsEnum)
-            {
-                TypeCode = TypeCodeEx.Enum;
-            }
+            TypeCode = Literacy.GetTypeCodeEx(type);
         }
 
         #endregion
@@ -452,7 +425,7 @@ namespace blqw
                 return null;
             }
             Type type = ctor.DeclaringType;
-            var dm = new DynamicMethod("", TypeObject, TypesObjects, ctor.ReflectedType, true);
+            var dm = new DynamicMethod("", TypeObject, TypesObjects, typeof(object), true);
             var ps = ctor.GetParameters();
             var il = dm.GetILGenerator();
 
@@ -722,6 +695,78 @@ namespace blqw
             il.Emit(OpCodes.Ret);
 
             return (LiteracyCaller)dm.CreateDelegate(typeof(LiteracyCaller));
+        }
+
+        public static TypeCodeEx GetTypeCodeEx(Type type)
+        {
+            if (type.IsGenericType && type.IsGenericTypeDefinition == false)
+            {
+                var args = type.GetGenericArguments();
+                if (type.IsValueType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                {
+                    type = args[0];
+                }
+                else if (type.Name.StartsWith("<>f__AnonymousType"))//判断匿名类
+                {
+                    return TypeCodeEx.AnonymousType;
+                }
+                else if (args.Length == 1)
+                {
+                    if (typeof(IList<>).MakeGenericType(args).IsAssignableFrom(type))
+                    {
+                        return TypeCodeEx.IListT;
+                    }
+                }
+                if (args.Length == 2)
+                {
+                    if (typeof(IDictionary<,>).MakeGenericType(args).IsAssignableFrom(type))
+                    {
+                        return TypeCodeEx.IDictionaryT;
+                    }
+                }
+            }
+
+            var code = (TypeCodeEx)Type.GetTypeCode(type);
+            if (code == TypeCodeEx.Object)
+            {
+                if (typeof(System.Collections.IList).IsAssignableFrom(type))
+                {
+                    return TypeCodeEx.IList;
+                }
+                else if (typeof(System.Collections.IDictionary).IsAssignableFrom(type))
+                {
+                    return TypeCodeEx.IDictionary;
+                }
+                else if (typeof(System.Data.IDataReader).IsAssignableFrom(type))
+                {
+                    return TypeCodeEx.IDataReader;
+                }
+                else if (type == typeof(TimeSpan))
+                {
+                    return TypeCodeEx.TimeSpan;
+                }
+                else if (type == typeof(Guid))
+                {
+                    return TypeCodeEx.Guid;
+                }
+                else if (type == typeof(System.Text.StringBuilder))
+                {
+                    return TypeCodeEx.StringBuilder;
+                }
+                else if (type == typeof(System.Data.DataSet))
+                {
+                    return TypeCodeEx.DataSet;
+                }
+                else if (type == typeof(System.Data.DataTable))
+                {
+                    return TypeCodeEx.DataTable;
+                }
+                else if (type == typeof(System.Data.DataView))
+                {
+                    return TypeCodeEx.DataView;
+                }
+            }
+            return code;
         }
 
         /// <summary> IL类型转换指令

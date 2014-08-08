@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 
 namespace blqw
 {
@@ -24,8 +25,6 @@ namespace blqw
         }
 
         private DictionaryEx<string, JsonMember> _members;
-        private JsonMember[] _memberArray;
-        private JsonMember[] _propertyArray;
 
         /// <summary> 对象构造函数委托
         /// </summary>
@@ -35,12 +34,122 @@ namespace blqw
         /// </summary>
         public readonly Type Type;
 
-        /// <summary> 从指定的 Type 创建新的 JsonType 对象,该方法必须保证类型公开的构造函数有且只有一个
+        /// <summary> 类型枚举
         /// </summary>
-        public JsonType(Type type)
+        public readonly TypeCodeEx TypeCodeEx;
+
+        /// <summary> 如果是IDictionary 表示Key的类型,否则为null
+        /// </summary>
+        public readonly Type KeyType;
+
+        /// <summary> 如果是IDictionary 表示Value的类型,IList表示Value的类型,Array表示数组元素的类型,否则为null
+        /// </summary>
+        public readonly Type ElementType;
+        /// <summary> 属性的个数,
+        /// </summary>
+        public readonly int PropertyCount;
+
+        /// <summary> TypeCodeEx 是否是 IList 或 IListT
+        /// </summary>
+        public readonly bool IsList;
+
+        /// <summary> TypeCodeEx 是否是 IDictionary 或 IDictionaryT
+        /// </summary>
+        public readonly bool IsDictionary;
+
+        /// <summary> 属性和字段集合
+        /// </summary>
+        public readonly JsonMember[] Members;
+
+        public readonly LiteracyCaller AddValue;
+
+        public readonly LiteracyCaller AddKeyValue;
+
+        private JsonType(Type type, int i)
         {
             Assertor.AreNull(type, "type");
             Type = type;
+            _members = new DictionaryEx<string, JsonMember>(StringComparer.OrdinalIgnoreCase);
+            var list = new List<JsonMember>();
+            //枚举属性
+            foreach (var p in Type.GetProperties())
+            {
+                var jm = JsonMember.Create(p);
+                if (jm != null)
+                {
+                    Assertor.AreTrue(_members.ContainsKey(jm.JsonName), "JsonName重复:" + jm.JsonName);
+                    _members[jm.JsonName] = jm;
+                    list.Add(jm);
+                }
+            }
+            PropertyCount = list.Count;
+            //枚举字段
+            foreach (var p in Type.GetFields())
+            {
+                var jm = JsonMember.Create(p);
+                if (jm != null)
+                {
+                    Assertor.AreTrue(_members.ContainsKey(jm.JsonName), "JsonName重复:" + jm.JsonName);
+                    _members[jm.JsonName] = jm;
+                    list.Add(jm);
+                }
+            }
+            Members = list.ToArray();
+            //设置 TypeCodeEx ,ElementType ,KeyType
+            TypeCodeEx = Literacy.GetTypeCodeEx(type);
+            switch (TypeCodeEx)
+            {
+                case TypeCodeEx.IListT:
+                    IsList = true;
+                    var args = type.GetGenericArguments();
+                    ElementType = args[0];
+                    AddValue = Literacy.CreateCaller(type.GetMethod("Add", args));
+                    break;
+                case TypeCodeEx.IList:
+                    IsList = true;
+                    if (type.IsArray)
+                    {
+                        ElementType = type.GetElementType();
+                        AddValue = (o, v) => ((System.Collections.ArrayList)o).Add(v[0]);
+                    }
+                    else
+                    {
+                        ElementType = typeof(object);
+                        AddValue = (o, v) => ((System.Collections.IList)o).Add(v[0]);
+                    }
+                    break;
+                case TypeCodeEx.IDictionary:
+                    IsDictionary = true;
+                    KeyType = typeof(object);
+                    ElementType = typeof(object);
+                    AddKeyValue = (o, v) => { ((System.Collections.IDictionary)o).Add(v[0], v[1]); return null; };
+                    break;
+                case TypeCodeEx.IDictionaryT:
+                    IsDictionary = true;
+                    args = type.GetGenericArguments();
+                    KeyType = args[0];
+                    ElementType = args[1];
+                    AddKeyValue = Literacy.CreateCaller(type.GetMethod("Add", args));
+                    break;
+                default:
+                    break;
+            }
+            //处理可空值类型
+            if (KeyType != null)
+            {
+                KeyType = Nullable.GetUnderlyingType(KeyType) ?? KeyType;
+            }
+            if (ElementType != null)
+            {
+                ElementType = Nullable.GetUnderlyingType(ElementType) ?? ElementType;
+            }
+        }
+
+        /// <summary> 从指定的 Type 创建新的 JsonType 对象,该方法必须保证类型公开的构造函数有且只有一个
+        /// </summary>
+        public JsonType(Type type)
+            : this(type, 0)
+        {
             _ctor = Literacy.CreateNewObject(type);
             if (_ctor == null)
             {
@@ -49,62 +158,27 @@ namespace blqw
                 Assertor.AreTrue<ArgumentException>(ctors.Length > 1, "构造函数调用不明确");
                 _ctor = Literacy.CreateNewObject(ctors[0]);
             }
-            Init();
         }
 
         /// <summary> 从指定的 Type 创建新的 JsonType 对象,并指定构造函数
         /// </summary>
         public JsonType(Type type, ConstructorInfo ctor)
+            : this(type, 1)
         {
-            Assertor.AreNull(type, "type");
             Assertor.AreNull(ctor, "ctor");
-            Type = type;
             Assertor.AreTrue<ArgumentException>(type == ctor.ReflectedType, "ctor不属于当前类型");
             _ctor = Literacy.CreateNewObject(ctor);
-            Init();
         }
 
         /// <summary> 从指定的 Type 创建新的 JsonType 对象,并指定构造函数的参数
         /// </summary>
         public JsonType(Type type, Type[] ctorArgsType)
+            : this(type, 2)
         {
-            Assertor.AreNull(type, "type");
-            Type = type;
             _ctor = Literacy.CreateNewObject(type, ctorArgsType);
             Assertor.AreTrue<ArgumentException>(_ctor == null, "没有找到符合条件的构造函数");
-            Init();
         }
 
-        /// <summary> 初始化
-        /// </summary>
-        private void Init()
-        {
-            _members = new DictionaryEx<string, JsonMember>(StringComparer.OrdinalIgnoreCase);
-
-            foreach (var p in Type.GetProperties())
-            {
-                var jm = JsonMember.Create(p);
-                if (jm != null)
-                {
-                    Assertor.AreTrue(_members.ContainsKey(jm.JsonName), "JsonName重复:" + jm.JsonName);
-                    _members[jm.JsonName] = jm;
-                }
-            }
-
-            _propertyArray = new JsonMember[_members.Values.Count];
-            _members.Values.CopyTo(_propertyArray, 0);
-            foreach (var p in Type.GetFields())
-            {
-                var jm = JsonMember.Create(p);
-                if (jm != null)
-                {
-                    Assertor.AreTrue(_members.ContainsKey(jm.JsonName), "JsonName重复:" + jm.JsonName);
-                    _members[jm.JsonName] = jm;
-                }
-            }
-            _memberArray = new JsonMember[_members.Values.Count];
-            _members.Values.CopyTo(_memberArray, 0);
-        }
 
         /// <summary> 根据 Json成员名称查找相关属性,并指定是否区分大小写,未找到返回null
         /// </summary>
@@ -143,25 +217,6 @@ namespace blqw
             return _members.Values.GetEnumerator();
         }
 
-        /// <summary> 属性集合
-        /// </summary>
-        public JsonMember[] Properties
-        {
-            get
-            {
-                return _propertyArray;
-            }
-        }
-
-        /// <summary> 属性和字段集合
-        /// </summary>
-        public JsonMember[] Members
-        {
-            get
-            {
-                return _memberArray;
-            }
-        }
 
         public override bool Equals(object obj)
         {

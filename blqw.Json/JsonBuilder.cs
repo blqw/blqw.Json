@@ -73,6 +73,11 @@ namespace blqw
             }
             else if (CheckLoopRef == false)
             {
+                _depth++;
+                if (_depth > 128)
+                {
+                    throw new NotSupportedException("对象过于复杂或存在循环引用");
+                }
                 if (obj is IConvertible) AppendOther(obj);
                 else if (obj is IDictionary) AppendJson((IDictionary)obj);
                 else if (obj is IDataReader) AppendDataSet((IDataReader)obj);
@@ -81,6 +86,7 @@ namespace blqw
                 else if (obj is DataTable) AppendDataTable((DataTable)obj);
                 else if (obj is DataView) AppendDataView((DataView)obj);
                 else AppendOther(obj);
+                _depth--;
             }
             else if (_loopObject.Contains(obj) == false)
             {
@@ -152,56 +158,56 @@ namespace blqw
                                     flag = p;
                                     break;
                                 case '\n':
-                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size).Append('"');
+                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size);
                                     buffer.Append(flag, 0, (int)(p - flag));
                                     buffer.Append('\\');
                                     buffer.Append('n');
                                     flag = p + 1;
                                     break;
                                 case '\r':
-                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size).Append('"');
+                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size);
                                     buffer.Append(flag, 0, (int)(p - flag));
                                     buffer.Append('\\');
                                     buffer.Append('r');
                                     flag = p + 1;
                                     break;
                                 case '\t':
-                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size).Append('"');
+                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size);
                                     buffer.Append(flag, 0, (int)(p - flag));
                                     buffer.Append('\\');
                                     buffer.Append('t');
                                     flag = p + 1;
                                     break;
                                 case '\f':
-                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size).Append('"');
+                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size);
                                     buffer.Append(flag, 0, (int)(p - flag));
                                     buffer.Append('\\');
                                     buffer.Append('f');
                                     flag = p + 1;
                                     break;
                                 case '\0':
-                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size).Append('"');
+                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size);
                                     buffer.Append(flag, 0, (int)(p - flag));
                                     buffer.Append('\\');
                                     buffer.Append('0');
                                     flag = p + 1;
                                     break;
                                 case '\a':
-                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size).Append('"');
+                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size);
                                     buffer.Append(flag, 0, (int)(p - flag));
                                     buffer.Append('\\');
                                     buffer.Append('a');
                                     flag = p + 1;
                                     break;
                                 case '\b':
-                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size).Append('"');
+                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size);
                                     buffer.Append(flag, 0, (int)(p - flag));
                                     buffer.Append('\\');
                                     buffer.Append('b');
                                     flag = p + 1;
                                     break;
                                 case '\v':
-                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size).Append('"');
+                                    if (buffer == null) buffer = new QuickStringWriter((ushort)size);
                                     buffer.Append(flag, 0, (int)(p - flag));
                                     buffer.Append('\\');
                                     buffer.Append('v');
@@ -216,7 +222,7 @@ namespace blqw
                         {
                             if (buffer == null)
                             {
-                                return string.Concat("\"" + str + "\"");
+                                return str;
                             }
                             buffer.Append(fp, 0, length);
                         }
@@ -227,7 +233,6 @@ namespace blqw
                         }
                     }
                 }
-                buffer.Append('"');
                 return buffer.ToString();
             }
             finally
@@ -335,11 +340,6 @@ namespace blqw
                 }
                 else
                 {
-                    _depth++;
-                    if (_depth > 128)
-                    {
-                        throw new NotSupportedException("对象过于复杂或存在循环引用");
-                    }
                     var conv = obj as IConvertible;
                     if (conv != null)
                     {
@@ -353,7 +353,6 @@ namespace blqw
                     {
                         AppendCheckLoopRef(obj);
                     }
-                    _depth--;
                 }
             }
         }
@@ -938,12 +937,6 @@ namespace blqw
         /// <param name="table">DataTable 对象</param>
         protected virtual void AppendDataTable(DataTable table)
         {
-            //Buffer.Append("{\"columns\":");
-            //AppendArray(table.Columns, o => ((DataColumn)o).ColumnName);
-            //Buffer.Append(",\"rows\":");
-            //AppendArray(table.Rows, o => ((DataRow)o).ItemArray);
-            //Buffer.Append('}');
-
             Buffer.Append('[');
 
             var ee = table.Rows.GetEnumerator();
@@ -970,11 +963,26 @@ namespace blqw
         /// <param name="tableView">DataView 对象</param>
         protected virtual void AppendDataView(DataView tableView)
         {
-            Buffer.Append("{\"columns\":");
-            AppendArray(tableView.Table.Columns, o => ((DataColumn)o).ColumnName);
-            Buffer.Append(",\"rows\":");
-            AppendArray(tableView, o => ((DataRowView)o).Row.ItemArray);
-            Buffer.Append('}');
+            Buffer.Append('[');
+            var table = tableView.Table ?? tableView.ToTable();
+            var ee = tableView.GetEnumerator();
+            if (ee.MoveNext())
+            {
+                var names = new string[table.Columns.Count];
+                var columns = table.Columns;
+                for (int i = 0; i < names.Length; i++)
+                {
+                    names[i] = EscapeString(columns[i].ColumnName);
+                }
+                AppendJson(names, ((DataRowView)ee.Current).Row.ItemArray);
+                while (ee.MoveNext())
+                {
+                    Buffer.Append(',');
+                    AppendJson(names, ((DataRowView)ee.Current).Row.ItemArray);
+                }
+            }
+
+            Buffer.Append(']');
         }
         /// <summary> 将 IDataReader 对象转换Json字符串写入Buffer
         /// </summary>

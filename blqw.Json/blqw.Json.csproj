@@ -61,6 +61,7 @@
     <Compile Include="core\QuickStringWriter.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="core\StringConverter.cs" />
     <Compile Include="core\UsingLock2.cs" />
     <Compile Include="core\WinApi.cs" />
     <Compile Include="JsonBuilderSettings.cs" />

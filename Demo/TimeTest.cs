@@ -13,6 +13,7 @@ namespace Demo
         public static int TestCount { get; set; }
 
         public static Object TestObject { get; set; }
+        public static String TestJsonString { get; set; }
 
         private static string N(string title)
         {
@@ -99,7 +100,30 @@ namespace Demo
             });
         }
 
+        //测试QuickJsonBuilder性能
+        public static void TestQuickJsonBuilder<T>()
+        {
+            TestObject = Activator.CreateInstance<T>();
+            CodeTimer.Initialize();
+            var jsonString = TestJsonString;
+            var obj = new JsonParser().ToObject(typeof(T), jsonString);
+            CodeTimer.Time(N("QuickJsonBuilder"), TestCount, () => {
+                new JsonParser().ToObject(typeof(T), jsonString);
+            });
 
+        }
+        //测试FastJson性能
+        public static void TestFastJson<T>()
+        {
+            TestObject = Activator.CreateInstance<T>();
+            CodeTimer.Initialize();
+            CodeTimer.Initialize();
+            var jsonString = TestJsonString;
+            fastJSON.JSON.Instance.ToObject<T>(jsonString);
+            CodeTimer.Time(N("QuickJsonBuilder"), TestCount, () => {
+                fastJSON.JSON.Instance.ToObject<T>(jsonString);
+            });
+        }
 
         public static void SerializeTest(int count, object obj)
         {
