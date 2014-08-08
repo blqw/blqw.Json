@@ -25,6 +25,7 @@ blqw.Json.ToJsonString(object,JsonBuilderSettings);
  1. 增加StringConverter用于将String转换为任意对象  
  1. 减少GC的回收消耗  
  1. 修改其他代码和bug  
+
 增加对特性的支持,现有3个特性JsonFormatAttribute(自定义格式化),JsonIgnoreAttribute(忽略),JsonNameAttribute(自定义json名称)  
 增加序列化参数 JsonBuilderSettings,包括 时间/布尔/枚举的默认格式,是否序列化字段,数字/布尔是否加引号,是否检测循环引用,是否忽略null值等  
 修改DataTable对象的默认Json格式为常用格式  
