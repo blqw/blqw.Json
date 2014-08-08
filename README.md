@@ -13,8 +13,10 @@ blqw.Json.ToJsonString(object,JsonBuilderSettings);
 ```
 
 ##更新说明
-* 2014.08.08  
+* 2014.08.08   
+
 #### 2.0b1 版本发布  
+
 优化代码 :  
 
 > 1. 放弃直接使用JsonBuilder ,现在JsonBuilder仅作为抽象基类存在  
