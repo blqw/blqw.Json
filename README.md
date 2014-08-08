@@ -18,7 +18,7 @@ blqw.Json.ToJsonString(object,JsonBuilderSettings);
 增加对特性的支持,现有3个特性JsonFormatAttribute(自定义格式化),JsonIgnoreAttribute(忽略),JsonNameAttribute(自定义json名称)  
 增加序列化参数 JsonBuilderSettings,包括 时间/布尔/枚举的默认格式,是否序列化字段,数字/布尔是否加引号,是否检测循环引用,是否忽略null值等  
 修改DataTable对象的默认Json格式为常用格式  
-其他优化代码 :  
+优化代码 :  
  1. 放弃直接使用JsonBuilder ,现在JsonBuilder仅作为抽象基类存在  
  1. 放弃使用Dictionary检测循环引用,改为ArrayList,测试表明这种方式更快  
  1. 当不检测循环引用的时候,当对象层级超过30将会抛出异常  
