@@ -5,9 +5,10 @@ using System.Text;
 
 namespace blqw
 {
-    public class JsonArray : IJsonObject, IEnumerable
+    struct JsonArray : IJsonObject, IEnumerable
     {
         public JsonArray(IList list)
+            :this()
         {
             _list = list;
         }
@@ -43,7 +44,7 @@ namespace blqw
         }
         public ICollection<string> Keys
         {
-            get { throw new NotImplementedException(); }
+            get { return new string[0]; }
         }
 
         public JsonTypeCode TypeCode
@@ -58,6 +59,9 @@ namespace blqw
             return _list.GetEnumerator();
         }
 
-
+        public object Value
+        {
+            get { return null; }
+        }
     }
 }

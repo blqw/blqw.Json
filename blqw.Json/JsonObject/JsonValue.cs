@@ -4,7 +4,7 @@ using System.Text;
 
 namespace blqw
 {
-    public struct JsonValue : IJsonObject, IConvertible
+    struct JsonValue : IJsonObject, IConvertible
     {
         public readonly static JsonValue Undefined = new JsonValue(null) { IsUndefined = true };
 
@@ -126,6 +126,12 @@ namespace blqw
         ulong IConvertible.ToUInt64(IFormatProvider provider)
         {
             return _value.ToUInt64(provider);
+        }
+
+
+        public object Value
+        {
+            get { return _value; }
         }
     }
 }

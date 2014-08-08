@@ -5,7 +5,7 @@ using System.Text;
 
 namespace blqw
 {
-    public struct JsonObject : IJsonObject, IDictionary<string, object>
+    struct JsonObject : IJsonObject, IDictionary<string, object>
     {
         internal static IJsonObject ToJsonObject(object obj)
         {
@@ -161,5 +161,11 @@ namespace blqw
         }
 
 
+
+
+        public object Value
+        {
+            get { return null; }
+        }
     }
 }

@@ -14,6 +14,16 @@ namespace blqw
         {
             return new QuickJsonBuilder().ToJsonString(obj);
         }
+
+        /// <summary> 将对象转换为Json字符串
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="settings">序列化Json字符串时使用的设置参数</param>
+        public static string ToJsonString(object obj,JsonBuilderSettings settings)
+        {
+            return new QuickJsonBuilder(settings).ToJsonString(obj);
+        }
+
         /// <summary> 将json字符串转换为指定对象
         /// </summary>
         public static T ToObject<T>(string json)

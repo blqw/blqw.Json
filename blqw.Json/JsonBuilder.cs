@@ -8,12 +8,13 @@ namespace blqw
 {
     /// <summary> 用于将C#转换为Json字符串
     /// </summary>
-    public class JsonBuilder
+    public abstract class JsonBuilder
     {
-        //循环引用对象缓存区
-        private IList _loopObject;
 
-        //private Dictionary<int,
+        /// <summary> 将未知对象按属性名和值转换为Json中的键值字符串写入Buffer
+        /// </summary>
+        /// <param name="obj">非null的位置对象</param>
+        protected abstract void AppendOther(object obj);
 
         #region private
 
@@ -74,7 +75,7 @@ namespace blqw
             else if (CheckLoopRef == false)
             {
                 _depth++;
-                if (_depth > 128)
+                if (_depth > 30)
                 {
                     throw new NotSupportedException("对象过于复杂或存在循环引用");
                 }
@@ -246,6 +247,9 @@ namespace blqw
 
         }
 
+        //循环引用对象缓存区
+        private IList _loopObject;
+
         private int _depth;
 
         #endregion
@@ -314,7 +318,7 @@ namespace blqw
             {
                 if (CheckLoopRef)
                 {
-                    _loopObject = new ArrayList(64);
+                    _loopObject = new ArrayList(32);
                 }
                 AppendObject(obj);
                 var json = Buffer.ToString();
@@ -370,30 +374,6 @@ namespace blqw
         protected virtual void UnsafeAppend(string value)
         {
             Buffer.Append(value);
-        }
-        /// <summary> 将未知对象按属性名和值转换为Json中的键值字符串写入Buffer
-        /// </summary>
-        /// <param name="obj">非null的位置对象</param>
-        protected virtual void AppendOther(object obj)
-        {
-            Type t = obj.GetType();
-            Buffer.Append('{');
-            string fix = "";
-            foreach (var p in t.GetProperties())
-            {
-                if (p.CanRead)
-                {
-                    object value = p.GetValue(obj, null);
-                    if (value != null || !IgnoreNullMember)
-                    {
-                        Buffer.Append(fix);
-                        AppendKey(p.Name, false);
-                        AppendObject(value);
-                        fix = ",";
-                    }
-                }
-            }
-            Buffer.Append('}');
         }
         /// <summary> 追加Key
         /// </summary>
