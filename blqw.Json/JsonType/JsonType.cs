@@ -10,11 +10,11 @@ namespace blqw
     /// </summary>
     public sealed class JsonType : IEnumerable<JsonMember>
     {
-        private static OrderlyList<JsonType> _Cache = new OrderlyList<JsonType>();
+        private static OrderlyList<int, JsonType> _Cache = new OrderlyList<int, JsonType>();
 
         public static JsonType Get(Type type)
         {
-            var hashCode = type.GetHashCode();
+            var hashCode = type.GUID.GetHashCode();
             var jtype = _Cache[hashCode];
             if (jtype == null)
             {

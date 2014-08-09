@@ -4,12 +4,13 @@ using System.Text;
 
 namespace blqw
 {
-    public class OrderlyList<T>
+    public class OrderlyList<TKey, TValue>
+        where TKey : IComparable<TKey>
     {
-        List<int> _keys = new List<int>();
-        List<T> _values = new List<T>();
-        
-        public void Add(int hashCode, T value)
+        List<TKey> _keys = new List<TKey>();
+        List<TValue> _values = new List<TValue>();
+
+        public void Add(TKey key, TValue value)
         {
             var min = 0;
             lock (_keys)
@@ -18,16 +19,13 @@ namespace blqw
                 while (min <= max)
                 {
                     var i = (max + min) / 2;
-                    var o = _keys[i];
-                    if (o > hashCode)
+                    var k = _keys[i];
+                    var r = k.CompareTo(key);
+                    if (r > 0)
                     {
                         max = i - 1;
                     }
-                    else if (o < hashCode)
-                    {
-                        min = i + 1;
-                    }
-                    else if (o == hashCode)
+                    else if (r == 0)
                     {
                         var t = _values[i];
                         if (object.Equals(t, value))
@@ -36,13 +34,17 @@ namespace blqw
                         }
                         throw new NotSupportedException("key已经存在");
                     }
+                    else
+                    {
+                        min = i + 1;
+                    }
                 }
-                _keys.Insert(min, hashCode);
+                _keys.Insert(min, key);
                 _values.Insert(min, value);
             }
         }
 
-        public T this[int hashCode]
+        public TValue this[TKey key]
         {
             get
             {
@@ -51,21 +53,22 @@ namespace blqw
                 while (min <= max)
                 {
                     var i = (max + min) / 2;
-                    var o = _keys[i];
-                    if (o > hashCode)
+                    var k = _keys[i];
+                    var r = k.CompareTo(key);
+                    if (r > 0)
                     {
                         max = i - 1;
                     }
-                    else if (o < hashCode)
-                    {
-                        min = i + 1;
-                    }
-                    else if (o == hashCode)
+                    else if (r == 0)
                     {
                         return _values[i];
                     }
+                    else
+                    {
+                        min = i + 1;
+                    }
                 }
-                return default(T);
+                return default(TValue);
             }
         }
     }

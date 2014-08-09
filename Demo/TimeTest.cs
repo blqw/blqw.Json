@@ -89,16 +89,6 @@ namespace Demo
             });
         }
 
-        //测试JsonBuilder性能
-        public static void TestJsonBuilder()
-        {
-            CodeTimer.Initialize();
-            object obj = TestObject;
-            new JsonBuilder().ToJsonString(obj);
-            CodeTimer.Time(N("JsonBuilder"), TestCount, () => {
-                new JsonBuilder().ToJsonString(obj);
-            });
-        }
 
         //测试QuickJsonBuilder性能
         public static void TestQuickJsonBuilder<T>()
@@ -135,7 +125,6 @@ namespace Demo
             TimeTest.TestJavaScriptSerializer();
             TimeTest.TestJayrockJson();
             TimeTest.TestNewtonsoftJson();
-            TimeTest.TestJsonBuilder();
         }
 
     }

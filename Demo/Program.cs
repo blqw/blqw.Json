@@ -13,7 +13,7 @@ namespace Demo
 
         static void Main(string[] args)
         {
-            Test2();
+            Test1();
 
         }
 
@@ -26,19 +26,19 @@ namespace Demo
             TimeTest.TestCount = 100000 * 5;
             TimeTest.TestObject = obj1;
             TimeTest.TestQuickJsonBuilder();
-            TimeTest.TestFastJson();
+            //TimeTest.TestFastJson();
 
             Console.WriteLine("========================");
             TimeTest.TestCount = 2000 * 5;
             TimeTest.TestObject = obj2;
             TimeTest.TestQuickJsonBuilder();
-            TimeTest.TestFastJson();
+            //TimeTest.TestFastJson();
 
             Console.WriteLine("========================"); ;
             TimeTest.TestCount = 250 * 5;
             TimeTest.TestObject = obj3;
             TimeTest.TestQuickJsonBuilder();
-            TimeTest.TestFastJson();
+           // TimeTest.TestFastJson();
 
             //var obj2 = Newtonsoft.Json.JsonConvert.DeserializeObject<ResultDTO>(jsonStr);
             //var jsonStr1 = blqw.Json.ToJsonString(obj1);
