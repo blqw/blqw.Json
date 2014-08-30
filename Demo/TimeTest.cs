@@ -17,7 +17,7 @@ namespace Demo
 
         private static string N(string title)
         {
-            return string.Join(" ", title, ExtendMethod.DisplayName(TestObject.GetType()), TestCount + "次");
+            return string.Join(" ", title, TypesHelper.DisplayName(TestObject.GetType()), TestCount + "次");
         }
 
         //测试QuickJsonBuilder性能

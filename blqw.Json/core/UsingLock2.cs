@@ -102,7 +102,7 @@ namespace blqw
                 return new Lock(_lockSlim, false);
             }
         }
-
+        
         /// <summary> 进入写入锁定模式,该模式下只允许同时执行一个读操作
         /// <para>退出读锁请将返回对象释放,建议使用using语块</para>
         /// <para>Enabled为false时,返回Disposable.Empty;</para>
@@ -129,7 +129,7 @@ namespace blqw
 
     /// <summary> 使用using代替lock操作的对象,可指定写入和读取锁定模式
     /// </summary>
-    public sealed class UsingLock<T> : UsingLock2
+    public sealed class UsingLock2<T> : UsingLock2
     {
         /// <summary> 保存数据
         /// </summary>
@@ -138,7 +138,7 @@ namespace blqw
         /// <summary> 使用using代替lock操作的对象,可指定写入和读取锁定模式
         /// <para>构造函数</para>
         /// <param name="data">为Data属性设置初始值</param>
-        public UsingLock(T data)
+        public UsingLock2(T data)
         {
             Enabled = true;
             _Data = data;

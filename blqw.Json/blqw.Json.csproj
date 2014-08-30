@@ -45,23 +45,22 @@
     <Compile Include="core\CodeTimer.cs" />
     <Compile Include="core\Counter.cs" />
     <Compile Include="core\CounterChangedEventArgs.cs" />
-    <Compile Include="core\DataConverter.cs" />
     <Compile Include="core\DictionaryEx.cs" />
     <Compile Include="core\Disposable.cs" />
-    <Compile Include="core\ExtendMethods\Type.cs" />
-    <Compile Include="core\OrderlyList.cs" />
+    <Compile Include="core\Literacy\Convert2.cs" />
+    <Compile Include="core\Literacy\TypeCodes.cs" />
+    <Compile Include="core\Literacy\TypeInfo.cs" />
+    <Compile Include="core\Literacy\TypesHelper.cs" />
     <Compile Include="core\Literacy\AttributeCollection.cs" />
     <Compile Include="core\Literacy\Delegate.cs" />
     <Compile Include="core\Literacy\ILoadMember.cs" />
     <Compile Include="core\Literacy\Literacy.cs" />
     <Compile Include="core\Literacy\ObjectProperty.cs" />
     <Compile Include="core\Literacy\ObjectPropertyCollection.cs" />
-    <Compile Include="core\Literacy\TypeCodeEx.cs" />
     <Compile Include="core\LoadResourceDll.cs" />
     <Compile Include="core\QuickStringWriter.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="core\StringConverter.cs" />
     <Compile Include="core\UsingLock2.cs" />
     <Compile Include="core\WinApi.cs" />
     <Compile Include="JsonBuilderSettings.cs" />
@@ -82,7 +81,9 @@
   <ItemGroup>
     <None Include="mklink.bat" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="core\ExtendMethods\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

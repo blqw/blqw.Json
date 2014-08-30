@@ -21,7 +21,7 @@ namespace blqw
                 {
                     return null;
                 }
-                return new JsonMember(member,true);
+                return new JsonMember(member, true);
             }
             return new JsonMember(member, false);
         }
@@ -37,7 +37,7 @@ namespace blqw
                 format = Member.Attributes.First<JsonFormatAttribute>();
                 if (format != null)
                 {
-                    if (!ExtendMethod.IsChild(typeof(IFormattable), ((PropertyInfo)member).PropertyType))
+                    if (!TypesHelper.IsChild(typeof(IFormattable), ((PropertyInfo)member).PropertyType))
                     {
                         format = null;
                     }
@@ -49,7 +49,7 @@ namespace blqw
                 format = Member.Attributes.First<JsonFormatAttribute>();
                 if (format != null)
                 {
-                    if (!ExtendMethod.IsChild(typeof(IFormattable), ((FieldInfo)member).FieldType))
+                    if (!TypesHelper.IsChild(typeof(IFormattable), ((FieldInfo)member).FieldType))
                     {
                         format = null;
                     }
@@ -90,6 +90,20 @@ namespace blqw
         /// <summary> 成员类型
         /// </summary>
         public readonly Type Type;
+
+        private JsonType _jsonType;
+
+        public JsonType JsonType
+        {
+            get
+            {
+                if (_jsonType == null)
+                {
+                    _jsonType = JsonType.Get(Type);
+                }
+                return _jsonType;
+            }
+        }
 
         /// <summary> 是否可读
         /// </summary>

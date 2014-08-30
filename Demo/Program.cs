@@ -13,11 +13,11 @@ namespace Demo
 
         static void Main(string[] args)
         {
-            Test1();
+            Test1(false);
 
         }
 
-        static void Test1()
+        static void Test1(bool fastjson)
         {
             var obj1 = User.TestUser();
             var obj2 = blqw.Json.ToObject<ResultDTO>(File.ReadAllText("json1.txt"));
@@ -26,19 +26,19 @@ namespace Demo
             TimeTest.TestCount = 100000 * 5;
             TimeTest.TestObject = obj1;
             TimeTest.TestQuickJsonBuilder();
-            //TimeTest.TestFastJson();
+            if (fastjson) TimeTest.TestFastJson();
 
             Console.WriteLine("========================");
             TimeTest.TestCount = 2000 * 5;
             TimeTest.TestObject = obj2;
             TimeTest.TestQuickJsonBuilder();
-            //TimeTest.TestFastJson();
+            if (fastjson) TimeTest.TestFastJson();
 
             Console.WriteLine("========================"); ;
             TimeTest.TestCount = 250 * 5;
             TimeTest.TestObject = obj3;
             TimeTest.TestQuickJsonBuilder();
-           // TimeTest.TestFastJson();
+            if (fastjson) TimeTest.TestFastJson();
 
             //var obj2 = Newtonsoft.Json.JsonConvert.DeserializeObject<ResultDTO>(jsonStr);
             //var jsonStr1 = blqw.Json.ToJsonString(obj1);

@@ -165,7 +165,7 @@ namespace blqw
         /// <param name="name">参数名称</param>
         public static void AreType(Type parent, Type type, string name)
         {
-            if (ExtendMethod.IsChild(parent, type) == false)
+            if (TypesHelper.IsChild(parent, type) == false)
             {
                 throw new ArgumentOutOfRangeException(name, type + " 值不是指定的类型 '" + type + "'");
             }

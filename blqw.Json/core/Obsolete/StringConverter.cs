@@ -5,7 +5,7 @@ using System.Text;
 
 //可空值类型转换,枚举转换未完成 2014.08.08
 
-namespace blqw
+namespace blqw.Obsolete
 {
     /// <summary> 字符串转换类
     /// </summary>
@@ -408,7 +408,7 @@ namespace blqw
                     {
                         return ToTimeSpan(s, throwOnError: throwOnError);
                     }
-                    else if (ExtendMethod.IsNullable(type))
+                    else if (TypesHelper.IsNullable(type))
                     {
                         if (s == null)
                         {
@@ -454,7 +454,7 @@ namespace blqw
 
             if (code == (int)TypeCode.Object && type != typeof(Guid))
             {
-                if (ExtendMethod.IsNullable(type))
+                if (TypesHelper.IsNullable(type))
                 {
                     if (s == null)
                     {
@@ -506,7 +506,7 @@ namespace blqw
                     {
                         return s => ToTimeSpan(s, throwOnError: throwOnError);
                     }
-                    else if (ExtendMethod.IsNullable(type))
+                    else if (TypesHelper.IsNullable(type))
                     {
                         var conv = CreateConverter(type.GetGenericArguments()[0], throwOnError);
                         return s => s == null ? null : conv(s);
@@ -547,7 +547,7 @@ namespace blqw
             }
             if (code == (int)TypeCode.Object && type != typeof(Guid))
             {
-                if (ExtendMethod.IsNullable(type))
+                if (TypesHelper.IsNullable(type))
                 {
                     var obj = ReturnOrThrow<object>("System.String", defaultValue, throwOnError);
                     return s => (T)obj;

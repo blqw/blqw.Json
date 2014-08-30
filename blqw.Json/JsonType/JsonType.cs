@@ -10,21 +10,20 @@ namespace blqw
     /// </summary>
     public sealed class JsonType : IEnumerable<JsonMember>
     {
-        private static OrderlyList<int, JsonType> _Cache = new OrderlyList<int, JsonType>();
+        private static Dictionary<Type, JsonType> _Cache = new Dictionary<Type, JsonType>();
 
         public static JsonType Get(Type type)
         {
-            var hashCode = type.GUID.GetHashCode();
-            var jtype = _Cache[hashCode];
-            if (jtype == null)
+            JsonType jtype;
+            if (_Cache.TryGetValue(type, out jtype) == false)
             {
                 jtype = new JsonType(type);
-                _Cache.Add(hashCode, jtype);
+                _Cache[type] = jtype;
             }
             return jtype;
         }
 
-        private DictionaryEx<string, JsonMember> _members;
+        private Dictionary<string, JsonMember> _members;
 
         /// <summary> 对象构造函数委托
         /// </summary>
@@ -34,26 +33,26 @@ namespace blqw
         /// </summary>
         public readonly Type Type;
 
-        /// <summary> 类型枚举
-        /// </summary>
-        public readonly TypeCodeEx TypeCodeEx;
+        public readonly TypeInfo TypeInfo;
+
+        public readonly TypeCodes TypeCodes;
 
         /// <summary> 如果是IDictionary 表示Key的类型,否则为null
         /// </summary>
-        public readonly Type KeyType;
+        public readonly JsonType KeyType;
 
         /// <summary> 如果是IDictionary 表示Value的类型,IList表示Value的类型,Array表示数组元素的类型,否则为null
         /// </summary>
-        public readonly Type ElementType;
+        public readonly JsonType ElementType;
         /// <summary> 属性的个数,
         /// </summary>
         public readonly int PropertyCount;
 
-        /// <summary> TypeCodeEx 是否是 IList 或 IListT
+        /// <summary> TypeCodes 是否是 IList 或 IListT
         /// </summary>
         public readonly bool IsList;
 
-        /// <summary> TypeCodeEx 是否是 IDictionary 或 IDictionaryT
+        /// <summary> TypeCodes 是否是 IDictionary 或 IDictionaryT
         /// </summary>
         public readonly bool IsDictionary;
 
@@ -61,15 +60,16 @@ namespace blqw
         /// </summary>
         public readonly JsonMember[] Members;
 
-        public readonly LiteracyCaller AddValue;
+        internal readonly LiteracyCaller AddValue;
 
-        public readonly LiteracyCaller AddKeyValue;
+        internal readonly LiteracyCaller AddKeyValue;
 
         private JsonType(Type type, int i)
         {
             Assertor.AreNull(type, "type");
             Type = type;
-            _members = new DictionaryEx<string, JsonMember>(StringComparer.OrdinalIgnoreCase);
+            TypeInfo = TypesHelper.GetTypeInfo(type);
+            _members = new Dictionary<string, JsonMember>(StringComparer.OrdinalIgnoreCase);
             var list = new List<JsonMember>();
             //枚举属性
             foreach (var p in Type.GetProperties())
@@ -95,53 +95,43 @@ namespace blqw
                 }
             }
             Members = list.ToArray();
-            //设置 TypeCodeEx ,ElementType ,KeyType
-            TypeCodeEx = Literacy.GetTypeCodeEx(type);
-            switch (TypeCodeEx)
+            //设置 TypeCodes ,ElementType ,KeyType
+            switch (TypeCodes = TypeInfo.TypeCodes)
             {
-                case TypeCodeEx.IListT:
+                case TypeCodes.IListT:
                     IsList = true;
                     var args = type.GetGenericArguments();
-                    ElementType = args[0];
+                    ElementType = JsonType.Get(args[0]);
                     AddValue = Literacy.CreateCaller(type.GetMethod("Add", args));
                     break;
-                case TypeCodeEx.IList:
+                case TypeCodes.IList:
                     IsList = true;
                     if (type.IsArray)
                     {
-                        ElementType = type.GetElementType();
+                        ElementType = JsonType.Get(type.GetElementType());
                         AddValue = (o, v) => ((System.Collections.ArrayList)o).Add(v[0]);
                     }
                     else
                     {
-                        ElementType = typeof(object);
+                        ElementType = JsonType.Get(typeof(object));
                         AddValue = (o, v) => ((System.Collections.IList)o).Add(v[0]);
                     }
                     break;
-                case TypeCodeEx.IDictionary:
+                case TypeCodes.IDictionary:
                     IsDictionary = true;
-                    KeyType = typeof(object);
-                    ElementType = typeof(object);
+                    KeyType = JsonType.Get(typeof(object));
+                    ElementType = KeyType;
                     AddKeyValue = (o, v) => { ((System.Collections.IDictionary)o).Add(v[0], v[1]); return null; };
                     break;
-                case TypeCodeEx.IDictionaryT:
+                case TypeCodes.IDictionaryT:
                     IsDictionary = true;
                     args = type.GetGenericArguments();
-                    KeyType = args[0];
-                    ElementType = args[1];
+                    KeyType = JsonType.Get(args[0]);
+                    ElementType = JsonType.Get(args[1]);
                     AddKeyValue = Literacy.CreateCaller(type.GetMethod("Add", args));
                     break;
                 default:
                     break;
-            }
-            //处理可空值类型
-            if (KeyType != null)
-            {
-                KeyType = Nullable.GetUnderlyingType(KeyType) ?? KeyType;
-            }
-            if (ElementType != null)
-            {
-                ElementType = Nullable.GetUnderlyingType(ElementType) ?? ElementType;
             }
         }
 
@@ -153,6 +143,10 @@ namespace blqw
             _ctor = Literacy.CreateNewObject(type);
             if (_ctor == null)
             {
+                if (TypeInfo.IsSpecialType)
+                {
+                    return;
+                }
                 var ctors = type.GetConstructors();
                 Assertor.AreTrue<ArgumentException>(ctors.Length == 0, "没有找到构造函数");
                 Assertor.AreTrue<ArgumentException>(ctors.Length > 1, "构造函数调用不明确");
@@ -165,6 +159,10 @@ namespace blqw
         public JsonType(Type type, ConstructorInfo ctor)
             : this(type, 1)
         {
+            if (ctor == null && TypeInfo.IsSpecialType)
+            {
+                return;
+            }
             Assertor.AreNull(ctor, "ctor");
             Assertor.AreTrue<ArgumentException>(type == ctor.ReflectedType, "ctor不属于当前类型");
             _ctor = Literacy.CreateNewObject(ctor);
@@ -176,7 +174,14 @@ namespace blqw
             : this(type, 2)
         {
             _ctor = Literacy.CreateNewObject(type, ctorArgsType);
-            Assertor.AreTrue<ArgumentException>(_ctor == null, "没有找到符合条件的构造函数");
+            if (_ctor == null && TypeInfo.IsSpecialType)
+            {
+                return;
+            }
+            else
+            {
+                throw new ArgumentException("没有找到符合条件的构造函数");
+            }
         }
 
 
@@ -188,10 +193,13 @@ namespace blqw
         {
             get
             {
-                var jmember = _members[jsonName];
-                if (ignoreCase || string.Equals(jmember.JsonName, jsonName, StringComparison.Ordinal))
+                JsonMember jmember;
+                if (_members.TryGetValue(jsonName, out jmember))
                 {
-                    return jmember;
+                    if (ignoreCase || string.Equals(jmember.JsonName, jsonName, StringComparison.Ordinal))
+                    {
+                        return jmember;
+                    }
                 }
                 return null;
             }

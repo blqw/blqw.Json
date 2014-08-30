@@ -86,7 +86,7 @@ namespace blqw
             //如果obj == null创建新对象
             if (obj == null)
             {
-                if (jsonType.TypeCodeEx == TypeCodeEx.AnonymousType)
+                if (jsonType.TypeCodes == TypeCodes.AnonymousType)
                 {
                     throw new NotSupportedException("不支持匿名类型的反序列化操作");
                 }
@@ -121,7 +121,7 @@ namespace blqw
                             var arr = obj as Array;
                             if (arr == null)
                             {
-                                ThrowException("无法处理当前对象 : 类型( " + ExtendMethod.DisplayName(obj.GetType()) + " )");
+                                ThrowException("无法处理当前对象 : 类型( " + TypesHelper.DisplayName(obj.GetType()) + " )");
                             }
                             FillArray(arr, jsonType, reader);
                         }
@@ -132,7 +132,7 @@ namespace blqw
                     }
                     else
                     {
-                        ThrowException("无法处理当前对象 : 类型( " + ExtendMethod.DisplayName(obj.GetType()) + " )");
+                        ThrowException("无法处理当前对象 : 类型( " + TypesHelper.DisplayName(obj.GetType()) + " )");
                     }
                     reader.SkipChar(']', true);
                     break;
@@ -160,7 +160,7 @@ namespace blqw
                 var member = jsonType[key, true];               //得到对象属性
                 if (member != null && member.CanWrite)
                 {
-                    object val = ReadValue(reader, member.Type);//得到值
+                    object val = ReadValue(reader, member.JsonType);//得到值
                     member.Member.SetValue(obj, val);           //赋值
                 }
                 else
@@ -206,8 +206,8 @@ namespace blqw
                 ThrowException("对象无法写入数据,对象有可能是只读的或找不到Add入口");
             }
             var eleType = jsonType.ElementType;
-            var keyType = jsonType.KeyType;
-            if (keyType == typeof(string) || keyType == typeof(object))
+            var keyType = jsonType.KeyType.TypeInfo;
+            if (keyType.TypeCodes == TypeCodes.String || keyType.Type == typeof(object))
             {
                 do
                 {
@@ -218,11 +218,10 @@ namespace blqw
             }
             else
             {
-                var conv = StringConverter.CreateConverter(keyType, true);
                 do
                 {
                     string keyStr = ReadKey(reader);            //获取Key
-                    object key = conv(keyStr);
+                    object key = keyType.Convert(keyStr);
                     object val = ReadValue(reader, eleType);    //得到值
                     jsonType.AddKeyValue(key, val);
                 } while (reader.SkipChar(',', false));
@@ -339,31 +338,31 @@ namespace blqw
         /// <param name="reader"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        private object ReadValue(UnsafeJsonReader reader, Type type)
+        private object ReadValue(UnsafeJsonReader reader, JsonType jsonType)
         {
             reader.CheckEnd();
             switch (reader.Current)
             {
                 case '[':
                     reader.MoveNext();
-                    var array = ReadList(reader, type);
+                    var array = ReadList(reader, jsonType);
                     reader.SkipChar(']', true);
                     return array;
                 case '{':
                     reader.MoveNext();
-                    var obj = ReadObject(reader, type);
+                    var obj = ReadObject(reader, jsonType);
                     reader.SkipChar('}', true);
                     return obj;
                 case '"':
                 case '\'':
-                    if (type == typeof(DateTime))
+                    if (jsonType.TypeCodes == TypeCodes.DateTime)
                     {
                         return reader.ReadDateTime();
                     }
-                    return ParseString(reader, type);
+                    return ParseString(reader, jsonType.TypeInfo);
                 default:
                     object val = reader.ReadConsts();
-                    return DataConverter.ChangedType(val, type, true);
+                    return jsonType.TypeInfo.Convert(val);
             }
         }
 
@@ -372,28 +371,27 @@ namespace blqw
         /// <param name="reader"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        private static object ParseString(UnsafeJsonReader reader, Type type)
+        private static object ParseString(UnsafeJsonReader reader, TypeInfo typeInfo)
         {
-            var typecode = Type.GetTypeCode(type);
             //数字
-            if ((typecode >= TypeCode.SByte && typecode <= TypeCode.Decimal) || typecode == TypeCode.Boolean)
+            if (typeInfo.IsNumberType || typeInfo.TypeCodes == TypeCodes.Boolean)
             {
                 //枚举
-                if (type.IsEnum)
+                if (typeInfo.Type.IsEnum)
                 {
-                    return Enum.Parse(type, reader.ReadString());
+                    return typeInfo.Convert(reader.ReadString());
                 }
                 char quot = reader.Current;
                 reader.MoveNext();
-                var val = DataConverter.ChangedType(reader.ReadConsts(), type, true);
+                var val = typeInfo.Convert(reader.ReadConsts());
                 reader.SkipChar(quot, true);
                 return val;
             }
-            else if (typecode == TypeCode.DateTime)
+            else if (typeInfo.TypeCodes == TypeCodes.DateTime)
             {
                 return reader.ReadDateTime();
             }
-            return StringConverter.ChangedType(reader.ReadString(), type, true);
+            return typeInfo.Convert(reader.ReadString());
         }
 
 
@@ -403,16 +401,15 @@ namespace blqw
         /// <param name="reader"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        private object ReadList(UnsafeJsonReader reader, Type type)
+        private object ReadList(UnsafeJsonReader reader, JsonType jsonType)
         {
-            var jsonType = JsonType.Get(type);
-            if (type.IsArray)
+            if (jsonType.TypeInfo.IsArray)
             {
                 ArrayList list = new ArrayList();   //Array类型中的AddValue方法调用的是ArrayList
                 FillList(list, jsonType, reader);
-                return list.ToArray(jsonType.ElementType);
+                return list.ToArray(jsonType.ElementType.Type);
             }
-            if (type == typeof(object))
+            if (jsonType.Type == typeof(object))
             {
                 ArrayList list = new ArrayList();
                 FillList(list, JsonTypeArrayList, reader);
@@ -432,10 +429,9 @@ namespace blqw
         /// <param name="reader"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        private object ReadObject(UnsafeJsonReader reader, Type type)
+        private object ReadObject(UnsafeJsonReader reader, JsonType jsonType)
         {
-            var jsonType = JsonType.Get(type);
-            if (type == typeof(object))
+            if (jsonType.Type == typeof(object))
             {
                 var obj = new Dictionary<string, object>();
                 FillDictionary(obj, JsonTypeDictionary, reader);

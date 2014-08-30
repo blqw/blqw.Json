@@ -8,7 +8,7 @@ using System.Xml;
 
 //DataConverter 合并StringConverter 可空值类型转换还有bug 2014.08.08
 
-namespace blqw
+namespace blqw.Obsolete
 {
     public static class DataConverter
     {
@@ -178,7 +178,7 @@ namespace blqw
             }
 
             var type = typeof(T);
-            if (ExtendMethod.IsPrimitive(type))
+            if (TypesHelper.IsSpecialType(type))
             {
                 model = ChangedType<T>(reader[0], default(T), true);
             }
@@ -202,7 +202,7 @@ namespace blqw
             var lit = Literacy.Cache(type, true);
             var props = GetProperties(reader, lit);
             var list = new List<T>();
-            if (ExtendMethod.IsPrimitive(type))
+            if (TypesHelper.IsSpecialType(type))
             {
                 while (reader.Read())
                 {
@@ -238,7 +238,7 @@ namespace blqw
                 return false;
             }
             var type = typeof(T);
-            if (ExtendMethod.IsPrimitive(type))
+            if (TypesHelper.IsSpecialType(type))
             {
                 model = ChangedType<T>(row[0], default(T), true);
             }
@@ -262,7 +262,7 @@ namespace blqw
             var lit = Literacy.Cache(typeof(T), true);
             var props = GetProperties(table, lit);
             var list = new List<T>();
-            if (ExtendMethod.IsPrimitive(type))
+            if (TypesHelper.IsSpecialType(type))
             {
                 foreach (DataRow row in table.Rows)
                 {
@@ -366,7 +366,7 @@ namespace blqw
                     {
                         return ToGuid(value, throwOnError: throwOnError);
                     }
-                    else if (ExtendMethod.IsNullable(type))
+                    else if (TypesHelper.IsNullable(type))
                     {
                         if (value is DBNull || value == null)
                         {
@@ -416,7 +416,7 @@ namespace blqw
 
             if (code == (int)TypeCode.Object && type != typeof(Guid))
             {
-                if (ExtendMethod.IsNullable(type))
+                if (TypesHelper.IsNullable(type))
                 {
                     if (value is DBNull || value == null)
                     {
@@ -443,7 +443,7 @@ namespace blqw
         {
             if (throwOnError)
             {
-                throw new InvalidCastException(string.Concat("值' ", value ?? "<NULL>", "' 无法转为 ", ExtendMethod.DisplayName(typeof(T)), " 类型"));
+                throw new InvalidCastException(string.Concat("值' ", value ?? "<NULL>", "' 无法转为 ", TypesHelper.DisplayName(typeof(T)), " 类型"));
             }
             else
             {
@@ -1076,7 +1076,7 @@ namespace blqw
                     {
                         return value => ToGuid(value, throwOnError: true);
                     }
-                    else if (ExtendMethod.IsNullable(type))
+                    else if (TypesHelper.IsNullable(type))
                     {
                         type = type.GetGenericArguments()[0];
                         var conv = CreateConverter(type);
