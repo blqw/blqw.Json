@@ -31,6 +31,7 @@ blqw.Json.ToJsonString(object,JsonBuilderSettings);
 
 #### 2014.07.29  
 * 新增 IJsonObject 类型  
+
 ```csharp
 User user = User.TestUser();
 IJsonObject jobj = Json.ToJsonObject(Json.ToJsonString(user));
