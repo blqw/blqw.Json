@@ -13,6 +13,8 @@ blqw.Json.ToJsonString(object,JsonBuilderSettings);
 ```
 
 ##更新说明
+#### 2014.08.31  
+* 优化类型转换,性能up!
 #### 2.0b1 版本发布  
 #### 2014.08.08   
 * 优化代码 :  

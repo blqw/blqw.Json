@@ -38,6 +38,10 @@ namespace blqw
                 IsNumberType = true;
                 EnumUnderlyingType = TypesHelper.GetTypeInfo(Enum.GetUnderlyingType(Type));
             }
+            else if (IsNullable)
+            {
+                IsNumberType = NullableUnderlyingType.IsNumberType;
+            }
             else
             {
                 IsNumberType = (TypeCode >= TypeCode.SByte && TypeCode <= TypeCode.Decimal);

@@ -2802,7 +2802,7 @@ namespace blqw
 
         public static T ToEntity<T>(DbDataReader reader)
         {
-            Assertor.AreNull(reader, "reader");
+            AreNull(reader, "reader");
             T model = default(T);
             FillEntity(reader, ref model);
             return model;
@@ -2810,7 +2810,7 @@ namespace blqw
 
         public static bool FillEntity<T>(DbDataReader reader, ref T model)
         {
-            Assertor.AreNull(reader, "reader");
+            AreNull(reader, "reader");
             if (reader.Read() == false)
             {
                 return false;
@@ -2836,7 +2836,7 @@ namespace blqw
 
         public static List<T> ToList<T>(DbDataReader reader)
         {
-            Assertor.AreNull(reader, "reader");
+            AreNull(reader, "reader");
             var ti = TypesHelper.GetTypeInfo<T>();
             var lit = ti.IgnoreCaseLiteracy;
             var props = GetProperties(reader, lit);
@@ -2861,9 +2861,17 @@ namespace blqw
             return list;
         }
 
+        private static void AreNull(object value, string name)
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException(name);
+            }
+        }
+
         public static T ToEntity<T>(DataRow row)
         {
-            Assertor.AreNull(row, "reader");
+            AreNull(row, "row");
             var model = default(T);
             FillEntity(row, ref model);
             return model;
@@ -2871,7 +2879,7 @@ namespace blqw
 
         public static bool FillEntity<T>(DataRow row, ref T model)
         {
-            Assertor.AreNull(row, "reader");
+            AreNull(row, "row");
             if (row.HasErrors)
             {
                 return false;
@@ -2896,7 +2904,7 @@ namespace blqw
 
         public static List<T> ToList<T>(DataTable table)
         {
-            Assertor.AreNull(table, "reader");
+            AreNull(table, "table");
             var ti = TypesHelper.GetTypeInfo(typeof(T));
             var lit = ti.IgnoreCaseLiteracy;
             var props = GetProperties(table, lit);
