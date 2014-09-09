@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections;
+using Tools;
 
 namespace blqw
 {
@@ -19,7 +20,7 @@ namespace blqw
             if (type == null)
             {
                 object obj = null;
-                FillObject(ref obj, typeof(Dictionary<string, object>), jsonString);
+                FillObject(ref obj, null, jsonString);
                 return obj;
             }
             else if (type.IsArray)
@@ -80,6 +81,22 @@ namespace blqw
         private void FillObject(ref object obj, Type type, UnsafeJsonReader reader)
         {
             reader.CheckEnd();
+
+            if (type == null)
+            {
+                switch (reader.Current)
+                {
+                    case '{':
+                        type = typeof(Dictionary<string, object>);
+                        break;
+                    case '[': // 中括号的json仅支持反序列化成IList的对象
+                        type = typeof(List<object>);
+                        break;
+                    default:
+                        ThrowException("Json字符串必须以 { 或 [ 开始");
+                        break;
+                }
+            }
 
             var jsonType = JsonType.Get(type);
 
