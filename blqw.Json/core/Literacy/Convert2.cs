@@ -14,6 +14,60 @@ namespace blqw
 
         #region DbType
 
+        public static DbType TypeCodesToDbType(TypeCodes typeCodes)
+        {
+            switch (typeCodes)
+            {
+                case TypeCodes.Boolean:
+                    return DbType.Boolean;
+                case TypeCodes.Byte:
+                    return DbType.Byte;
+                case TypeCodes.Char:
+                    return DbType.Boolean;
+                case TypeCodes.DBNull:
+                    return DbType.Object;
+                case TypeCodes.DateTime:
+                    return DbType.DateTime;
+                case TypeCodes.Decimal:
+                    return DbType.Decimal;
+                case TypeCodes.Double:
+                    return DbType.Double;
+                case TypeCodes.Empty:
+                    return DbType.Object;
+                case TypeCodes.Int16:
+                    return DbType.Int16;
+                case TypeCodes.Int32:
+                    return DbType.Int32;
+                case TypeCodes.Int64:
+                    return DbType.Int64;
+                case TypeCodes.SByte:
+                    return DbType.SByte;
+                case TypeCodes.Single:
+                    return DbType.Single;
+                case TypeCodes.String:
+                    return DbType.String;
+                case TypeCodes.UInt16:
+                    return DbType.UInt16;
+                case TypeCodes.UInt32:
+                    return DbType.UInt32;
+                case TypeCodes.UInt64:
+                    return DbType.UInt64;
+                case TypeCodes.Guid:
+                    return DbType.Guid;
+                case TypeCodes.TimeSpan:
+                    return DbType.Time;
+                case TypeCodes.StringBuilder:
+                    return DbType.String;
+                case TypeCodes.Enum:
+                    return DbType.Int32;
+                case TypeCodes.Xml:
+                    return DbType.Xml;
+                default:
+                    break;
+            }
+            throw new InvalidCastException("无法将" + typeCodes.ToString() + "转换为DbType");
+        }
+
         public static DbType TypeToDbType(Type type)
         {
             switch (Type.GetTypeCode(type))

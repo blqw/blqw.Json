@@ -150,7 +150,7 @@ namespace blqw
         /// <param name="reader"></param>
         private void FillProperty(object obj, JsonType jsonType, UnsafeJsonReader reader)
         {
-            if (reader.SkipChar('}', false))
+            if (reader.Current == '}')
             {
                 return;
             }
@@ -172,7 +172,7 @@ namespace blqw
 
         private void FillArray(Array arr, JsonType jsonType, UnsafeJsonReader reader)
         {
-            if (reader.SkipChar(']', false) || arr.Length == 0)
+            if (reader.Current == ']' || arr.Length == 0)
             {
                 return;
             }
@@ -197,7 +197,7 @@ namespace blqw
         /// <param name="reader"></param>
         private void FillDictionary(object obj, JsonType jsonType, UnsafeJsonReader reader)
         {
-            if (reader.SkipChar('}', false))
+            if (reader.Current == '}')
             {
                 return;
             }
@@ -235,7 +235,7 @@ namespace blqw
         /// <param name="reader"></param>
         private void FillList(object obj, JsonType jsonType, UnsafeJsonReader reader)
         {
-            if (reader.SkipChar(']', false))
+            if (reader.Current == ']')
             {
                 return;
             }
@@ -300,28 +300,28 @@ namespace blqw
             {
                 case '[':
                     reader.MoveNext();
-                    if (reader.SkipChar(']', false))
+                    reader.CheckEnd();
+                    if (reader.Current != ']')
                     {
-                        return;
+                        do
+                        {
+                            SkipValue(reader);
+                        } while (reader.SkipChar(',', false));
+                        reader.SkipChar(']', true);
                     }
-                    do
-                    {
-                        SkipValue(reader);
-                    } while (reader.SkipChar(',', false));
-                    reader.SkipChar(']', true);
                     break;
                 case '{':
                     reader.MoveNext();
-                    if (reader.SkipChar('}', false))
+                    reader.CheckEnd();
+                    if (reader.Current != '}')
                     {
-                        return;
+                        do
+                        {
+                            SkipKey(reader);
+                            SkipValue(reader);
+                        } while (reader.SkipChar(',', false));
+                        reader.SkipChar('}', true);
                     }
-                    do
-                    {
-                        SkipKey(reader);
-                        SkipValue(reader);
-                    } while (reader.SkipChar(',', false));
-                    reader.SkipChar('}', true);
                     break;
                 case '"':
                 case '\'':

@@ -33,6 +33,17 @@ namespace blqw
             _mode = 1;
         }
 
+        /// <summary> 
+        /// </summary>
+        /// <param name="defaultValue"></param>
+        /// <param name="comparer"></param>
+        public DictionaryEx(TValue defaultValue, IEqualityComparer<TKey> comparer)
+        {
+            _items = new Dictionary<TKey, TValue>(comparer);
+            _defaultValue = defaultValue;
+            _mode = 1;
+        }
+
         /// <summary> 初始化 DictionaryEx , key不存在时返回defaultValue
         /// </summary>
         /// <param name="comparer">比较键时要使用对象,如果为null则使用默认比较方法</param>

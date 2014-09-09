@@ -239,8 +239,9 @@ namespace blqw
             {
                 return value;
             }
-                throw new InvalidCastException(string.Concat("值 '", ((object)input ?? "<NULL>").ToString(), "' 无法转为 ", DisplayName, " 类型"));
+            throw new InvalidCastException(string.Concat("值 '", ((object)input ?? "<NULL>").ToString(), "' 无法转为 ", DisplayName, " 类型"));
         }
+
         #region 私有方法
 
         /// <summary> 获取当前类型的 TypeCodes 值
@@ -284,19 +285,7 @@ namespace blqw
 
             if (TypeCode == TypeCode.Object)
             {
-                if (typeof(System.Collections.IList).IsAssignableFrom(Type))
-                {
-                    return TypeCodes.IList;
-                }
-                else if (typeof(System.Collections.IDictionary).IsAssignableFrom(Type))
-                {
-                    return TypeCodes.IDictionary;
-                }
-                else if (typeof(System.Data.IDataReader).IsAssignableFrom(Type))
-                {
-                    return TypeCodes.IDataReader;
-                }
-                else if (Type == typeof(TimeSpan))
+                if (Type == typeof(TimeSpan))
                 {
                     return TypeCodes.TimeSpan;
                 }
@@ -327,6 +316,30 @@ namespace blqw
                 else if (Type == typeof(UIntPtr))
                 {
                     return TypeCodes.UIntPtr;
+                }
+                else if (Type == typeof(System.Xml.XmlDocument))
+                {
+                    return TypeCodes.Xml;
+                }
+                else if (typeof(System.Collections.IList).IsAssignableFrom(Type))
+                {
+                    return TypeCodes.IList;
+                }
+                else if (typeof(System.Collections.IDictionary).IsAssignableFrom(Type))
+                {
+                    return TypeCodes.IDictionary;
+                }
+                else if (typeof(System.Data.Common.DbDataReader).IsAssignableFrom(Type))
+                {
+                    return TypeCodes.DbDataReader;
+                }
+                else if (typeof(System.Data.Common.DbParameter).IsAssignableFrom(Type))
+                {
+                    return TypeCodes.DbParameter;
+                }
+                else if (typeof(Type).IsAssignableFrom(Type))
+                {
+                    return TypeCodes.Type;
                 }
             }
             return (TypeCodes)TypeCode;

@@ -16,6 +16,11 @@ blqw.Json.ToJsonString(object,JsonBuilderSettings);
 #### 2014.08.31  
 * 优化类型转换,性能up!
 #### 2.0b1 版本发布  
+
+#### 2014.09.09  
+* 同步更新Literacy组件  
+* 更新两处序列化错误的问题  
+
 #### 2014.08.08   
 * 优化代码 :  
     1. 放弃直接使用JsonBuilder ,现在JsonBuilder仅作为抽象基类存在  
