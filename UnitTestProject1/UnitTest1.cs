@@ -132,6 +132,11 @@ namespace UnitTestProject1
             TestSafeResult<List<Object2>>(File.ReadAllText("json2.txt"));
             TestSafeResult<User>(userJson);
 
+            TestSafeResult(File.ReadAllText("json1.txt"));
+            TestSafeResult(File.ReadAllText("json2.txt"));
+            TestSafeResult(File.ReadAllText("json2.txt"));
+            TestSafeResult(userJson);
+
             //时间处理
             DateTime date = new DateTime(2014, 1, 2, 3, 4, 5, 6);
             Assert.AreEqual("{\"date\":\"2014-01-02 03:04:05\"}", new blqw.QuickJsonBuilder().ToJsonString(new { date = date }));
@@ -214,6 +219,16 @@ namespace UnitTestProject1
             Assert.AreEqual(jsonString1, jsonString2);
         }
 
+
+        public void TestSafeResult(string jsonString)
+        {
+            var obj1 = blqw.Json.ToObject(jsonString);
+            var jsonString1 = blqw.Json.ToJsonString(obj1);
+            var obj2 = blqw.Json.ToObject(jsonString1);
+            var jsonString2 = blqw.Json.ToJsonString(obj2);
+            AssertEquals(obj1, obj2);
+            Assert.AreEqual(jsonString1, jsonString2);
+        }
 
         #region MyRegion
         /// <summary> 检查一个类型是否为可空值类型

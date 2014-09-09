@@ -2325,7 +2325,7 @@ namespace blqw
             {
                 throw new ArgumentOutOfRangeException("T", "类型不是枚举");
             }
-            if (input is Enum)
+            if (input is T)
             {
                 result = (T)input;
                 return true;
@@ -2344,7 +2344,7 @@ namespace blqw
                 result = default(T);
                 return false;
             }
-            switch (Type.GetTypeCode(input.GetType()).GetTypeCode())
+            switch (Type.GetTypeCode(input.GetType()))
             {
                 case TypeCode.Empty:
                 case TypeCode.DBNull:
@@ -2353,24 +2353,25 @@ namespace blqw
                 case TypeCode.Boolean:
                     result = default(T);
                     return false;
-                case TypeCode.Byte: result = (T)input; return true;
-                case TypeCode.Char: result = (T)input; return true;
-                case TypeCode.Int16: result = (T)input; return true;
-                case TypeCode.Int32: result = (T)input; return true;
-                case TypeCode.Int64: result = (T)input; return true;
-                case TypeCode.SByte: result = (T)input; return true;
-                case TypeCode.Double: result = (T)input; return true;
-                case TypeCode.Single: result = (T)input; return true;
-                case TypeCode.UInt16: result = (T)input; return true;
-                case TypeCode.UInt32: result = (T)input; return true;
-                case TypeCode.UInt64: result = (T)input; return true;
+                case TypeCode.Byte:
+                case TypeCode.Char:
+                case TypeCode.Int16:
+                case TypeCode.Int32:
+                case TypeCode.Int64:
+                case TypeCode.SByte:
+                case TypeCode.Double:
+                case TypeCode.Single:
+                case TypeCode.UInt16:
+                case TypeCode.UInt32:
+                case TypeCode.UInt64:
+                    result = (T)Convert.ChangeType(input, Enum.GetUnderlyingType(typeof(T))); return true;
                 default:
                     break;
             }
 #if NF2
-            return NF2EnumTryParse(input.ToString(), out result);
+            return NF2EnumTryParse(input + "", out result);
 #else
-            return Enum.TryParse<T>(input.ToString(),false, out result);
+            return Enum.TryParse<T>(input + "", false, out result);
 #endif
         }
         public static bool TryParseObject(object input, Type outputType, out object result)
@@ -3021,7 +3022,7 @@ namespace blqw
                 var p = props[i];
                 if (p != null)
                 {
-                    p.TrySetValue(model, p.TypeInfo.Convert(reader[i]));
+                    p.SetValue(model, p.TypeInfo.Convert(reader[i]));
                 }
             }
         }
@@ -3032,7 +3033,7 @@ namespace blqw
                 var p = props[i];
                 if (p != null)
                 {
-                    p.TrySetValue(model, p.TypeInfo.Convert(row[i]));
+                    p.SetValue(model, p.TypeInfo.Convert(row[i]));
                 }
             }
         }
