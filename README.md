@@ -15,7 +15,10 @@ blqw.Json.ToJsonString(object,JsonBuilderSettings);
 ##更新说明
 #### 2014.08.31  
 * 优化类型转换,性能up!
-#### 2.0b1 版本发布  
+#### 2.0b1 版本发布
+  
+#### 2014.09.10  
+* 更新Literacy组件中一处兼容问题,在某些版本的windows下会造成初始化失败的问题
 
 #### 2014.09.09  
 * 同步更新Literacy组件  
