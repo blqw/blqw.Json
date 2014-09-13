@@ -17,7 +17,12 @@ namespace blqw
 
         private static Dictionary<Type, TypeInfo> CreateCache()
         {
-            return new Dictionary<Type, TypeInfo>(251);
+            var count = 0;
+            foreach (var ass in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                count += ass.GetTypes().Length;
+            }
+            return new Dictionary<Type, TypeInfo>(count);
         }
 
         /// <summary> 获取TypeInfo对象

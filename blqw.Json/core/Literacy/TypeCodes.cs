@@ -38,6 +38,8 @@ namespace blqw
         StringBuilder = 223,
         IListT = 225,
         IDictionaryT = 226,
+        [Obsolete("已弃用",true)]
+        IEnumerable = 227,
         DbDataReader = 228,
         DataSet = 229,
         DataTable = 230,
