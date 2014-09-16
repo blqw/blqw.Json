@@ -3,6 +3,8 @@ using System.Threading;
 
 namespace blqw
 {
+    /// <summary> 可释放资源的基类或组件,可定义托管对象释放事件和非托管对象释放事件
+    /// </summary>
     public class Disposable : IDisposable
     {
         public Disposable(object obj)

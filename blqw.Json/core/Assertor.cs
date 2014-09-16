@@ -5,7 +5,7 @@ using System.Text;
 
 namespace blqw
 {
-    /// <summary> 断言器,用于判断和抛出异常
+    /// <summary> 断言器,用于判断参数值和抛出异常
     /// </summary>
     public static class Assertor
     {
@@ -61,6 +61,18 @@ namespace blqw
         /// </summary>
         /// <param name="value">参数值</param>
         /// <param name="name">参数名称</param>
+        public static void AreNullOrEmpty<T>(List<T> value, string name)
+        {
+            if (value == null || value.Count == 0)
+            {
+                throw new ArgumentNullException(name, "集合不能为null且必须有元素");
+            }
+        }
+
+        /// <summary> 如果value集合是null或者Count是0 则抛出异常
+        /// </summary>
+        /// <param name="value">参数值</param>
+        /// <param name="name">参数名称</param>
         public static void AreNullOrEmpty<T>(ICollection<T> value, string name)
         {
             if (value == null || value.Count == 0)
@@ -78,14 +90,15 @@ namespace blqw
 #if !NF2
             if (string.IsNullOrWhiteSpace(value))
 #else
-            if (value == null || value.Length == 0 || value.Trim().Length == 0)
+            if (value == null || value.Length == 0 ||
+                (value[0] == ' ' && value.Trim().Length == 0))
 #endif
             {
                 throw new ArgumentNullException(name, "字符串不能为null或连续空白");
             }
         }
 
-        /// <summary> 如果value值超过min~max 则抛出异常
+        /// <summary> 如果value非null,则value值超过min~max 则抛出异常
         /// </summary>
         /// <param name="value">参数值</param>
         /// <param name="name">参数名称</param>
@@ -133,6 +146,14 @@ namespace blqw
             }
         }
 
+        public static void AreInRange(Enum value, string name)
+        {
+            if (Enum.GetName(value.GetType(), value) == null)
+            {
+                throw new ArgumentOutOfRangeException(name, value, "值不在枚举中");
+            }
+        }
+
         /// <summary> 如果value不是T类型或其子类 则抛出异常
         /// </summary>
         /// <param name="value">参数值</param>
@@ -158,22 +179,9 @@ namespace blqw
             }
         }
 
-        /// <summary> 如果parent不是type类型或其子类或接口 则抛出异常
-        /// </summary>
-        /// <param name="parent">限定类型</param>
-        /// <param name="type">参数值</param>
-        /// <param name="name">参数名称</param>
-        public static void AreType(Type parent, Type type, string name)
-        {
-            if (TypesHelper.IsChild(parent, type) == false)
-            {
-                throw new ArgumentOutOfRangeException(name, type + " 值不是指定的类型 '" + type + "'");
-            }
-        }
-
         /// <summary> 如果value不是数字类型 则抛出异常
         /// </summary>
-        /// <param name="type">参数值</param>
+        /// <param name="value">参数值</param>
         /// <param name="name">参数名称</param>
         public static void AreNumberType(object value, string name)
         {

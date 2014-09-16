@@ -44,7 +44,6 @@
     <Compile Include="core\Assertor.cs" />
     <Compile Include="core\CodeTimer.cs" />
     <Compile Include="core\Counter.cs" />
-    <Compile Include="core\CounterChangedEventArgs.cs" />
     <Compile Include="core\DictionaryEx.cs" />
     <Compile Include="core\Disposable.cs" />
     <Compile Include="core\Literacy\Convert2.cs" />

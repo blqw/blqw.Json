@@ -5,6 +5,8 @@ using System.Threading;
 
 namespace blqw
 {
+    /// <summary> 代码性能测试类,改编自'老赵'的同名类
+    /// </summary>
     public static class CodeTimer
     {
         private static bool _initialize = false;
