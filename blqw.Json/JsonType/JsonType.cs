@@ -148,9 +148,24 @@ namespace blqw
                     return;
                 }
                 var ctors = type.GetConstructors();
-                Assertor.AreTrue<ArgumentException>(ctors.Length == 0, "没有找到构造函数");
-                Assertor.AreTrue<ArgumentException>(ctors.Length > 1, "构造函数调用不明确");
-                _ctor = Literacy.CreateNewObject(ctors[0]);
+                switch (ctors.Length)
+                {
+                    case 0:
+                        _ctor = args => {
+                            throw new TypeInitializationException(TypesHelper.DisplayName(type),
+                                new MissingMethodException("当前类型没有构造函数"));
+                        };
+                        break;
+                    case 1:
+                        _ctor = Literacy.CreateNewObject(ctors[0]);
+                        break;
+                    default:
+                        _ctor = args => {
+                            throw new TypeInitializationException(TypesHelper.DisplayName(type),
+                                new MethodAccessException("构造函数调用不明确"));
+                        };
+                        break;
+                }
             }
         }
 
