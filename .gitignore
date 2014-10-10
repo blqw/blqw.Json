@@ -158,3 +158,6 @@ $RECYCLE.BIN/
 /blqw.Json/core/ExtendMethods/Type.cs
 /blqw.Json/core/Properties/AssemblyInfo.cs
 /blqw.Json/core/blqw.Core.csproj
+/blqw.Json/core/DynamicCompile.cs
+/blqw.Json/core/EasyStringReader.cs
+/blqw.Json/core/Security.cs
