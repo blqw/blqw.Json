@@ -8,6 +8,14 @@ namespace blqw
     /// </summary>
     public sealed class JsonParser
     {
+        private static void AreNull(object value, string argName)
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException(argName);
+            }
+        }
+
         /// <summary> 将json字符串转换为指定对象
         /// </summary>
         public Object ToObject(Type type, string jsonString)
@@ -40,7 +48,7 @@ namespace blqw
         /// </summary>
         public void FillObject(object obj, string jsonString)
         {
-            Assertor.AreNull(obj, "obj");
+            AreNull(obj, "obj");
             if (jsonString != null && jsonString.Length > 0)
             {
                 FillObject(ref obj, obj.GetType(), jsonString);

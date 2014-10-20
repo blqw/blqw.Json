@@ -10,6 +10,20 @@ namespace blqw
     /// </summary>
     public sealed class JsonType : IEnumerable<JsonMember>
     {
+        private static void AreNull(object value, string argName)
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException(argName);
+            }
+        }
+        private static void AreTrue(bool condition, string message)
+        {
+            if (condition)
+            {
+                throw new ArgumentException(message);
+            }
+        }
         private static Dictionary<Type, JsonType> _Cache = new Dictionary<Type, JsonType>();
 
         public static JsonType Get(Type type)
@@ -66,7 +80,7 @@ namespace blqw
 
         private JsonType(Type type, int i)
         {
-            Assertor.AreNull(type, "type");
+            AreNull(type, "type");
             Type = type;
             TypeInfo = TypesHelper.GetTypeInfo(type);
             _members = new Dictionary<string, JsonMember>(StringComparer.OrdinalIgnoreCase);
@@ -77,7 +91,7 @@ namespace blqw
                 var jm = JsonMember.Create(p);
                 if (jm != null)
                 {
-                    Assertor.AreTrue(_members.ContainsKey(jm.JsonName), "JsonName重复:" + jm.JsonName);
+                    AreTrue(_members.ContainsKey(jm.JsonName), "JsonName重复:" + jm.JsonName);
                     _members[jm.JsonName] = jm;
                     list.Add(jm);
                 }
@@ -89,7 +103,7 @@ namespace blqw
                 var jm = JsonMember.Create(p);
                 if (jm != null)
                 {
-                    Assertor.AreTrue(_members.ContainsKey(jm.JsonName), "JsonName重复:" + jm.JsonName);
+                    AreTrue(_members.ContainsKey(jm.JsonName), "JsonName重复:" + jm.JsonName);
                     _members[jm.JsonName] = jm;
                     list.Add(jm);
                 }
@@ -178,8 +192,8 @@ namespace blqw
             {
                 return;
             }
-            Assertor.AreNull(ctor, "ctor");
-            Assertor.AreTrue<ArgumentException>(type == ctor.ReflectedType, "ctor不属于当前类型");
+            AreNull(ctor, "ctor");
+            AreTrue(type == ctor.ReflectedType, "ctor不属于当前类型");
             _ctor = Literacy.CreateNewObject(ctor);
         }
 
