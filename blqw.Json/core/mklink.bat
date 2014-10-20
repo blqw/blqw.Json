@@ -1,1 +1,0 @@
-mklink /h /j Literacy ..\..\blqw.Literacy\Literacy\Literacy\
