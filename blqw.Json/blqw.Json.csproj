@@ -41,6 +41,26 @@
     <Compile Include="Attribute\JsonFormatAttribute.cs" />
     <Compile Include="Attribute\JsonIgnoreAttribute.cs" />
     <Compile Include="Attribute\JsonNameAttribute.cs" />
+    <Compile Include="core\Assertor.cs" />
+    <Compile Include="core\CodeTimer.cs" />
+    <Compile Include="core\Counter.cs" />
+    <Compile Include="core\DictionaryEx.cs" />
+    <Compile Include="core\Disposable.cs" />
+    <Compile Include="core\DynamicCompile.cs" />
+    <Compile Include="core\Literacy\AttributeCollection.cs" />
+    <Compile Include="core\Literacy\Convert2.cs" />
+    <Compile Include="core\Literacy\Delegate.cs" />
+    <Compile Include="core\Literacy\ILoadMember.cs" />
+    <Compile Include="core\Literacy\Literacy.cs" />
+    <Compile Include="core\Literacy\ObjectProperty.cs" />
+    <Compile Include="core\Literacy\ObjectPropertyCollection.cs" />
+    <Compile Include="core\Literacy\TypeCodes.cs" />
+    <Compile Include="core\Literacy\TypeInfo.cs" />
+    <Compile Include="core\Literacy\TypesHelper.cs" />
+    <Compile Include="core\LoadResourceDll.cs" />
+    <Compile Include="core\QuickStringWriter.cs" />
+    <Compile Include="core\Security.cs" />
+    <Compile Include="core\WinApi.cs" />
     <Compile Include="JsonBuilderSettings.cs" />
     <Compile Include="JsonObject\IJsonObject.cs" />
     <Compile Include="Json.cs" />
@@ -57,6 +77,7 @@
     <Compile Include="UnsafeJsonReader.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="core\mklink.bat" />
     <None Include="mklink.bat" />
   </ItemGroup>
   <ItemGroup />
