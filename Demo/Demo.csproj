@@ -66,7 +66,7 @@
     <Compile Include="TimeTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\blqw.Literacy\Literacy\Literacy\Literacy.csproj">
+    <ProjectReference Include="..\..\blqw.Literacy\Literacy\Literacy\blqw.Literacy.csproj">
       <Project>{d0c3b619-180a-407b-be4a-9c1864b2a06d}</Project>
       <Name>Literacy</Name>
     </ProjectReference>
