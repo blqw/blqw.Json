@@ -8,6 +8,27 @@ namespace blqw
     /// </summary>
     public sealed class JsonParser
     {
+        private readonly static JsonType JsonTypeArrayList = JsonType.Get(typeof(ArrayList));
+        private readonly static JsonType JsonTypeDictionary = JsonType.Get(typeof(Dictionary<string, object>));
+
+        public JsonParser()
+        {
+            _arrayType = JsonTypeArrayList;
+            _keyValueType = JsonTypeDictionary;
+        }
+
+        public JsonParser(Type arrayType, Type keyValueType, Converter<IConvertible, object> convertString)
+        {
+            _arrayType = (arrayType == null) ? JsonTypeArrayList : JsonType.Get(arrayType);
+            _keyValueType = (keyValueType == null) ? JsonTypeDictionary : JsonType.Get(keyValueType);
+            _convertString = convertString;
+        }
+
+        private JsonType _arrayType;
+        private JsonType _keyValueType;
+        private Converter<IConvertible, object> _convertString;
+
+
         private static void AreNull(object value, string argName)
         {
             if (value == null)
@@ -94,10 +115,10 @@ namespace blqw
                 switch (reader.Current)
                 {
                     case '{':
-                        type = typeof(Dictionary<string, object>);
+                        type = _keyValueType.Type;
                         break;
                     case '[': // 中括号的json仅支持反序列化成IList的对象
-                        type = typeof(List<object>);
+                        type = _arrayType.Type;
                         break;
                     default:
                         ThrowException("Json字符串必须以 { 或 [ 开始");
@@ -386,6 +407,10 @@ namespace blqw
                     return ParseString(reader, jsonType.TypeInfo);
                 default:
                     object val = reader.ReadConsts();
+                    if (jsonType.TypeCodes == TypeCodes.Object && _convertString != null)
+                    {
+                        return _convertString((IConvertible)val);
+                    }
                     return jsonType.TypeInfo.Convert(val);
             }
         }
@@ -395,7 +420,7 @@ namespace blqw
         /// <param name="reader"></param>
         /// <param name="type"></param>
         /// <returns></returns>
-        private static object ParseString(UnsafeJsonReader reader, TypeInfo typeInfo)
+        private object ParseString(UnsafeJsonReader reader, TypeInfo typeInfo)
         {
             //数字
             if (typeInfo.IsNumberType || typeInfo.TypeCodes == TypeCodes.Boolean)
@@ -415,11 +440,14 @@ namespace blqw
             {
                 return reader.ReadDateTime();
             }
+            else if (typeInfo.TypeCodes == TypeCodes.Object && _convertString != null)
+            {
+                return _convertString(reader.ReadString());
+            }
             return typeInfo.Convert(reader.ReadString());
         }
 
 
-        private static JsonType JsonTypeArrayList = JsonType.Get(typeof(ArrayList));
         /// <summary> 读取数组
         /// </summary>
         /// <param name="reader"></param>
@@ -435,8 +463,8 @@ namespace blqw
             }
             if (jsonType.Type == typeof(object))
             {
-                ArrayList list = new ArrayList();
-                FillList(list, JsonTypeArrayList, reader);
+                object list = _arrayType.CreateInstance();
+                FillList(list, _arrayType, reader);
                 return list;
             }
             else
@@ -447,7 +475,6 @@ namespace blqw
             }
         }
 
-        private static JsonType JsonTypeDictionary = JsonType.Get(typeof(Dictionary<string, object>));
         /// <summary> 读取对象
         /// </summary>
         /// <param name="reader"></param>
@@ -457,8 +484,8 @@ namespace blqw
         {
             if (jsonType.Type == typeof(object))
             {
-                var obj = new Dictionary<string, object>();
-                FillDictionary(obj, JsonTypeDictionary, reader);
+                var obj = _keyValueType.CreateInstance();
+                FillDictionary(obj, _keyValueType, reader);
                 return obj;
             }
             else if (jsonType.IsDictionary)

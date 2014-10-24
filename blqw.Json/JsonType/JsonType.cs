@@ -114,7 +114,7 @@ namespace blqw
             {
                 case TypeCodes.IListT:
                     IsList = true;
-                    var args = type.GetGenericArguments();
+                    var args = SearchGenericInterface(type, typeof(IList<>)).GetGenericArguments();
                     ElementType = JsonType.Get(args[0]);
                     AddValue = Literacy.CreateCaller(type.GetMethod("Add", args));
                     break;
@@ -139,14 +139,42 @@ namespace blqw
                     break;
                 case TypeCodes.IDictionaryT:
                     IsDictionary = true;
-                    args = type.GetGenericArguments();
+                    var dictType = SearchGenericInterface(type, typeof(IDictionary<,>));
+                    args = dictType.GetGenericArguments();
                     KeyType = JsonType.Get(args[0]);
                     ElementType = JsonType.Get(args[1]);
-                    AddKeyValue = Literacy.CreateCaller(type.GetMethod("Add", args));
+                    AddKeyValue = Literacy.CreateCaller(dictType.GetMethod("Add", args), type);
                     break;
                 default:
                     break;
             }
+        }
+
+        private Type SearchGenericInterface(Type type, Type interfaceType)
+        {
+            var interfaces = type.GetInterfaces();
+            var length = interfaces.Length;
+            for (int i = 0; i < length; i++)
+            {
+                var inf = interfaces[i];
+                if (inf.IsGenericTypeDefinition)
+                {
+
+                }
+                else if (inf.IsGenericType)
+                {
+                    inf = inf.GetGenericTypeDefinition();
+                }
+                else
+                {
+                    continue;
+                }
+                if (inf == interfaceType)
+                {
+                    return interfaces[i];
+                }
+            }
+            return null;
         }
 
         /// <summary> 从指定的 Type 创建新的 JsonType 对象,该方法必须保证类型公开的构造函数有且只有一个

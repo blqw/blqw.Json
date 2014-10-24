@@ -13,6 +13,19 @@ blqw.Json.ToJsonString(object,JsonBuilderSettings);
 ```
 
 ##更新说明
+#### 2014.10.25
+* 感谢 @冲动 让我一下有了灵感,现在可以支持dynamic了
+```csharp
+var str = "{ Name : \"blqw\", Age : 11 ,Array : [\"2014-1-1 1:00:00\",false,{ a:1,b:2 }] }";
+dynamic json = Json.ToDynamic(str);
+Console.WriteLine(json.Name);
+Console.WriteLine(json.Age);
+Console.WriteLine(((DateTime)json.Array[0]).ToShortDateString());
+Console.WriteLine(((bool)json.Array[1]) == false);
+Console.WriteLine(json.Array[2].a);
+Console.WriteLine(json.Array[2].b);
+```
+
 #### 2014.09.14
 * 同步更新 [blqw.Literacy](https://code.csdn.net/jy02305022/blqw.Literacy)
 

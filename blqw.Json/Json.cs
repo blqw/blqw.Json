@@ -19,7 +19,7 @@ namespace blqw
         /// </summary>
         /// <param name="obj"></param>
         /// <param name="settings">序列化Json字符串时使用的设置参数</param>
-        public static string ToJsonString(object obj,JsonBuilderSettings settings)
+        public static string ToJsonString(object obj, JsonBuilderSettings settings)
         {
             return new QuickJsonBuilder(settings).ToJsonString(obj);
         }
@@ -57,6 +57,38 @@ namespace blqw
                 return null;
             }
             return new JsonParser().ToObject(type, json);
+        }
+
+        static Type DynamicType;
+        static void InitDynamicType()
+        {
+            DynamicType = Type.GetType("System.Dynamic.ExpandoObject, System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
+            if (DynamicType != null)
+            {
+                return;
+            }
+            var ass = AppDomain.CurrentDomain.GetAssemblies();
+            var length = ass.Length;
+            for (int i = 0; i < length; i++)
+            {
+                if (ass[i].GetName().Name == "System.Core")
+                {
+                    DynamicType = ass[i].GetType("System.Dynamic.ExpandoObject");
+                    return;
+                }
+            }
+        }
+        public static object ToDynamic(string json)
+        {
+            if (json == null || json.Length == 0)
+            {
+                return null;
+            }
+            if (DynamicType == null)
+            {
+                InitDynamicType();
+            }
+            return new JsonParser(null, DynamicType, v => new JsonValue2(v)).ToObject(DynamicType, json);
         }
 
         public static IJsonObject ToJsonObject(string json)

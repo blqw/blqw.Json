@@ -49,6 +49,7 @@
     <Compile Include="JsonObject\JsonObject.cs" />
     <Compile Include="JsonObject\JsonTypeCode.cs" />
     <Compile Include="JsonObject\JsonValue.cs" />
+    <Compile Include="JsonObject\JsonValue2.cs" />
     <Compile Include="JsonParser.cs" />
     <Compile Include="JsonType\JsonMember.cs" />
     <Compile Include="JsonType\JsonType.cs" />

@@ -13,7 +13,14 @@ namespace Demo
 
         static void Main(string[] args)
         {
-            Test1(false);
+var str = "{ Name : \"blqw\", Age : 11 ,Array : [\"2014-1-1 1:00:00\",false,{ a:1,b:2 }] }";
+dynamic json = Json.ToDynamic(str);
+Console.WriteLine(json.Name);
+Console.WriteLine(json.Age);
+Console.WriteLine(((DateTime)json.Array[0]).ToShortDateString());
+Console.WriteLine(((bool)json.Array[1]) == false);
+Console.WriteLine(json.Array[2].a);
+Console.WriteLine(json.Array[2].b);
 
         }
 

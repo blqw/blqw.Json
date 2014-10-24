@@ -128,7 +128,113 @@ namespace blqw
             return _value.ToUInt64(provider);
         }
 
+        public static implicit operator int(JsonValue o)
+        {
+            return o._value.ToInt32(null);
+        }
 
+        public static implicit operator long(JsonValue o)
+        {
+            return o._value.ToInt64(null);
+        }
+
+        public static implicit operator bool(JsonValue o)
+        {
+            return o._value.ToBoolean(null);
+        }
+
+        public static implicit operator string(JsonValue o)
+        {
+            return o._value.ToString();
+        }
+
+        public static implicit operator DateTime(JsonValue o)
+        {
+            return o._value.ToDateTime(null);
+        }
+
+        public static implicit operator Decimal(JsonValue o)
+        {
+            return o._value.ToDecimal(null);
+        }
+
+        public static implicit operator Single(JsonValue o)
+        {
+            return o._value.ToSingle(null);
+        }
+
+        public static implicit operator Double(JsonValue o)
+        {
+            return o._value.ToDouble(null);
+        }
+
+        public static implicit operator Byte(JsonValue o)
+        {
+            return o._value.ToByte(null);
+        }
+
+        public static implicit operator Guid(JsonValue o)
+        {
+            return Convert2.ToGuid(o._value);
+        }
+
+
+        public bool ToBoolean()
+        {
+            return _value.ToBoolean(null);
+        }
+        public byte ToByte()
+        {
+            return _value.ToByte(null);
+        }
+        public char ToChar()
+        {
+            return _value.ToChar(null);
+        }
+        public DateTime ToDateTime()
+        {
+            return _value.ToDateTime(null);
+        }
+        public decimal ToDecimal()
+        {
+            return _value.ToDecimal(null);
+        }
+        public double ToDouble()
+        {
+            return _value.ToDouble(null);
+        }
+        public short ToInt16()
+        {
+            return _value.ToInt16(null);
+        }
+        public int ToInt32()
+        {
+            return _value.ToInt32(null);
+        }
+        public long ToInt64()
+        {
+            return _value.ToInt64(null);
+        }
+        public sbyte ToSByte()
+        {
+            return _value.ToSByte(null);
+        }
+        public float ToSingle()
+        {
+            return _value.ToSingle(null);
+        }
+        public ushort ToUInt16()
+        {
+            return _value.ToUInt16(null);
+        }
+        public uint ToUInt32()
+        {
+            return _value.ToUInt32(null);
+        }
+        public ulong ToUInt64()
+        {
+            return _value.ToUInt64(null);
+        }
         public object Value
         {
             get { return _value; }
