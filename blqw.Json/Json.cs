@@ -74,8 +74,12 @@ namespace blqw
                 if (ass[i].GetName().Name == "System.Core")
                 {
                     DynamicType = ass[i].GetType("System.Dynamic.ExpandoObject");
-                    return;
+                    break;
                 }
+            }
+            if (DynamicType == null)
+            {
+                throw new TypeLoadException("dynamic类型加载失败!");
             }
         }
         public static object ToDynamic(string json)
