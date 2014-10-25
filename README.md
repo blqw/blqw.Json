@@ -15,6 +15,7 @@ blqw.Json.ToJsonString(object,JsonBuilderSettings);
 ##更新说明
 #### 2014.10.25
 * 感谢 @冲动 让我一下有了灵感,现在可以支持dynamic了
+
 ```csharp
 var str = "{ Name : \"blqw\", Age : 11 ,Array : [\"2014-1-1 1:00:00\",false,{ a:1,b:2 }] }";
 dynamic json = Json.ToDynamic(str);
