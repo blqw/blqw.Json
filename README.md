@@ -6,10 +6,12 @@ blqw.Json.ToJsonString(object);
 blqw.Json.ToObject<T>(string);
 blqw.Json.ToObject(string);
 blqw.Json.ToObject(Type,string);
-//2014.07.29新增
+//2014.07.29 新增
 blqw.Json.ToJsonObject(string);
-//2014.08.08新增
+//2014.08.08 新增
 blqw.Json.ToJsonString(object,JsonBuilderSettings);
+//2014.10.25 新增
+blqw.Json.ToDynamic(string);
 ```
 
 ##更新说明
