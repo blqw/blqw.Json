@@ -86,7 +86,9 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>taskkill /f /fi "pid gt 0"  /im "$(TargetFileName)" /t</PreBuildEvent>
+    <PreBuildEvent>taskkill /f /fi "pid gt 0" /fi "status eq running" /im "$(TargetFileName)" /t
+taskkill /f /fi "pid gt 0" /fi /im "$(TargetFileName)" /t
+exit 0</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
