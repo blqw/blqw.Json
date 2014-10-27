@@ -15,6 +15,9 @@ blqw.Json.ToDynamic(string);
 ```
 
 ##更新说明
+#### 2014.10.27
+* 完美解决了,引用项目的问题
+
 #### 2014.10.25
 * 感谢 @冲动 让我一下有了灵感,现在可以支持dynamic了
 
@@ -75,7 +78,7 @@ Console.WriteLine(user.Info.Phone["手机"] == jobj["Info"]["Phone"]["手机"].T
 * 优化代码结构
 * 修正AppendChar方法中的BUG  
 * 增加对特殊字符 \a,\b,\v,\f 的处理  
-  
+
 #### 2014.07.23  
 * 修正几处关于时间类型的已知BUG  
 * 增加单元测试,测试数据与Newtonsoft对比  
