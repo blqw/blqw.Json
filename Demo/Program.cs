@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 
 namespace Demo
@@ -13,14 +14,23 @@ namespace Demo
 
         static void Main(string[] args)
         {
-var str = "{ Name : \"blqw\", Age : 11 ,Array : [\"2014-1-1 1:00:00\",false,{ a:1,b:2 }] }";
-dynamic json = Json.ToDynamic(str);
-Console.WriteLine(json.Name);
-Console.WriteLine(json.Age);
-Console.WriteLine(((DateTime)json.Array[0]).ToShortDateString());
-Console.WriteLine(((bool)json.Array[1]) == false);
-Console.WriteLine(json.Array[2].a);
-Console.WriteLine(json.Array[2].b);
+            using (var client = new WebClient())
+            {
+                client.Encoding = Encoding.UTF8;
+                var url = "http://api.map.baidu.com/telematics/v3/weather?location=北京&output=json&ak=hXWAgbsCC9UTkBO5V5Qg1WZ9";
+                var json = client.DownloadString(url);
+                var tq = Json.ToObject<BaiduTQ>(json);
+                Console.WriteLine("{0} {1}", tq.results[0].currentCity, tq.results[0].weather_data[0].date);
+            }
+
+//var str = "{ Name : \"blqw\", Age : 11 ,Array : [\"2014-1-1 1:00:00\",false,{ a:1,b:2 }] }";
+//dynamic json = Json.ToDynamic(str);
+//Console.WriteLine(json.Name);
+//Console.WriteLine(json.Age);
+//Console.WriteLine(((DateTime)json.Array[0]).ToShortDateString());
+//Console.WriteLine(((bool)json.Array[1]) == false);
+//Console.WriteLine(json.Array[2].a);
+//Console.WriteLine(json.Array[2].b);
 
         }
 

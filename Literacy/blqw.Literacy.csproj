@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{2F130490-F69D-4F4F-BA8B-DF75ACDD94F9}</ProjectGuid>
+    <ProjectGuid>{D0C3B619-180A-407B-BE4A-9C1864B2A06D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>blqw.Json</RootNamespace>
-    <AssemblyName>blqw.Json</AssemblyName>
+    <RootNamespace>blqw.Literacy</RootNamespace>
+    <AssemblyName>blqw.Literacy</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -21,7 +21,6 @@
     <DefineConstants>TRACE;DEBUG;NF2</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,7 +29,6 @@
     <DefineConstants>TRACE;NF2</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -38,31 +36,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Attribute\JsonFormatAttribute.cs" />
-    <Compile Include="Attribute\JsonIgnoreAttribute.cs" />
-    <Compile Include="Attribute\JsonNameAttribute.cs" />
-    <Compile Include="JsonBuilderSettings.cs" />
-    <Compile Include="JsonObject\IJsonObject.cs" />
-    <Compile Include="Json.cs" />
-    <Compile Include="JsonBuilder.cs" />
-    <Compile Include="JsonObject\JsonArray.cs" />
-    <Compile Include="JsonObject\JsonObject.cs" />
-    <Compile Include="JsonObject\JsonTypeCode.cs" />
-    <Compile Include="JsonObject\JsonValue.cs" />
-    <Compile Include="JsonObject\JsonValue2.cs" />
-    <Compile Include="JsonParser.cs" />
-    <Compile Include="JsonType\JsonMember.cs" />
-    <Compile Include="JsonType\JsonType.cs" />
+    <Compile Include="AttributeCollection.cs" />
+    <Compile Include="Convert2.cs" />
+    <Compile Include="Delegate.cs" />
+    <Compile Include="ILoadMember.cs" />
+    <Compile Include="Literacy.cs" />
+    <Compile Include="ObjectProperty.cs" />
+    <Compile Include="ObjectPropertyCollection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="QuickJsonBuilder.cs" />
-    <Compile Include="QuickStringWriter.cs" />
-    <Compile Include="UnsafeJsonReader.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Literacy\blqw.Literacy.csproj">
-      <Project>{d0c3b619-180a-407b-be4a-9c1864b2a06d}</Project>
-      <Name>blqw.Literacy</Name>
-    </ProjectReference>
+    <Compile Include="TypeCodes.cs" />
+    <Compile Include="TypeInfo.cs" />
+    <Compile Include="TypesHelper.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
