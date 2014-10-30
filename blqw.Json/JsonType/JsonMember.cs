@@ -40,12 +40,9 @@ namespace blqw
             }
 
             JsonFormatAttribute format = Member.Attributes.First<JsonFormatAttribute>();
-            if (format != null)
+            if (format != null && !TypesHelper.IsChild(typeof(IFormattable), Member.MemberType))
             {
-                if (!TypesHelper.IsChild(typeof(IFormattable), Member.MemberType))
-                {
-                    format = null;
-                }
+                format = null;
             }
 
             var name = Member.Attributes.First<JsonNameAttribute>();
