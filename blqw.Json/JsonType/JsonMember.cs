@@ -39,16 +39,16 @@ namespace blqw
                 Member = new ObjectProperty((FieldInfo)member);
             }
 
-            JsonFormatAttribute format = Member.Attributes.First<JsonFormatAttribute>();
-            if (format != null && !TypesHelper.IsChild(typeof(IFormattable), Member.MemberType))
-            {
-                format = null;
-            }
-
             var name = Member.Attributes.First<JsonNameAttribute>();
             JsonName = name != null ? JsonBuilder.EscapeString(name.Name) : member.Name;
+
+            JsonFormatAttribute format = Member.Attributes.First<JsonFormatAttribute>();
             if (format != null)
             {
+                if (!TypesHelper.IsChild(typeof(IFormattable), Member.MemberType))
+                {
+                    format = null;
+                }
                 MustFormat = true;
                 FormatString = format.Format;
                 FormatProvider = format.Provider;
