@@ -30,35 +30,25 @@ namespace blqw
         /// </summary>
         private JsonMember(MemberInfo member, bool ignoreSerialized)
         {
-            JsonFormatAttribute format;
-            if (member is PropertyInfo)
+            if (member.MemberType == MemberTypes.Property)
             {
                 Member = new ObjectProperty((PropertyInfo)member);
-                format = Member.Attributes.First<JsonFormatAttribute>();
-                if (format != null)
-                {
-                    if (!TypesHelper.IsChild(typeof(IFormattable), ((PropertyInfo)member).PropertyType))
-                    {
-                        format = null;
-                    }
-                }
             }
             else
             {
                 Member = new ObjectProperty((FieldInfo)member);
-                format = Member.Attributes.First<JsonFormatAttribute>();
-                if (format != null)
-                {
-                    if (!TypesHelper.IsChild(typeof(IFormattable), ((FieldInfo)member).FieldType))
-                    {
-                        format = null;
-                    }
-                }
             }
+
             var name = Member.Attributes.First<JsonNameAttribute>();
             JsonName = name != null ? JsonBuilder.EscapeString(name.Name) : member.Name;
+
+            JsonFormatAttribute format = Member.Attributes.First<JsonFormatAttribute>();
             if (format != null)
             {
+                if (!TypesHelper.IsChild(typeof(IFormattable), Member.MemberType))
+                {
+                    format = null;
+                }
                 MustFormat = true;
                 FormatString = format.Format;
                 FormatProvider = format.Provider;
