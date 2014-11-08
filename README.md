@@ -1,3 +1,4 @@
+# blqw.Json 最快的Json序列化类库
 Json序列化与反序列化  
 http://cnblogs.com/blqw/p/json.html  
 使用方便 ,性能卓越  
