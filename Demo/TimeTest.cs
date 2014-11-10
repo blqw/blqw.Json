@@ -17,7 +17,7 @@ namespace Demo
 
         private static string N(string title)
         {
-            return string.Join(" ", title, TypesHelper.DisplayName(TestObject.GetType()), TestCount + "次");
+            return string.Join(" ", title, TypesHelper.DisplayName(TestObject.GetType()));
         }
 
         //测试QuickJsonBuilder性能
@@ -26,7 +26,7 @@ namespace Demo
             CodeTimer.Initialize();
             object obj = TestObject;
             new QuickJsonBuilder().ToJsonString(obj);
-            CodeTimer.Time(N("QuickJsonBuilder"), TestCount, () => {
+            CodeTimer.Time(N("QuickJsonBuilder序列化"), TestCount, () => {
                 new QuickJsonBuilder().ToJsonString(obj);
             });
 
@@ -48,7 +48,7 @@ namespace Demo
                 = p.UsingGlobalTypes
                 = false;
             fastJSON.JSON.Instance.ToJSON(obj, p);
-            CodeTimer.Time(N("FastJson"), TestCount, () => {
+            CodeTimer.Time(N("FastJson序列化"), TestCount, () => {
                 fastJSON.JSON.Instance.ToJSON(obj, p);
             });
         }
@@ -62,7 +62,7 @@ namespace Demo
                 Jayrock.Json.Conversion.JsonConvert.Export(obj, writer);
                 writer.ToString();
             }
-            CodeTimer.Time(N("JayrockJson"), TestCount, () => {
+            CodeTimer.Time(N("JayrockJson序列化"), TestCount, () => {
                 var writer = new Jayrock.Json.JsonTextWriter();
                 Jayrock.Json.Conversion.JsonConvert.Export(obj, writer);
                 writer.ToString();
@@ -74,7 +74,7 @@ namespace Demo
             CodeTimer.Initialize();
             object obj = TestObject;
             Newtonsoft.Json.JsonConvert.SerializeObject(obj);
-            CodeTimer.Time(N("NewtonsoftJson"), TestCount, () => {
+            CodeTimer.Time(N("NewtonsoftJson序列化"), TestCount, () => {
                 Newtonsoft.Json.JsonConvert.SerializeObject(obj);
             });
         }
@@ -84,7 +84,7 @@ namespace Demo
             CodeTimer.Initialize();
             object obj = TestObject;
             new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(obj);
-            CodeTimer.Time(N("JavaScriptSerializer"), TestCount, () => {
+            CodeTimer.Time(N("JavaScriptSerializer序列化"), TestCount, () => {
                 new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(obj);
             });
         }
@@ -97,7 +97,7 @@ namespace Demo
             CodeTimer.Initialize();
             var jsonString = TestJsonString;
             var obj = new JsonParser().ToObject(typeof(T), jsonString);
-            CodeTimer.Time(N("QuickJsonBuilder"), TestCount, () => {
+            CodeTimer.Time(N("QuickJsonBuilder反序列化"), TestCount, () => {
                 new JsonParser().ToObject(typeof(T), jsonString);
             });
 
@@ -110,7 +110,7 @@ namespace Demo
             CodeTimer.Initialize();
             var jsonString = TestJsonString;
             fastJSON.JSON.Instance.ToObject<T>(jsonString);
-            CodeTimer.Time(N("QuickJsonBuilder"), TestCount, () => {
+            CodeTimer.Time(N("QuickJsonBuilder反序列化"), TestCount, () => {
                 fastJSON.JSON.Instance.ToObject<T>(jsonString);
             });
         }
