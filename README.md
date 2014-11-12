@@ -242,7 +242,8 @@ blqw.Json.ToDynamic(string);
 * 完美解决了,引用项目的问题
 
 #### 2014.10.25
-* 感谢 @冲动 让我一下有了灵感,现在可以支持dynamic了  
+* 感谢 @冲动 让我有了灵感,现在可以支持dynamic了
+* 因为blqw.Json项目是2.0开发的,如果4.0项目引用可以使用dynamic,否则会抛出"dynamic类型加载失败!"的异常
 
 ```csharp
 	var str = "{ Name : \"blqw\", Age : 11 ,Array : [\"2014-1-1 1:00:00\",false,{ a:1,b:2 }] }";
