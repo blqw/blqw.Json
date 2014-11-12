@@ -62,7 +62,7 @@ blqw.Json.ToDynamic(string);
 <td>&nbsp;0</td>
 </tr>
 <tr style="background-color: #ffffcc;">
-<td>&nbsp;QuickJsonBuilder</td>
+<td>&nbsp;blqw.Json</td>
 <td>&nbsp;37</td>
 <td>&nbsp;0</td>
 <td>&nbsp;0</td>
@@ -119,7 +119,7 @@ blqw.Json.ToDynamic(string);
 <td><span style="color: #339966;">&nbsp;1</span></td>
 </tr>
 <tr style="background-color: #ffff99;">
-<td>&nbsp;<span>QuickJsonBuilder</span></td>
+<td>&nbsp;<span>blqw.Json</span></td>
 <td>&nbsp;36</td>
 <td><span style="color: #339966;">&nbsp;1</span></td>
 <td><span style="color: #339966;">&nbsp;1</span></td>
@@ -176,7 +176,7 @@ blqw.Json.ToDynamic(string);
 <td>&nbsp;166</td>
 </tr>
 <tr style="background-color: #ffe4c4;">
-<td>&nbsp;<span>QuickJsonBuilder</span></td>
+<td>&nbsp;<span>blqw.Json</span></td>
 <td><span style="color: #339966;">&nbsp;171</span></td>
 <td><span style="color: #339966;">&nbsp;128</span></td>
 <td><span style="color: #339966;">&nbsp;132</span></td>
@@ -202,7 +202,7 @@ blqw.Json.ToDynamic(string);
 </table>
 <div style="clear:both"></div>
 #### 与号称最快的FastJson比较
-    QuickJsonBuilder序列化 Demo.User 循环 500000 次
+    blqw.Json序列化 Demo.User 循环 500000 次
      运行时间    CPU时钟周期    垃圾回收( 1代      2代      3代 )
      3,824ms     7,596,991,952            243      1        0
 
@@ -211,7 +211,7 @@ blqw.Json.ToDynamic(string);
      7,451ms     14,845,112,542           747      0        0
 
     ========================
-    QuickJsonBuilder序列化 Demo.ResultDTO 循环 10000 次
+    blqw.Json序列化 Demo.ResultDTO 循环 10000 次
      运行时间    CPU时钟周期    垃圾回收( 1代      2代      3代 )
      2,528ms     5,026,517,462            322      0        0
 
@@ -220,7 +220,7 @@ blqw.Json.ToDynamic(string);
      5,491ms     10,919,771,327           599      0        0
 
     ========================
-    QuickJsonBuilder序列化 List<Demo.Object2> 循环 1250 次
+    blqw.Json序列化 List<Demo.Object2> 循环 1250 次
      运行时间    CPU时钟周期    垃圾回收( 1代      2代      3代 )
      2,461ms     4,908,125,075            357      357      357
 
@@ -229,7 +229,7 @@ blqw.Json.ToDynamic(string);
      4,139ms     8,143,468,287            231      116      113
 
     ========================
-    QuickJsonBuilder反序列化 List<Demo.Object2> 循环 25 次
+    blqw.Json反序列化 List<Demo.Object2> 循环 25 次
      运行时间    CPU时钟周期    垃圾回收( 1代      2代      3代 )
      226ms       442,187,752              9        0        0
 
