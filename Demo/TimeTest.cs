@@ -110,7 +110,7 @@ namespace Demo
             CodeTimer.Initialize();
             var jsonString = TestJsonString;
             fastJSON.JSON.Instance.ToObject<T>(jsonString);
-            CodeTimer.Time(N("QuickJsonBuilder反序列化"), TestCount, () => {
+            CodeTimer.Time(N("FastJson反序列化"), TestCount, () => {
                 fastJSON.JSON.Instance.ToObject<T>(jsonString);
             });
         }
