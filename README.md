@@ -21,6 +21,7 @@ blqw.Json.ToDynamic(string);
 > JsonBuilder 是纯反射实现  
 > QuickJsonBuilder 是使用[blqw.Literacy](https://coding.net/u/blqw/p/blqw-Literacy/git)代替反射实现(由此Literacy性能也可以见一斑)  
 > 以下测试中 blqw.Json 的就表示使用 QuickJsonBuilder 序列化器完成Json序列化的性能  
+
 <table style="width: 660px; float: left; height: 354px;" border="1" cellpadding="2"><caption>&nbsp;</caption>
 <tbody>
 <tr>
