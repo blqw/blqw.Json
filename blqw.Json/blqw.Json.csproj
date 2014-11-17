@@ -71,7 +71,7 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>xcopy "$(ProjectDir)..\..\blqw.Literacy\blqw.Literacy" "$(ProjectDir)Literacy" /s /c /i /y
+    <PreBuildEvent>xcopy "$(ProjectDir)..\..\blqw-Literacy\blqw.Literacy" "$(ProjectDir)Literacy" /s /c /i /y
 rd /s /q "$(ProjectDir)Literacy\bin"
 rd /s /q "$(ProjectDir)Literacy\obj"
 rd /s /q "$(ProjectDir)Literacy\Properties"
