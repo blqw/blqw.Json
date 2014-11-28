@@ -58,5 +58,14 @@ namespace UnitTestProject1
                 Console.WriteLine("{0} {1}", tq.results[0].currentCity, tq.results[0].weather_data[0].date);
             }
         }
+
+        [TestMethod]
+        public void Test_20141128()
+        {
+            var a = new { a = -10 };
+            var b = "{\"a\":-10}";
+            var c = Json.ToJsonString(a);
+            Assert.AreEqual(b, c);
+        }
     }
 }

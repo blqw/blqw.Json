@@ -467,7 +467,7 @@ namespace blqw
             if (f)
             {
                 _number[pos] = (char)(~(val % 10L) + (long)'1');
-                if (val < -10)
+                if (val < -9)
                 {
                     val = val / -10;
                     _number[--pos] = (char)(val % 10L + zero);

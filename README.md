@@ -260,6 +260,8 @@ blqw.Json.ToDynamic(string);
 	Console.WriteLine(json.Array[2].a);
 	Console.WriteLine(json.Array[2].b);
 ```
+#### 2014.11.28
+* 更新一处bug在序列化-10的时候会出现错误 感谢网友@孩子，抬起头
 
 #### 2014.09.14
 * 同步更新 [blqw.Literacy](https://coding.net/u/blqw/p/blqw-Literacy/git)
