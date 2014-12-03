@@ -243,6 +243,10 @@ blqw.Json.ToDynamic(string);
      543ms       1,030,657,833            33       21       10
 
 ##更新说明
+#### 2014.12.03
+* 修正`void AppendDataReader(IDataReader reader)`方法命名错误的问题(一直写成`void AppendDataSet(IDataReader reader)`)
+* 修正 序列化IDataReader 时的数据,为`[{"columnName1":"value1","columnName2":"value2"},{"columnName1":"value3","columnName2":"value4"}]`(之前是`{"columns":["columnName1","columnName2"],"values":[["value1","value2"],["value3","value4"]]}`)
+
 #### 2014.10.27
 * 完美解决了,引用项目的问题
 

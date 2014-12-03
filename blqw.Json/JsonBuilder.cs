@@ -967,13 +967,28 @@ namespace blqw
         /// <summary> 将 IDataReader 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="reader">IDataReader 对象</param>
-        protected virtual void AppendDataSet(IDataReader reader)
+        protected virtual void AppendDataReader(IDataReader reader)
         {
-            Buffer.Append("{\"columns\":");
-            AppendArray(GetDataReaderNames(reader));
-            Buffer.Append(",\"rows\":");
-            AppendArray(GetDataReaderValues(reader));
-            Buffer.Append('}');
+            Buffer.Append('[');
+            if (reader.Read())
+            {
+                var length = reader.FieldCount;
+                var names = new string[reader.FieldCount];
+                var values = new object[reader.FieldCount];
+                for (int i = 0; i < names.Length; i++)
+                {
+                    names[i] = EscapeString(reader.GetName(i));
+                }
+                reader.GetValues(values);
+                AppendJson(names, values);
+                while (reader.Read())
+                {
+                    Buffer.Append(',');
+                    reader.GetValues(values);
+                    AppendJson(names, values);
+                }
+            }
+            Buffer.Append(']');
         }
     }
 }
