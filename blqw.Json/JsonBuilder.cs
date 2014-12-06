@@ -68,7 +68,7 @@ namespace blqw
             {
                 if (obj is IConvertible) AppendOther(obj);
                 else if (obj is IDictionary) AppendJson((IDictionary)obj);
-                else if (obj is IDataReader) AppendDataSet((IDataReader)obj);
+                else if (obj is IDataReader) AppendDataReader((IDataReader)obj);
                 else if (obj is IEnumerable) AppendArray((IEnumerable)obj);
                 else AppendOther(obj);
             }
@@ -81,7 +81,7 @@ namespace blqw
                 }
                 if (obj is IConvertible) AppendOther(obj);
                 else if (obj is IDictionary) AppendJson((IDictionary)obj);
-                else if (obj is IDataReader) AppendDataSet((IDataReader)obj);
+                else if (obj is IDataReader) AppendDataReader((IDataReader)obj);
                 else if (obj is IEnumerable) AppendArray((IEnumerable)obj);
                 else if (obj is DataSet) AppendDataSet((DataSet)obj);
                 else if (obj is DataTable) AppendDataTable((DataTable)obj);
@@ -94,7 +94,7 @@ namespace blqw
                 var index = _loopObject.Add(obj);
                 if (obj is IConvertible) AppendOther(obj);
                 else if (obj is IDictionary) AppendJson((IDictionary)obj);
-                else if (obj is IDataReader) AppendDataSet((IDataReader)obj);
+                else if (obj is IDataReader) AppendDataReader((IDataReader)obj);
                 else if (obj is IEnumerable) AppendArray((IEnumerable)obj);
                 else if (obj is DataSet) AppendDataSet((DataSet)obj);
                 else if (obj is DataTable) AppendDataTable((DataTable)obj);
