@@ -2893,8 +2893,7 @@ namespace blqw
 
         public static bool FillEntity<T>(DbDataReader reader, ref T model)
         {
-            AreNull(reader, "reader");
-            if (reader.IsClosed)
+            if (reader == null || reader.IsClosed)
             {
                 return false;
             }
@@ -2919,7 +2918,10 @@ namespace blqw
 
         public static List<T> ToList<T>(DbDataReader reader)
         {
-            AreNull(reader, "reader");
+            if (reader == null)
+            {
+                return null;
+            }
             var ti = TypesHelper.GetTypeInfo<T>();
             var lit = ti.IgnoreCaseLiteracy;
             var props = GetProperties(reader, lit);
@@ -2962,8 +2964,7 @@ namespace blqw
 
         public static bool FillEntity<T>(DataRow row, ref T model)
         {
-            AreNull(row, "row");
-            if (row.HasErrors)
+            if (row == null || row.HasErrors)
             {
                 return false;
             }
@@ -2987,7 +2988,10 @@ namespace blqw
 
         public static List<T> ToList<T>(DataTable table)
         {
-            AreNull(table, "table");
+            if (table == null)
+            {
+                return null;
+            }
             var ti = TypesHelper.GetTypeInfo(typeof(T));
             var lit = ti.IgnoreCaseLiteracy;
             var props = GetProperties(table, lit);
@@ -3012,15 +3016,18 @@ namespace blqw
         }
 
         #region 私有方法
+
         private static ObjectProperty[] GetProperties(DataTable table, Literacy lit)
         {
             var cols = table.Columns;
             var length = cols.Count;
             var props = new ObjectProperty[length];
+            var propertis = lit.Property;
             for (int i = 0; i < length; i++)
             {
                 var name = cols[i].ColumnName;
-                var p = lit.Property[name.Replace("_", "")] ?? lit.Property[name];
+                //先尝试通过映射名称获取属性,没有则使用属性名获取
+                var p = propertis.Mapping(name) ?? propertis[name] ?? propertis[name.Replace("_", "")];
                 if (p != null && p.CanWrite)
                 {
                     props[i] = p;
@@ -3033,10 +3040,11 @@ namespace blqw
         {
             var length = reader.FieldCount;
             var props = new ObjectProperty[length];
+            var propertis = lit.Property;
             for (int i = 0; i < length; i++)
             {
                 var name = reader.GetName(i);
-                var p = lit.Property[name.Replace("_", "")] ?? lit.Property[name];
+                var p = propertis.Mapping(name) ?? propertis[name] ?? propertis[name.Replace("_", "")];
                 if (p != null && p.CanWrite)
                 {
                     props[i] = p;
