@@ -7,10 +7,11 @@ namespace blqw
 {
     struct JsonArray : IJsonObject, IEnumerable
     {
-        public JsonArray(IList list)
+        public JsonArray(string key,IList list)
             :this()
         {
             _list = list;
+            Key = key;
         }
 
         private IList _list;
@@ -49,7 +50,7 @@ namespace blqw
 
         public JsonTypeCode TypeCode
         {
-            get { throw new NotImplementedException(); }
+            get { return JsonTypeCode.Array; }
         }
 
         public bool IsUndefined { get; private set; }
@@ -62,6 +63,16 @@ namespace blqw
         public object Value
         {
             get { return null; }
+        }
+
+        public string Key { get; private set; }
+
+        IEnumerator<IJsonObject> IEnumerable<IJsonObject>.GetEnumerator()
+        {
+            foreach (var item in _list)
+            {
+                yield return JsonObject.ToJsonObject(item);
+            }
         }
     }
 }

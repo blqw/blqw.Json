@@ -6,8 +6,11 @@ namespace blqw
 {
     /// <summary> 表示一个Json对象
     /// </summary>
-    public interface IJsonObject
+    public interface IJsonObject : IEnumerable<IJsonObject>
     {
+        /// <summary> 当前对象的键
+        /// </summary>
+        string Key { get; }
         /// <summary> 根据键获取内部Json对象
         /// </summary>
         IJsonObject this[string key] { get; }
