@@ -41,6 +41,8 @@
     <Compile Include="Attribute\JsonFormatAttribute.cs" />
     <Compile Include="Attribute\JsonIgnoreAttribute.cs" />
     <Compile Include="Attribute\JsonNameAttribute.cs" />
+    <Compile Include="Interface\IJsonToObject.cs" />
+    <Compile Include="Interface\IObjectToJson.cs" />
     <Compile Include="JsonBuilderSettings.cs" />
     <Compile Include="JsonObject\IJsonObject.cs" />
     <Compile Include="Json.cs" />
