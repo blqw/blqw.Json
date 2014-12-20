@@ -6,12 +6,13 @@ namespace blqw
 {
     struct JsonValue : IJsonObject, IConvertible
     {
-        public readonly static JsonValue Undefined = new JsonValue(null) { IsUndefined = true };
+        public readonly static JsonValue Undefined = new JsonValue(null,null) { IsUndefined = true };
 
-        public JsonValue(IConvertible value)
+        public JsonValue(string key,IConvertible value)
             : this()
         {
             _value = value;
+            Key = key;
         }
 
         private IConvertible _value;
@@ -238,6 +239,18 @@ namespace blqw
         public object Value
         {
             get { return _value; }
+        }
+
+        public string Key { get; private set; }
+
+        public IEnumerator<IJsonObject> GetEnumerator()
+        {
+            yield break;
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            yield break;
         }
     }
 }

@@ -10,7 +10,7 @@ namespace blqw
     /// </summary>
     public abstract class JsonBuilder
     {
-        
+
         /// <summary> 将未知对象按属性名和值转换为Json中的键值字符串写入Buffer
         /// </summary>
         /// <param name="obj">非null的位置对象</param>
@@ -24,6 +24,11 @@ namespace blqw
             if (@enum != null)
             {
                 AppendEnum(@enum);
+                return;
+            }
+            if (obj is IToJson)
+            {
+                AppendCheckLoopRef(obj);
                 return;
             }
             switch (obj.GetTypeCode())
@@ -64,12 +69,19 @@ namespace blqw
 
         private void AppendCheckLoopRef(object obj)
         {
+            var tojson = obj as IToJson;
+            if (tojson != null)
+            {
+                obj = tojson.ToJson();
+            }
             if (obj is ValueType)
             {
                 if (obj is IConvertible) AppendOther(obj);
                 else if (obj is IDictionary) AppendJson((IDictionary)obj);
                 else if (obj is IDataReader) AppendDataReader((IDataReader)obj);
-                else if (obj is IEnumerable) AppendArray((IEnumerable)obj);
+                else if (obj is IList) AppendArray((IList)obj);
+                else if (obj is IEnumerable) AppendArray(((IEnumerable)obj).GetEnumerator());
+                else if (obj is IEnumerator) AppendArray((IEnumerator)obj);
                 else AppendOther(obj);
             }
             else if (CheckLoopRef == false)
@@ -82,7 +94,9 @@ namespace blqw
                 if (obj is IConvertible) AppendOther(obj);
                 else if (obj is IDictionary) AppendJson((IDictionary)obj);
                 else if (obj is IDataReader) AppendDataReader((IDataReader)obj);
-                else if (obj is IEnumerable) AppendArray((IEnumerable)obj);
+                else if (obj is IList) AppendArray((IList)obj);
+                else if (obj is IEnumerable) AppendArray(((IEnumerable)obj).GetEnumerator());
+                else if (obj is IEnumerator) AppendArray((IEnumerator)obj);
                 else if (obj is DataSet) AppendDataSet((DataSet)obj);
                 else if (obj is DataTable) AppendDataTable((DataTable)obj);
                 else if (obj is DataView) AppendDataView((DataView)obj);
@@ -95,7 +109,9 @@ namespace blqw
                 if (obj is IConvertible) AppendOther(obj);
                 else if (obj is IDictionary) AppendJson((IDictionary)obj);
                 else if (obj is IDataReader) AppendDataReader((IDataReader)obj);
-                else if (obj is IEnumerable) AppendArray((IEnumerable)obj);
+                else if (obj is IList) AppendArray((IList)obj);
+                else if (obj is IEnumerable) AppendArray(((IEnumerable)obj).GetEnumerator());
+                else if (obj is IEnumerator) AppendArray((IEnumerator)obj);
                 else if (obj is DataSet) AppendDataSet((DataSet)obj);
                 else if (obj is DataTable) AppendDataTable((DataTable)obj);
                 else if (obj is DataView) AppendDataView((DataView)obj);
@@ -334,29 +350,27 @@ namespace blqw
             if (obj == null || obj is DBNull)
             {
                 Buffer.Append("null");
+                return;
+            }
+            var s = obj as string;
+            if (s != null)
+            {
+                AppendString(s);
             }
             else
             {
-                var s = obj as string;
-                if (s != null)
+                var conv = obj as IConvertible;
+                if (conv != null)
                 {
-                    AppendString(s);
+                    AppendConvertible(conv);
+                }
+                else if (obj is Guid)
+                {
+                    AppendGuid((Guid)obj);
                 }
                 else
                 {
-                    var conv = obj as IConvertible;
-                    if (conv != null)
-                    {
-                        AppendConvertible(conv);
-                    }
-                    else if (obj is Guid)
-                    {
-                        AppendGuid((Guid)obj);
-                    }
-                    else
-                    {
-                        AppendCheckLoopRef(obj);
-                    }
+                    AppendCheckLoopRef(obj);
                 }
             }
         }
@@ -800,21 +814,79 @@ namespace blqw
                     break;
             }
         }
+        
         /// <summary> 将 数组 对象转换Json中的数组字符串写入Buffer
         /// </summary>
-        /// <param name="array">数组对象</param>
-        protected virtual void AppendArray(IEnumerable array)
+        /// <param name="enumerator">迭代器</param>
+        protected virtual void AppendArray(IEnumerator enumerator)
         {
             Buffer.Append('[');
-            var ee = array.GetEnumerator();
-            if (ee.MoveNext())
+            if (enumerator.MoveNext())
             {
-                AppendObject(ee.Current);
-                while (ee.MoveNext())
+                AppendObject(enumerator.Current);
+                while (enumerator.MoveNext())
                 {
                     Buffer.Append(',');
-                    AppendObject(ee.Current);
+                    AppendObject(enumerator.Current);
                 }
+            }
+            Buffer.Append(']');
+        }
+        /// <summary> 将 对象枚举 和 值转换委托 转换Json中的数组字符串写入Buffer
+        /// </summary>
+        /// <param name="enumerator">迭代器</param>
+        /// <param name="getVal">值转换委托</param>
+        protected virtual void AppendArray(IEnumerator enumerator, Converter<object, object> getVal)
+        {
+            Buffer.Append('[');
+            if (enumerator.MoveNext())
+            {
+                AppendObject(getVal(enumerator.Current));
+                while (enumerator.MoveNext())
+                {
+                    Buffer.Append(',');
+                    AppendObject(getVal(enumerator.Current));
+                }
+            }
+            Buffer.Append(']');
+        }
+        /// <summary> 将 数组 对象转换Json中的数组字符串写入Buffer
+        /// </summary>
+        /// <param name="list">数组或集合</param>
+        protected virtual void AppendArray(IList list, Converter<object, object> getVal)
+        {
+            var length = list.Count;
+            if (length == 0)
+            {
+                Buffer.Append("[]");
+                return;
+            }
+            Buffer.Append('[');
+            AppendObject(getVal(list[0]));
+            for (int i = 1; i < length; i++)
+            {
+                Buffer.Append(',');
+                AppendObject(getVal(list[i]));
+            }
+            Buffer.Append(']');
+        }
+        /// <summary> 将 数组 对象转换Json中的数组字符串写入Buffer
+        /// </summary>
+        /// <param name="list">数组或集合</param>
+        protected virtual void AppendArray(IList list)
+        {
+            var length = list.Count;
+            if (length == 0)
+            {
+                Buffer.Append("[]");
+                return;
+            }
+            Buffer.Append('[');
+            AppendObject(list[0]);
+            for (int i = 1; i < length; i++)
+            {
+                Buffer.Append(',');
+                AppendObject(list[i]);
             }
             Buffer.Append(']');
         }
@@ -823,73 +895,109 @@ namespace blqw
         /// <param name="dict">键值对 对象</param>
         protected virtual void AppendJson(IDictionary dict)
         {
-            AppendJson(dict.Keys, dict.Values);
+            AppendJson(dict.Keys.GetEnumerator(), dict.Values.GetEnumerator());
         }
-        /// <summary> 将 键枚举 和 值枚举 转换Json中的键值字符串写入Buffer
+        /// <summary> 将 键的迭代器 和 值的迭代器 转换Json中的键值字符串写入Buffer
         /// </summary>
-        /// <param name="keys">键枚举</param>
-        /// <param name="values">值枚举</param>
-        protected virtual void AppendJson(IEnumerable keys, IEnumerable values)
+        /// <param name="keys">键的迭代器</param>
+        /// <param name="values">值的迭代器</param>
+        protected virtual void AppendJson(IEnumerator keys, IEnumerator values)
         {
             Buffer.Append('{');
-            var ke = keys.GetEnumerator();
-            var ve = values.GetEnumerator();
-            if (ke.MoveNext() && ve.MoveNext())
+            if (keys.MoveNext() && values.MoveNext())
             {
-                AppendKey(ke.Current + "", true);
-                AppendObject(ve.Current);
-                while (ke.MoveNext() && ve.MoveNext())
+                AppendKey(keys.Current + "", true);
+                AppendObject(values.Current);
+                while (keys.MoveNext() && values.MoveNext())
                 {
                     Buffer.Append(',');
-                    AppendKey(ke.Current + "", true);
-                    AppendObject(ve.Current);
+                    AppendKey(keys.Current + "", true);
+                    AppendObject(values.Current);
                 }
             }
             Buffer.Append('}');
         }
-        /// <summary> 将 对象枚举 和 值转换委托 转换Json中的数组字符串写入Buffer
+        /// <summary> 将 键集合 和 值集合 转换Json中的键值字符串写入Buffer
         /// </summary>
-        /// <param name="enumer">对象枚举</param>
-        /// <param name="getVal">值转换委托</param>
-        protected virtual void AppendArray(IEnumerable enumer, Converter<object, object> getVal)
+        /// <param name="keys">键集合</param>
+        /// <param name="values">值集合</param>
+        protected virtual void AppendJson(IList keys, IList values)
         {
-            Buffer.Append('[');
-            var ee = enumer.GetEnumerator();
-            if (ee.MoveNext())
+            var length = keys.Count;
+            if (length != values.Count)
             {
-                AppendObject(getVal(ee.Current));
-                while (ee.MoveNext())
-                {
-                    Buffer.Append(',');
-                    AppendObject(getVal(ee.Current));
-                }
+                throw new ArgumentException("键和值的数量不相同");
             }
-            Buffer.Append(']');
+            if (length == 0)
+            {
+                Buffer.Append("{}");
+                return;
+            }
+            Buffer.Append('{');
+
+            AppendKey(keys[0] + "", true);
+            AppendObject(values[0]);
+            for (int i = 0; i < length; i++)
+            {
+                Buffer.Append(',');
+                AppendKey(keys[i] + "", true);
+                AppendObject(values[i]);
+            }
+            Buffer.Append('}');
         }
-        /// <summary> 将 对象枚举 和 键/值转换委托 转换Json中的键值对象字符串写入Buffer
+        /// <summary> 将 迭代器 和 键/值转换委托 转换Json中的键值对象字符串写入Buffer
         /// </summary>
-        /// <param name="enumer">对象枚举</param>
+        /// <param name="enumerator">迭代器</param>
         /// <param name="getKey">键转换委托</param>
         /// <param name="getVal">值转换委托</param>
         /// <param name="escapekey">是否需要对Key进行转义</param>
-        protected virtual void AppendJson(IEnumerable enumer, Converter<object, string> getKey, Converter<object, object> getVal, bool escapekey)
+        protected virtual void AppendJson(IEnumerator enumerator, Converter<object, string> getKey, Converter<object, object> getVal, bool escapekey)
         {
             Buffer.Append('{');
 
-            var ee = enumer.GetEnumerator();
-            if (ee.MoveNext())
+            if (enumerator.MoveNext())
             {
-                AppendKey(getKey(ee.Current), escapekey);
-                AppendObject(getVal(ee.Current));
-                while (ee.MoveNext())
+                AppendKey(getKey(enumerator.Current), escapekey);
+                AppendObject(getVal(enumerator.Current));
+                while (enumerator.MoveNext())
                 {
                     Buffer.Append(':');
-                    AppendKey(getKey(ee.Current), true);
-                    AppendObject(getVal(ee.Current));
+                    AppendKey(getKey(enumerator.Current), true);
+                    AppendObject(getVal(enumerator.Current));
                 }
             }
             Buffer.Append('}');
         }
+
+        /// <summary> 将 集合 和 键/值转换委托 转换Json中的键值对象字符串写入Buffer
+        /// </summary>
+        /// <param name="list">集合</param>
+        /// <param name="getKey">键转换委托</param>
+        /// <param name="getVal">值转换委托</param>
+        /// <param name="escapekey">是否需要对Key进行转义</param>
+        protected virtual void AppendJson(IList list, Converter<object, string> getKey, Converter<object, object> getVal, bool escapekey)
+        {
+            var length = list.Count;
+            if (length == 0)
+            {
+                Buffer.Append("{}");
+                return;
+            }
+            Buffer.Append('{');
+            var obj = list[0];
+            AppendKey(getKey(obj), escapekey);
+            AppendObject(getVal(obj));
+            for (int i = 1; i < length; i++)
+            {
+                obj = list[i];
+                Buffer.Append(':');
+                AppendKey(getKey(obj), escapekey);
+                AppendObject(getVal(obj));
+            
+            }
+            Buffer.Append('}');
+        }
+
         /// <summary> 将 DataSet 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="dataset">DataSet 对象</param>

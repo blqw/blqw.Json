@@ -109,6 +109,12 @@ namespace blqw
         private void FillObject(ref object obj, Type type, UnsafeJsonReader reader)
         {
             reader.CheckEnd();
+            var toObject = obj as ILoadJson;
+            if (toObject != null)
+            {
+                obj = null;
+                type = null;
+            }
 
             if (type == null)
             {
@@ -125,8 +131,15 @@ namespace blqw
                         break;
                 }
             }
+            else if (TypesHelper.IsChild(typeof(ILoadJson), type))
+            {
+                obj = Activator.CreateInstance(type);
+                FillObject(ref obj, null, reader);
+                return;
+            }
 
             var jsonType = JsonType.Get(type);
+
 
             //如果obj == null创建新对象
             if (obj == null)
@@ -137,6 +150,7 @@ namespace blqw
                 }
                 obj = jsonType.CreateInstance();
             }
+
 
             //判断起始字符
             switch (reader.Current)
@@ -185,7 +199,11 @@ namespace blqw
                     ThrowException("Json字符串必须以 { 或 [ 开始");
                     break;
             }
-
+            if (toObject != null)
+            {
+                toObject.LoadJson(JsonObject.ToJsonObject(obj));
+                obj = toObject;
+            }
         }
 
         /// <summary> 填充一般对象的属性

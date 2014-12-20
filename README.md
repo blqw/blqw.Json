@@ -243,9 +243,36 @@ blqw.Json.ToDynamic(string);
      543ms       1,030,657,833            33       21       10
 
 ##更新说明
+#### 2014.12.20
+* 优化`IList`的序列化性能  
+* 优化`IJsonObject`,现在实现它也必须现实`IEnumerable<IJsonObject>`接口,所以可以直接`foreach`操作,例如下面这段代码  
+```csharp
+    public void Fill(blqw.IJsonObject jsonObject)
+    {
+        var items = jsonObject["Items"];
+        if (items != null)
+        {
+            foreach (var item in items)
+            {
+                Add(item.ToString());
+            }
+        }
+        var total = jsonObject["TotalCount"] as IConvertible;
+        if (total != null)
+        {
+            TotalCount = total.ToInt32(null);
+        }
+    } 
+```  
+* 新增2个接口`IToJson`,`ILoadJson`允许对象自定义序列化和反序列化的部分行为  
+* 同步更新`Literacy`,增加2个转换全半角的方法  
+
 #### 2014.12.03
 * 修正`void AppendDataReader(IDataReader reader)`方法命名错误的问题(一直写成`void AppendDataSet(IDataReader reader)`)
 * 修正 序列化IDataReader 时的数据,为`[{"columnName1":"value1","columnName2":"value2"},{"columnName1":"value3","columnName2":"value4"}]`(之前是`{"columns":["columnName1","columnName2"],"values":[["value1","value2"],["value3","value4"]]}`)
+
+#### 2014.11.28
+* 更新一处bug在序列化-10的时候会出现错误 感谢网友@孩子，抬起头  
 
 #### 2014.10.27
 * 完美解决了,引用项目的问题
@@ -264,8 +291,6 @@ blqw.Json.ToDynamic(string);
 	Console.WriteLine(json.Array[2].a);
 	Console.WriteLine(json.Array[2].b);
 ```
-#### 2014.11.28
-* 更新一处bug在序列化-10的时候会出现错误 感谢网友@孩子，抬起头
 
 #### 2014.09.14
 * 同步更新 [blqw.Literacy](https://coding.net/u/blqw/p/blqw-Literacy/git)

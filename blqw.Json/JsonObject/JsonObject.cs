@@ -7,35 +7,36 @@ namespace blqw
 {
     struct JsonObject : IJsonObject, IDictionary<string, object>
     {
-        internal static IJsonObject ToJsonObject(object obj)
+        internal static IJsonObject ToJsonObject(object obj, string key = null)
         {
             if (obj is string)
             {
-                return new JsonValue((string)obj);
+                return new JsonValue(key, (string)obj);
             }
             else if (obj is IDictionary<string, object>)
             {
-                return new JsonObject((IDictionary<string, object>)obj);
+                return new JsonObject(key, (IDictionary<string, object>)obj);
             }
             else if (obj is IList)
             {
-                return new JsonArray((IList)obj);
+                return new JsonArray(key, (IList)obj);
             }
             else if (obj is IConvertible)
             {
-                return new JsonValue((IConvertible)obj);
+                return new JsonValue(key, (IConvertible)obj);
             }
             else if (obj == null)
             {
-                return new JsonValue(null);
+                return new JsonValue(key, null);
             }
-            return new JsonValue(obj.ToString());
+            return new JsonValue(key, obj.ToString());
         }
 
-        public JsonObject(IDictionary<string, object> dict)
+        public JsonObject(string key,IDictionary<string, object> dict)
             : this()
         {
             _dict = dict;
+            Key = key;
         }
 
         private IDictionary<string, object> _dict;
@@ -166,6 +167,16 @@ namespace blqw
         public object Value
         {
             get { return null; }
+        }
+
+        public string Key { get; private set; }
+
+        IEnumerator<IJsonObject> IEnumerable<IJsonObject>.GetEnumerator()
+        {
+            foreach (var item in _dict)
+            {
+                yield return ToJsonObject(item.Value, item.Key);
+            }
         }
     }
 }
