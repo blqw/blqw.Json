@@ -428,7 +428,7 @@ namespace blqw
                     datetime[numindex++] = number;
                     MoveNext();
                 }
-                else if (_WordChars[Current] == 3)
+                else if ((_WordChars[Current] & 3) == 3)
                 {
                     var wk = GetDateTimeWord();
                     if (wk == 0) goto label_parse;
@@ -772,7 +772,7 @@ namespace blqw
             }
 
             //单词起始字符只能是1+2
-            if (_WordChars[Current] != 3)
+            if ((_WordChars[Current] & 3) != 3)
             {
                 return null;
             }
