@@ -28,7 +28,7 @@ namespace blqw
 
             var jtype = JsonType.Get(obj.GetType());
             var ms = jtype.Members;
-            bool b = false;
+            var comma = false;
             var length = SerializableField ? ms.Length : jtype.PropertyCount;
             for (int i = 0; i < length; i++)
             {
@@ -39,19 +39,27 @@ namespace blqw
                     if (p.CanRead)
                     {
                         var value = p.GetValue(obj);
-                        if (value != null || !IgnoreNullMember)
+
+                        if (value == null || value is DBNull)
                         {
-                            if (b) UnsafeAppend(',');
-                            AppendKey(member.JsonName, false);
-                            if (member.MustFormat)
+                            comma = AppendObject(member.JsonName, false, null, comma) || comma;
+                        }
+                        else if (member.MustFormat)
+                        {
+                            if (comma)
                             {
-                                AppendFormattable((IFormattable)value, member.FormatString, member.FormatProvider);
+                                UnsafeAppend(',');
                             }
                             else
                             {
-                                AppendObject(value);
+                                comma = true;
                             }
-                            if (!b) b = true;
+                            AppendKey(member.JsonName, false);                            
+                            AppendFormattable((IFormattable)value, member.FormatString, member.FormatProvider);
+                        }
+                        else
+                        {
+                            comma = AppendObject(member.JsonName, false, value, comma) || comma;
                         }
                     }
                 }

@@ -243,6 +243,9 @@ blqw.Json.ToDynamic(string);
      543ms       1,030,657,833            33       21       10
 
 ##更新说明
+#### 2014.12.21
+*  优化IgnoreNullMember的处理方式,现在可以正确的忽略Dictionary或者DataTable中空的属性 
+
 #### 2014.12.20
 * 优化`IList`的序列化性能  
 * 优化`IJsonObject`,现在实现它也必须现实`IEnumerable<IJsonObject>`接口,所以可以直接`foreach`操作,例如下面这段代码  

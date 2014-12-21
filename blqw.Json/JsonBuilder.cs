@@ -69,11 +69,6 @@ namespace blqw
 
         private void AppendCheckLoopRef(object obj)
         {
-            var tojson = obj as IToJson;
-            if (tojson != null)
-            {
-                obj = tojson.ToJson();
-            }
             if (obj is ValueType)
             {
                 if (obj is IConvertible) AppendOther(obj);
@@ -325,11 +320,14 @@ namespace blqw
         /// </summary>
         public bool IgnoreNullMember;
         #endregion
-
         /// <summary> 将对象转换为Json字符串
         /// </summary>
         public string ToJsonString(object obj)
         {
+            if (obj == null || obj is DBNull)
+            {
+                return "null";
+            }
             using (Buffer = new QuickStringWriter(4096))
             {
                 if (CheckLoopRef)
@@ -342,6 +340,7 @@ namespace blqw
                 return json;
             }
         }
+
         /// <summary> 将 任意对象 转换Json字符串写入Buffer
         /// </summary>
         /// <param name="obj">任意对象</param>
@@ -350,6 +349,13 @@ namespace blqw
             if (obj == null || obj is DBNull)
             {
                 Buffer.Append("null");
+                return;
+            }
+
+            var tojson = obj as IToJson;
+            if (tojson != null)
+            {
+                AppendObject(tojson.ToJson());
                 return;
             }
             var s = obj as string;
@@ -373,6 +379,68 @@ namespace blqw
                     AppendCheckLoopRef(obj);
                 }
             }
+        }
+
+        /// <summary> 将 任意对象 转换Json字符串写入Buffer
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="escape">key中是否有(引号,回车,制表符等)特殊字符,需要转义</param>
+        /// <param name="obj">任意对象</param>
+        /// <param name="hasPrevComma">是否需要在前面加逗号</param>
+        protected bool AppendObject(string key, bool escape, object obj, bool hasPrevComma)
+        {
+            if (obj == null || obj is DBNull)
+            {
+                if (IgnoreNullMember)
+                {
+                    return false;
+                }
+                if (hasPrevComma)
+                {
+                    Buffer.Append(',');
+                }
+                if (key != null)
+                {
+                    AppendKey(key, escape);
+                }
+                Buffer.Append("null");
+                return true;
+            }
+            var tojson = obj as IToJson;
+            if (tojson != null)
+            {
+                return AppendObject(key, escape, tojson.ToJson(), hasPrevComma);
+            }
+            if (hasPrevComma)
+            {
+                Buffer.Append(',');
+            }
+            if (key != null)
+            {
+                AppendKey(key, escape);
+            }
+            var s = obj as string;
+            if (s != null)
+            {
+                AppendString(s);
+            }
+            else
+            {
+                var conv = obj as IConvertible;
+                if (conv != null)
+                {
+                    AppendConvertible(conv);
+                }
+                else if (obj is Guid)
+                {
+                    AppendGuid((Guid)obj);
+                }
+                else
+                {
+                    AppendCheckLoopRef(obj);
+                }
+            }
+            return true;
         }
 
         /// <summary> 非安全方式向Buffer追加一个字符(该方法不会验证字符的有效性)
@@ -814,7 +882,7 @@ namespace blqw
                     break;
             }
         }
-        
+
         /// <summary> 将 数组 对象转换Json中的数组字符串写入Buffer
         /// </summary>
         /// <param name="enumerator">迭代器</param>
@@ -823,11 +891,10 @@ namespace blqw
             Buffer.Append('[');
             if (enumerator.MoveNext())
             {
-                AppendObject(enumerator.Current);
+                AppendObject(null, false, enumerator.Current, false);
                 while (enumerator.MoveNext())
                 {
-                    Buffer.Append(',');
-                    AppendObject(enumerator.Current);
+                    AppendObject(null, false, enumerator.Current, true);
                 }
             }
             Buffer.Append(']');
@@ -841,11 +908,10 @@ namespace blqw
             Buffer.Append('[');
             if (enumerator.MoveNext())
             {
-                AppendObject(getVal(enumerator.Current));
+                AppendObject(null, false, getVal(enumerator.Current), false);
                 while (enumerator.MoveNext())
                 {
-                    Buffer.Append(',');
-                    AppendObject(getVal(enumerator.Current));
+                    AppendObject(null, false, getVal(enumerator.Current), true);
                 }
             }
             Buffer.Append(']');
@@ -862,11 +928,10 @@ namespace blqw
                 return;
             }
             Buffer.Append('[');
-            AppendObject(getVal(list[0]));
+            AppendObject(null, false, getVal(list[0]), false);
             for (int i = 1; i < length; i++)
             {
-                Buffer.Append(',');
-                AppendObject(getVal(list[i]));
+                AppendObject(null, false, getVal(list[i]), true);
             }
             Buffer.Append(']');
         }
@@ -882,11 +947,10 @@ namespace blqw
                 return;
             }
             Buffer.Append('[');
-            AppendObject(list[0]);
+            AppendObject(null, false, list[0], false);
             for (int i = 1; i < length; i++)
             {
-                Buffer.Append(',');
-                AppendObject(list[i]);
+                AppendObject(null, false, list[i], true);
             }
             Buffer.Append(']');
         }
@@ -904,16 +968,10 @@ namespace blqw
         protected virtual void AppendJson(IEnumerator keys, IEnumerator values)
         {
             Buffer.Append('{');
-            if (keys.MoveNext() && values.MoveNext())
+            var comma = false;
+            while (keys.MoveNext() && values.MoveNext())
             {
-                AppendKey(keys.Current + "", true);
-                AppendObject(values.Current);
-                while (keys.MoveNext() && values.MoveNext())
-                {
-                    Buffer.Append(',');
-                    AppendKey(keys.Current + "", true);
-                    AppendObject(values.Current);
-                }
+                comma = AppendObject(keys.Current + "", true, values.Current, comma) || comma;
             }
             Buffer.Append('}');
         }
@@ -935,13 +993,10 @@ namespace blqw
             }
             Buffer.Append('{');
 
-            AppendKey(keys[0] + "", true);
-            AppendObject(values[0]);
+            var comma = false;
             for (int i = 0; i < length; i++)
             {
-                Buffer.Append(',');
-                AppendKey(keys[i] + "", true);
-                AppendObject(values[i]);
+                comma = AppendObject(keys[i] + "", true, values[i], comma) || comma;
             }
             Buffer.Append('}');
         }
@@ -954,17 +1009,10 @@ namespace blqw
         protected virtual void AppendJson(IEnumerator enumerator, Converter<object, string> getKey, Converter<object, object> getVal, bool escapekey)
         {
             Buffer.Append('{');
-
-            if (enumerator.MoveNext())
+            var comma = false;
+            while (enumerator.MoveNext())
             {
-                AppendKey(getKey(enumerator.Current), escapekey);
-                AppendObject(getVal(enumerator.Current));
-                while (enumerator.MoveNext())
-                {
-                    Buffer.Append(':');
-                    AppendKey(getKey(enumerator.Current), true);
-                    AppendObject(getVal(enumerator.Current));
-                }
+                comma = AppendObject(getKey(enumerator.Current), escapekey, getVal(enumerator.Current), comma) || comma;
             }
             Buffer.Append('}');
         }
@@ -985,15 +1033,11 @@ namespace blqw
             }
             Buffer.Append('{');
             var obj = list[0];
-            AppendKey(getKey(obj), escapekey);
-            AppendObject(getVal(obj));
-            for (int i = 1; i < length; i++)
+            var comma = false;
+            for (int i = 0; i < length; i++)
             {
                 obj = list[i];
-                Buffer.Append(':');
-                AppendKey(getKey(obj), escapekey);
-                AppendObject(getVal(obj));
-            
+                comma = AppendObject(getKey(obj), escapekey, getVal(obj), comma) || comma;
             }
             Buffer.Append('}');
         }
@@ -1012,7 +1056,7 @@ namespace blqw
                 AppendDataTable(table);
                 while (ee.MoveNext())
                 {
-                    Buffer.Append(':');
+                    Buffer.Append(',');
                     table = (DataTable)ee.Current;
                     AppendKey(table.TableName, true);
                     AppendDataTable(table);

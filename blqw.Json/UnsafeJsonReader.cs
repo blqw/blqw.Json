@@ -1119,6 +1119,10 @@ namespace blqw
 
         private void ThrowMissCharException(char c)
         {
+            if (c == '{' || c == '}')
+            {
+                ThrowException("缺少字符:" + c + c + " 当前字符:{0}");
+            }
             ThrowException("缺少字符:" + c + " 当前字符:{0}");
         }
 
