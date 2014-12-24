@@ -11,7 +11,15 @@ namespace blqw
         public JsonValue(string key,IConvertible value)
             : this()
         {
-            _value = value;
+            if (_value == null)
+            {
+                _value = "";
+                IsUndefined = true;
+            }
+            else
+            {
+                _value = value;
+            }
             Key = key;
         }
 
@@ -238,7 +246,12 @@ namespace blqw
         }
         public object Value
         {
-            get { return _value; }
+            get
+            {
+                if (IsUndefined)
+                    return null;
+                return _value;
+            }
         }
 
         public string Key { get; private set; }
