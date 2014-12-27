@@ -59,8 +59,9 @@
     <Compile Include="Literacy\Convert2.cs" />
     <Compile Include="Literacy\Delegate.cs" />
     <Compile Include="Literacy\ILoadMember.cs" />
-    <Compile Include="Literacy\IMemberMappingAttributre.cs" />
+    <Compile Include="Literacy\IMemberMappingAttribute.cs" />
     <Compile Include="Literacy\Literacy.cs" />
+    <Compile Include="Literacy\MemberMappingAttribute.cs" />
     <Compile Include="Literacy\ObjectProperty.cs" />
     <Compile Include="Literacy\ObjectPropertyCollection.cs" />
     <Compile Include="Literacy\TypeCodes.cs" />
