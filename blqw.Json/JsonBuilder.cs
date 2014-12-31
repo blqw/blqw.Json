@@ -891,10 +891,11 @@ namespace blqw
             Buffer.Append('[');
             if (enumerator.MoveNext())
             {
-                AppendObject(null, false, enumerator.Current, false);
+                AppendObject(enumerator.Current);
                 while (enumerator.MoveNext())
                 {
-                    AppendObject(null, false, enumerator.Current, true);
+                    Buffer.Append(',');
+                    AppendObject(enumerator.Current);
                 }
             }
             Buffer.Append(']');
@@ -908,10 +909,11 @@ namespace blqw
             Buffer.Append('[');
             if (enumerator.MoveNext())
             {
-                AppendObject(null, false, getVal(enumerator.Current), false);
+                AppendObject(getVal(enumerator.Current));
                 while (enumerator.MoveNext())
                 {
-                    AppendObject(null, false, getVal(enumerator.Current), true);
+                    Buffer.Append(',');
+                    AppendObject(getVal( enumerator.Current));
                 }
             }
             Buffer.Append(']');
@@ -928,10 +930,11 @@ namespace blqw
                 return;
             }
             Buffer.Append('[');
-            AppendObject(null, false, getVal(list[0]), false);
+            AppendObject(getVal(list[0]));
             for (int i = 1; i < length; i++)
             {
-                AppendObject(null, false, getVal(list[i]), true);
+                Buffer.Append(',');
+                AppendObject(getVal(list[i]));
             }
             Buffer.Append(']');
         }
@@ -947,10 +950,11 @@ namespace blqw
                 return;
             }
             Buffer.Append('[');
-            AppendObject(null, false, list[0], false);
+            AppendObject(list[0]);
             for (int i = 1; i < length; i++)
             {
-                AppendObject(null, false, list[i], true);
+                Buffer.Append(',');
+                AppendObject(list[i]);
             }
             Buffer.Append(']');
         }
