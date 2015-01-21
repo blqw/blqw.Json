@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Globalization;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace blqw
@@ -411,7 +412,7 @@ namespace blqw
                 return value;
             }
             if (throwOnError)
-                ThrowError(input, defaultValue);
+                ThrowError<T>(input, defaultValue);
             return defaultValue;
         }
         public static object ChangedType(object input, Type outputType, object defaultValue = null, bool throwOnError = true)
@@ -422,7 +423,23 @@ namespace blqw
                 return value;
             }
             if (throwOnError)
-                ThrowError(input, defaultValue);
+            {
+                string x;
+                if (input == null)
+                {
+                    x = "<null>";
+                }
+                else if (input is DBNull)
+                {
+                    x = "<DBNull>";
+                }
+                else
+                {
+                    x = input.ToString();
+                }
+                var name = TypesHelper.GetTypeInfo(outputType).DisplayName;
+                throw new InvalidCastException(string.Concat("值 '", x, "' 无法转为 ", name, " 类型"));
+            }
             return defaultValue;
         }
 
@@ -2556,7 +2573,7 @@ namespace blqw
                     case 5:
                         if (input.Equals("false", StringComparison.OrdinalIgnoreCase))
                         {
-                            value = true;
+                            value = false;
                             return true;
                         }
                         break;
@@ -3264,6 +3281,137 @@ namespace blqw
                 return true;
             }
             return false;
+        }
+        #endregion
+
+        #region Decode
+
+        /// <summary> 使用16位MD5加密
+        /// </summary>
+        /// <param name="input">加密字符串</param>
+        /// <param name="count">加密次数</param>
+        public static string ToMD5x16(string input, int count = 1)
+        {
+            if (count <= 0)
+            {
+                return input;
+            }
+            for (int i = 0; i < count; i++)
+            {
+                input = ToMD5x16(input);
+            }
+            return input;
+        }
+        /// <summary> 使用16位MD5加密
+        /// </summary>
+        /// <param name="input">加密字符串</param>
+        public static string ToMD5x16(string input)
+        {
+            return ToMD5x16(Encoding.UTF8.GetBytes(input));
+        }
+        /// <summary> 使用MD5加密
+        /// </summary>
+        /// <param name="input">需要加密的字节</param>
+        public static string ToMD5x16(byte[] input)
+        {
+            var md5 = new MD5CryptoServiceProvider();
+            var data = Hash(md5, input);
+            return ByteToString(data, 4, 8);
+        }
+        /// <summary> 使用MD5加密
+        /// </summary>
+        /// <param name="input">加密字符串</param>
+        /// <param name="count">加密次数</param>
+        public static string ToMD5(string input, int count = 1)
+        {
+            if (count <= 0)
+            {
+                return input;
+            }
+            for (int i = 0; i < count; i++)
+            {
+                input = ToMD5(input);
+            }
+            return input;
+        }
+        /// <summary> 使用MD5加密
+        /// </summary>
+        /// <param name="input">加密字符串</param>
+        public static string ToMD5(string input)
+        {
+            return ToMD5(Encoding.UTF8.GetBytes(input));
+        }
+        /// <summary> 使用MD5加密
+        /// </summary>
+        /// <param name="input">需要加密的字节</param>
+        public static string ToMD5(byte[] input)
+        {
+            var md5 = new MD5CryptoServiceProvider();
+            var data = Hash(md5, input);
+            return ByteToString(data);
+        }
+        /// <summary> 使用SHA1加密
+        /// </summary>
+        /// <param name="input">加密字符串</param>
+        /// <param name="count">加密次数</param>
+        public static string ToSHA1(string input, int count = 1)
+        {
+            if (count <= 0)
+            {
+                return input;
+            }
+            var sha1 = new SHA1CryptoServiceProvider();
+            var data = Encoding.UTF8.GetBytes(input);
+            for (int i = 0; i < count; i++)
+            {
+                data = Hash(sha1, data);
+            }
+            return ByteToString(data);
+        }
+        /// <summary> 使用SHA1加密
+        /// </summary>
+        /// <param name="input">加密字符串</param>
+        public static string ToSHA1(string input)
+        {
+            return ToSHA1(Encoding.UTF8.GetBytes(input));
+        }
+        /// <summary> 使用SHA1加密
+        /// </summary>
+        /// <param name="input">需要加密的字节</param>
+        public static string ToSHA1(byte[] input)
+        {
+            var sha1 = new SHA1CryptoServiceProvider();
+            var data = Hash(sha1, input);
+            return ByteToString(data);
+        }
+
+        private static string ByteToString(byte[] data)
+        {
+            return ByteToString(data, 0, data.Length);
+        }
+        private static string ByteToString(byte[] data, int offset, int count)
+        {
+            if (data == null)
+            {
+                return null;
+            }
+            char[] chArray = new char[count * 2];
+            var end = offset + count;
+            for (int i = offset, j = 0; i < end; i++)
+            {
+                byte num2 = data[i];
+                chArray[j++] = NibbleToHex((byte)(num2 >> 4));
+                chArray[j++] = NibbleToHex((byte)(num2 & 15));
+            }
+            return new string(chArray);
+        }
+        private static char NibbleToHex(byte nibble)
+        {
+            return ((nibble < 10) ? ((char)(nibble + 0x30)) : ((char)((nibble - 10) + 'a')));
+        }
+        private static byte[] Hash(HashAlgorithm algorithm, byte[] input)
+        {
+            return algorithm.ComputeHash(input);
         }
         #endregion
     }

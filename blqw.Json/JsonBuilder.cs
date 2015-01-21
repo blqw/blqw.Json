@@ -95,6 +95,8 @@ namespace blqw
                 else if (obj is DataSet) AppendDataSet((DataSet)obj);
                 else if (obj is DataTable) AppendDataTable((DataTable)obj);
                 else if (obj is DataView) AppendDataView((DataView)obj);
+                else if (obj is DataRow) AppendDataRow((DataRow)obj);
+                else if (obj is DataRowView) AppendDataRow((DataRow)obj);
                 else AppendOther(obj);
                 _depth--;
             }
@@ -110,6 +112,8 @@ namespace blqw
                 else if (obj is DataSet) AppendDataSet((DataSet)obj);
                 else if (obj is DataTable) AppendDataTable((DataTable)obj);
                 else if (obj is DataView) AppendDataView((DataView)obj);
+                else if (obj is DataRow) AppendDataRow((DataRow)obj);
+                else if (obj is DataRowView) AppendDataRow((DataRow)obj);
                 else AppendOther(obj);
                 _loopObject.RemoveAt(index);
             }
@@ -1078,8 +1082,8 @@ namespace blqw
             var ee = table.Rows.GetEnumerator();
             if (ee.MoveNext())
             {
-                var names = new string[table.Columns.Count];
                 var columns = table.Columns;
+                var names = new string[columns.Count];
                 for (int i = 0; i < names.Length; i++)
                 {
                     names[i] = EscapeString(columns[i].ColumnName);
@@ -1094,31 +1098,70 @@ namespace blqw
 
             Buffer.Append(']');
         }
+        /// <summary> 将 DataRow 对象转换Json字符串写入Buffer
+        /// </summary>
+        /// <param name="row">DataRow 对象</param>
+        protected virtual void AppendDataRow(DataRow row)
+        {
+            var table = row.Table;
+            var columns = table.Columns;
+            var names = new string[columns.Count];
+            for (int i = 0; i < names.Length; i++)
+            {
+                names[i] = EscapeString(columns[i].ColumnName);
+            }
+            AppendJson(names, (row).ItemArray);
+        }
         /// <summary> 将 DataView 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="tableView">DataView 对象</param>
         protected virtual void AppendDataView(DataView tableView)
         {
             Buffer.Append('[');
-            var table = tableView.Table ?? tableView.ToTable();
+            var table = tableView.ToTable();
             var ee = tableView.GetEnumerator();
             if (ee.MoveNext())
             {
-                var names = new string[table.Columns.Count];
                 var columns = table.Columns;
+                var names = new string[columns.Count];
+                var values = new object[columns.Count];
+                var row = (DataRowView)ee.Current;
                 for (int i = 0; i < names.Length; i++)
                 {
                     names[i] = EscapeString(columns[i].ColumnName);
+                    values[i] = row[i];
                 }
-                AppendJson(names, ((DataRowView)ee.Current).Row.ItemArray);
+                AppendJson(names, values);
                 while (ee.MoveNext())
                 {
+                    row = (DataRowView)ee.Current;
+                    for (int i = 0; i < names.Length; i++)
+                    {
+                        values[i] = row[i];
+                    }
                     Buffer.Append(',');
-                    AppendJson(names, ((DataRowView)ee.Current).Row.ItemArray);
+                    AppendJson(names, values);
                 }
             }
 
             Buffer.Append(']');
+        }
+
+        /// <summary> 将 DataRowView 对象转换Json字符串写入Buffer
+        /// </summary>
+        /// <param name="row">DataRowView 对象</param>
+        protected virtual void AppendDataRow(DataRowView row)
+        {
+            var table = row.DataView.ToTable();
+            var columns = table.Columns;
+            var names = new string[columns.Count];
+            var values = new object[columns.Count];
+            for (int i = 0; i < names.Length; i++)
+            {
+                names[i] = EscapeString(columns[i].ColumnName);
+                values[i] = row[i];
+            }
+            AppendJson(names, values);
         }
         /// <summary> 将 IDataReader 对象转换Json字符串写入Buffer
         /// </summary>

@@ -14,9 +14,9 @@ namespace Demo
 
         static void Main(string[] args)
         {
-
-            Test1(true);
-            Test2();
+            Console.WriteLine(Json.ToJsonString(new object[]{null}));
+            //Test1(true);
+            //Test2();
 //var str = "{ Name : \"blqw\", Age : 11 ,Array : [\"2014-1-1 1:00:00\",false,{ a:1,b:2 }] }";
 //dynamic json = Json.ToDynamic(str);
 //Console.WriteLine(json.Name);
