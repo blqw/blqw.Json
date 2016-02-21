@@ -1,7 +1,6 @@
 ﻿## 性能比较
 
 #### 序列化测试
-> ps:blqw.Json 的序列化器分为 JsonBuilder和QuickJsonBuilder 2个版本   
 
 <table style="width: 660px; float: left; height: 354px;" border="1" cellpadding="2"><caption>&nbsp;</caption>
 <tbody>
