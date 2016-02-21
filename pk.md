@@ -15,7 +15,7 @@
 <td>第五轮</td>
 </tr>
 <tr>
-<td rowspan="7">1次</td>
+<td rowspan="6">1次</td>
 <td>&nbsp;JavaScriptSerializer</td>
 <td>&nbsp;12</td>
 <td>&nbsp;0</td>
@@ -64,7 +64,7 @@
 <td>&nbsp;0</td>
 </tr>
 <tr>
-<td rowspan="7">100次</td>
+<td rowspan="6">100次</td>
 <td>&nbsp;JavaScriptSerializer</td>
 <td>&nbsp;23</td>
 <td>&nbsp;7</td>
@@ -113,7 +113,7 @@
 <td>&nbsp;2</td>
 </tr>
 <tr>
-<td rowspan="7">10000次</td>
+<td rowspan="6">10000次</td>
 <td>&nbsp;JavaScriptSerializer</td>
 <td>&nbsp;765</td>
 <td>&nbsp;751</td>
