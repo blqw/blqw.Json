@@ -3,16 +3,16 @@ Json序列化与反序列化
 http://cnblogs.com/blqw/p/json.html  
 使用方便 ,性能卓越  
 ```csharp
-blqw.Json.ToJsonString(object);
-blqw.Json.ToObject<T>(string);
-blqw.Json.ToObject(string);
-blqw.Json.ToObject(Type,string);
-//2014.07.29 新增
-blqw.Json.ToJsonObject(string);
-//2014.08.08 新增
-blqw.Json.ToJsonString(object,JsonBuilderSettings);
-//2014.10.25 新增
-blqw.Json.ToDynamic(string);
+blqw.Json.ToJsonString(object);  
+blqw.Json.ToObject<T>(string);  
+blqw.Json.ToObject(string);  
+blqw.Json.ToObject(Type,string);  
+//2014.07.29 新增  
+blqw.Json.ToJsonObject(string);  
+//2014.08.08 新增  
+blqw.Json.ToJsonString(object,JsonBuilderSettings);  
+//2014.10.25 新增  
+blqw.Json.ToDynamic(string);  
 ```
 
 性能测试请参考:[pk.md](https://github.com/blqw/blqw.Json/blob/master/pk.md)
