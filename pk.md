@@ -1,40 +1,37 @@
-## ĞÔÄÜ±È½Ï
+ï»¿## æ€§èƒ½æ¯”è¾ƒ
 
-#### ĞòÁĞ»¯²âÊÔ
-> ps:blqw.Json µÄĞòÁĞ»¯Æ÷·ÖÎª JsonBuilderºÍQuickJsonBuilder 2¸ö°æ±¾   
-> JsonBuilder ÊÇ´¿·´ÉäÊµÏÖ  
-> QuickJsonBuilder ÊÇÊ¹ÓÃ[blqw.Literacy](https://coding.net/u/blqw/p/blqw-Literacy/git)´úÌæ·´ÉäÊµÏÖ(ÓÉ´ËLiteracyĞÔÄÜÒ²¿ÉÒÔ¼ûÒ»°ß)  
-> ÒÔÏÂ²âÊÔÖĞ blqw.Json µÄ¾Í±íÊ¾Ê¹ÓÃ QuickJsonBuilder ĞòÁĞ»¯Æ÷Íê³ÉJsonĞòÁĞ»¯µÄĞÔÄÜ  
+#### åºåˆ—åŒ–æµ‹è¯•
+> ps:blqw.Json çš„åºåˆ—åŒ–å™¨åˆ†ä¸º JsonBuilderå’ŒQuickJsonBuilder 2ä¸ªç‰ˆæœ¬   
 
 <table style="width: 660px; float: left; height: 354px;" border="1" cellpadding="2"><caption>&nbsp;</caption>
 <tbody>
 <tr>
-<td>Ñ­»·´ÎÊı</td>
-<td>²âÊÔ×é¼ş</td>
-<td>µÚÒ»ÂÖ</td>
-<td>µÚ¶şÂÖ</td>
-<td>µÚÈıÂÖ</td>
-<td>µÚËÄÂÖ</td>
-<td>µÚÎåÂÖ</td>
+<td>å¾ªç¯æ¬¡æ•°</td>
+<td>æµ‹è¯•ç»„ä»¶</td>
+<td>ç¬¬ä¸€è½®</td>
+<td>ç¬¬äºŒè½®</td>
+<td>ç¬¬ä¸‰è½®</td>
+<td>ç¬¬å››è½®</td>
+<td>ç¬¬äº”è½®</td>
 </tr>
-<tr style="background-color: #ffffcc;">
-<td rowspan="7">1´Î</td>
+<tr>
+<td rowspan="7">1æ¬¡</td>
 <td>&nbsp;JavaScriptSerializer</td>
-<td>&nbsp;<span style="color: #ff0000;"><span style="color: #339966;">12</span><br></span></td>
+<td>&nbsp;12</span><br></td>
 <td>&nbsp;0</td>
 <td>&nbsp;0</td>
 <td>&nbsp;0</td>
 <td>&nbsp;0</td>
 </tr>
-<tr style="background-color: #ffffcc;">
+<tr>
 <td>&nbsp;Newtonsoft.Json</td>
-<td>&nbsp;<span style="color: #ff0000;">208</span></td>
+<td>&nbsp;208</td>
 <td>&nbsp;0</td>
 <td>&nbsp;0</td>
 <td>&nbsp;0</td>
 <td>&nbsp;0</td>
 </tr>
-<tr style="background-color: #ffffcc;">
+<tr>
 <td>&nbsp;Jayrock.Json</td>
 <td>&nbsp;85</td>
 <td>&nbsp;0</td>
@@ -42,7 +39,7 @@
 <td>&nbsp;0</td>
 <td>&nbsp;0</td>
 </tr>
-<tr style="background-color: #ffffcc;">
+<tr>
 <td>&nbsp;fastJSON.NET</td>
 <td>&nbsp;47</td>
 <td>&nbsp;0</td>
@@ -50,7 +47,7 @@
 <td>&nbsp;0</td>
 <td>&nbsp;0</td>
 </tr>
-<tr style="background-color: #ffffcc;">
+<tr>
 <td>&nbsp;blqw.Json</td>
 <td>&nbsp;37</td>
 <td>&nbsp;0</td>
@@ -58,15 +55,7 @@
 <td>&nbsp;0</td>
 <td>&nbsp;0</td>
 </tr>
-<tr style="background-color: #ffffcc;">
-<td>&nbsp;JsonBuilder</td>
-<td>&nbsp;22</td>
-<td>&nbsp;0</td>
-<td>&nbsp;0</td>
-<td>&nbsp;0</td>
-<td>&nbsp;0</td>
-</tr>
-<tr style="background-color: #ffffcc;">
+<tr>
 <td>ServiceStack.Text</td>
 <td>&nbsp;138</td>
 <td>&nbsp;0</td>
@@ -74,56 +63,48 @@
 <td>&nbsp;0</td>
 <td>&nbsp;0</td>
 </tr>
-<tr style="background-color: #ffff99;">
-<td rowspan="7">100´Î</td>
-<td>&nbsp;<span>JavaScriptSerializer</span></td>
-<td>&nbsp;<span style="color: #339966;">23</span></td>
+<tr>
+<td rowspan="7">100æ¬¡</td>
+<td>&nbsp;JavaScriptSerializer</td>
+<td>&nbsp;23</td>
 <td>&nbsp;7</td>
 <td>&nbsp;7</td>
 <td>&nbsp;8</td>
 <td>&nbsp;7</td>
 </tr>
-<tr style="background-color: #ffff99;">
-<td>&nbsp;<span>Newtonsoft.Json</span></td>
-<td>&nbsp;<span style="color: #ff0000;">201</span></td>
+<tr>
+<td>&nbsp;Newtonsoft.Json</td>
+<td>&nbsp;201</td>
 <td>&nbsp;2</td>
 <td>&nbsp;3</td>
 <td>&nbsp;2</td>
 <td>&nbsp;2</td>
 </tr>
-<tr style="background-color: #ffff99;">
-<td>&nbsp;<span>Jayrock.Json</span></td>
+<tr>
+<td>&nbsp;Jayrock.Json</td>
 <td>&nbsp;77</td>
-<td><span style="color: #ff0000;">&nbsp;8</span></td>
-<td><span style="color: #ff0000;">&nbsp;9</span></td>
-<td><span style="color: #ff0000;">&nbsp;9</span></td>
-<td><span style="color: #ff0000;">&nbsp;8</span></td>
+<td>&nbsp;8</td>
+<td>&nbsp;9</td>
+<td>&nbsp;9</td>
+<td>&nbsp;8</td>
 </tr>
-<tr style="background-color: #ffff99;">
-<td>&nbsp;<span>fastJSON.NET</span></td>
+<tr>
+<td>&nbsp;fastJSON.NET</td>
 <td>&nbsp;41</td>
-<td><span style="color: #339966;">&nbsp;1</span></td>
-<td><span style="color: #339966;">&nbsp;1</span></td>
-<td><span style="color: #339966;">&nbsp;1</span></td>
-<td><span style="color: #339966;">&nbsp;1</span></td>
+<td>&nbsp;1</td>
+<td>&nbsp;1</td>
+<td>&nbsp;1</td>
+<td>&nbsp;1</td>
 </tr>
-<tr style="background-color: #ffff99;">
-<td>&nbsp;<span>blqw.Json</span></td>
+<tr>
+<td>&nbsp;blqw.Json</td>
 <td>&nbsp;36</td>
-<td><span style="color: #339966;">&nbsp;1</span></td>
-<td><span style="color: #339966;">&nbsp;1</span></td>
-<td><span style="color: #339966;">&nbsp;1</span></td>
-<td><span style="color: #339966;">&nbsp;1</span></td>
+<td>&nbsp;1</td>
+<td>&nbsp;1</td>
+<td>&nbsp;1</td>
+<td>&nbsp;1</td>
 </tr>
-<tr style="background-color: #ffff99;">
-<td>&nbsp;JsonBuilder</td>
-<td>&nbsp;26</td>
-<td>&nbsp;3</td>
-<td>&nbsp;4</td>
-<td>&nbsp;3</td>
-<td>&nbsp;3</td>
-</tr>
-<tr style="background-color: #ffff99;">
+<tr>
 <td>ServiceStack.Text</td>
 <td>&nbsp;139</td>
 <td>&nbsp;2</td>
@@ -131,55 +112,48 @@
 <td>&nbsp;2</td>
 <td>&nbsp;2</td>
 </tr>
-<tr style="background-color: #ffe4c4;">
-<td rowspan="7">10000´Î</td>
-<td>&nbsp;<span>JavaScriptSerializer</span></td>
+<tr>
+<td rowspan="7">10000æ¬¡</td>
+<td>&nbsp;JavaScriptSerializer</td>
 <td>&nbsp;765</td>
 <td>&nbsp;751</td>
 <td>&nbsp;752</td>
 <td>&nbsp;751</td>
 <td>&nbsp;749</td>
 </tr>
-<tr style="background-color: #ffe4c4;">
-<td>&nbsp;<span>Newtonsoft.Json</span></td>
+<tr>
+<td>&nbsp;Newtonsoft.Json</td>
 <td>&nbsp;437</td>
 <td>&nbsp;253</td>
 <td>&nbsp;251</td>
 <td>&nbsp;248</td>
 <td>&nbsp;243</td>
 </tr>
-<tr style="background-color: #ffe4c4;">
-<td>&nbsp;<span>Jayrock.Json</span></td>
-<td><span style="color: #ff0000;">&nbsp;967</span></td>
-<td><span style="color: #ff0000;">&nbsp;905</span></td>
-<td><span style="color: #ff0000;">&nbsp;965</span></td>
-<td><span style="color: #ff0000;">&nbsp;913</span></td>
-<td><span style="color: #ff0000;">&nbsp;952</span></td>
+<tr>
+<td>&nbsp;Jayrock.Json</td>
+<td>&nbsp;967</td>
+<td>&nbsp;905</td>
+<td>&nbsp;965</td>
+<td>&nbsp;913</td>
+<td>&nbsp;952</td>
 </tr>
-<tr style="background-color: #ffe4c4;">
-<td><span>&nbsp;</span><span>fastJSON.NET</span></td>
+<tr>
+<td>&nbsp;fastJSON.NET</td>
 <td>&nbsp;239</td>
 <td>&nbsp;181</td>
 <td>&nbsp;200</td>
 <td>&nbsp;167</td>
 <td>&nbsp;166</td>
 </tr>
-<tr style="background-color: #ffe4c4;">
-<td>&nbsp;<span>blqw.Json</span></td>
-<td><span style="color: #339966;">&nbsp;171</span></td>
-<td><span style="color: #339966;">&nbsp;128</span></td>
-<td><span style="color: #339966;">&nbsp;132</span></td>
-<td><span style="color: #339966;">&nbsp;136</span></td>
-<td><span style="color: #339966;">&nbsp;129</span></td>
+<tr>
+<td>&nbsp;blqw.Json</td>
+<td>&nbsp;171</td>
+<td>&nbsp;128</td>
+<td>&nbsp;132</td>
+<td>&nbsp;136</td>
+<td>&nbsp;129</td>
 </tr>
-<tr style="background-color: #ffe4c4;">
-<td>&nbsp;JsonBuilder</td>
-<td>&nbsp;418</td>
-<td>&nbsp;386</td>
-<td>&nbsp;388</td>
-<td>&nbsp;391</td>
-<td>&nbsp;360</td></tr>
-<tr style="background-color: #ffe4c4;">
+<tr>
 <td>ServiceStack.Text</td>
 <td>&nbsp;367</td>
 <td>&nbsp;216</td>
@@ -192,38 +166,38 @@
 <div style="clear:both"></div>
 
 
-#### ÓëFastJson±È½Ï
-    blqw.JsonĞòÁĞ»¯ Demo.User Ñ­»· 500000 ´Î
-     ÔËĞĞÊ±¼ä    CPUÊ±ÖÓÖÜÆÚ    À¬»ø»ØÊÕ( 1´ú      2´ú      3´ú )
+#### ä¸FastJsonæ¯”è¾ƒ
+    blqw.Jsonåºåˆ—åŒ– Demo.User å¾ªç¯ 500000 æ¬¡
+     è¿è¡Œæ—¶é—´    CPUæ—¶é’Ÿå‘¨æœŸ    åƒåœ¾å›æ”¶( 1ä»£      2ä»£      3ä»£ )
      3,824ms     7,596,991,952            243      1        0
 
-    FastJsonĞòÁĞ»¯ Demo.User Ñ­»· 500000 ´Î
-     ÔËĞĞÊ±¼ä    CPUÊ±ÖÓÖÜÆÚ    À¬»ø»ØÊÕ( 1´ú      2´ú      3´ú )
+    FastJsonåºåˆ—åŒ– Demo.User å¾ªç¯ 500000 æ¬¡
+     è¿è¡Œæ—¶é—´    CPUæ—¶é’Ÿå‘¨æœŸ    åƒåœ¾å›æ”¶( 1ä»£      2ä»£      3ä»£ )
      7,451ms     14,845,112,542           747      0        0
 
     ========================
-    blqw.JsonĞòÁĞ»¯ Demo.ResultDTO Ñ­»· 10000 ´Î
-     ÔËĞĞÊ±¼ä    CPUÊ±ÖÓÖÜÆÚ    À¬»ø»ØÊÕ( 1´ú      2´ú      3´ú )
+    blqw.Jsonåºåˆ—åŒ– Demo.ResultDTO å¾ªç¯ 10000 æ¬¡
+     è¿è¡Œæ—¶é—´    CPUæ—¶é’Ÿå‘¨æœŸ    åƒåœ¾å›æ”¶( 1ä»£      2ä»£      3ä»£ )
      2,528ms     5,026,517,462            322      0        0
 
-    FastJsonĞòÁĞ»¯ Demo.ResultDTO Ñ­»· 10000 ´Î
-     ÔËĞĞÊ±¼ä    CPUÊ±ÖÓÖÜÆÚ    À¬»ø»ØÊÕ( 1´ú      2´ú      3´ú )
+    FastJsonåºåˆ—åŒ– Demo.ResultDTO å¾ªç¯ 10000 æ¬¡
+     è¿è¡Œæ—¶é—´    CPUæ—¶é’Ÿå‘¨æœŸ    åƒåœ¾å›æ”¶( 1ä»£      2ä»£      3ä»£ )
      5,491ms     10,919,771,327           599      0        0
 
     ========================
-    blqw.JsonĞòÁĞ»¯ List<Demo.Object2> Ñ­»· 1250 ´Î
-     ÔËĞĞÊ±¼ä    CPUÊ±ÖÓÖÜÆÚ    À¬»ø»ØÊÕ( 1´ú      2´ú      3´ú )
+    blqw.Jsonåºåˆ—åŒ– List<Demo.Object2> å¾ªç¯ 1250 æ¬¡
+     è¿è¡Œæ—¶é—´    CPUæ—¶é’Ÿå‘¨æœŸ    åƒåœ¾å›æ”¶( 1ä»£      2ä»£      3ä»£ )
      2,461ms     4,908,125,075            357      357      357
 
-    FastJsonĞòÁĞ»¯ List<Demo.Object2> Ñ­»· 1250 ´Î
-     ÔËĞĞÊ±¼ä    CPUÊ±ÖÓÖÜÆÚ    À¬»ø»ØÊÕ( 1´ú      2´ú      3´ú )
+    FastJsonåºåˆ—åŒ– List<Demo.Object2> å¾ªç¯ 1250 æ¬¡
+     è¿è¡Œæ—¶é—´    CPUæ—¶é’Ÿå‘¨æœŸ    åƒåœ¾å›æ”¶( 1ä»£      2ä»£      3ä»£ )
      4,139ms     8,143,468,287            231      116      113
 
     ========================
-    blqw.Json·´ĞòÁĞ»¯ List<Demo.Object2> Ñ­»· 25 ´Î
-     ÔËĞĞÊ±¼ä    CPUÊ±ÖÓÖÜÆÚ    À¬»ø»ØÊÕ( 1´ú      2´ú      3´ú )
+    blqw.Jsonååºåˆ—åŒ– List<Demo.Object2> å¾ªç¯ 25 æ¬¡
+     è¿è¡Œæ—¶é—´    CPUæ—¶é’Ÿå‘¨æœŸ    åƒåœ¾å›æ”¶( 1ä»£      2ä»£      3ä»£ )
      226ms       442,187,752              9        0        0
 
-    FastJson·´ĞòÁĞ»¯ List<Demo.Object2> Ñ­»· 25 ´Î
-     ÔËĞĞÊ±¼ä    CPUÊ±ÖÓÖÜÆÚ    À¬»ø»ØÊÕ( 1´ú      2´ú      3´ú )
+    FastJsonååºåˆ—åŒ– List<Demo.Object2> å¾ªç¯ 25 æ¬¡
+     è¿è¡Œæ—¶é—´    CPUæ—¶é’Ÿå‘¨æœŸ    åƒåœ¾å›æ”¶( 1ä»£      2ä»£      3ä»£ )
      543ms       1,030,657,833            33       21       10
