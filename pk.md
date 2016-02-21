@@ -17,7 +17,7 @@
 <tr>
 <td rowspan="7">1次</td>
 <td>&nbsp;JavaScriptSerializer</td>
-<td>&nbsp;12</span><br></td>
+<td>&nbsp;12</td>
 <td>&nbsp;0</td>
 <td>&nbsp;0</td>
 <td>&nbsp;0</td>
