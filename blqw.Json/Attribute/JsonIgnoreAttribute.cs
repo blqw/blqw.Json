@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Web.Script.Serialization;
 
 namespace blqw
 {
@@ -26,5 +27,14 @@ namespace blqw
         /// <summary> 指示
         /// </summary>
         public bool NonDeserialize { get; private set; }
+
+        public override bool Match(object obj)
+        {
+            if (obj is ScriptIgnoreAttribute)
+            {
+                return true;
+            }
+            return base.Match(obj);
+        }
     }
 }

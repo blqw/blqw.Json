@@ -1,9 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using blqw.JsonComponent;
+using System;
+using System.Collections.Specialized;
+using System.ComponentModel.Composition;
+using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
+using System.Web.Script.Serialization;
 
-namespace blqw
+namespace blqw.Serializable
 {
     /// <summary> 可以被序列化成Json成员的对象
     /// </summary>
@@ -23,44 +26,108 @@ namespace blqw
                 }
                 return new JsonMember(member, true);
             }
-            return new JsonMember(member, false);
+            var b = member.IsDefined(typeof(NonSerializedAttribute), true);
+            if (b == false)
+            {
+                b = member.IsDefined(typeof(ScriptIgnoreAttribute), true);
+            }
+            return new JsonMember(member, b);
         }
 
         /// <summary> 构造函数
         /// </summary>
         private JsonMember(MemberInfo member, bool ignoreSerialized)
         {
-            if (member.MemberType == MemberTypes.Property)
+            Member = member;
+            DisplayText = TypeName.Get(member.ReflectedType) + "." + member.Name;
+            var name = member.GetCustomAttribute<System.ComponentModel.DisplayNameAttribute>(true)?.DisplayName;
+            if (name != null)
             {
-                Member = new ObjectProperty((PropertyInfo)member);
+                JsonName = JsonBuilder.EscapeString(name);
             }
             else
             {
-                Member = new ObjectProperty((FieldInfo)member);
+                JsonName = member.Name;
             }
 
-            var name = Member.Attributes.First<JsonNameAttribute>();
-            JsonName = name != null ? JsonBuilder.EscapeString(name.Name) : member.Name;
 
-            JsonFormatAttribute format = Member.Attributes.First<JsonFormatAttribute>();
+            InitGetSet(out Type, out GetValue, out SetValue);
+            CanWrite = SetValue != null;
+            CanRead = GetValue != null;
+            NonSerialized = ignoreSerialized;
+
+            JsonFormatAttribute format = member.GetCustomAttribute<JsonFormatAttribute>(true);
+
             if (format != null)
             {
-                if (!TypesHelper.IsChild(typeof(IFormattable), Member.MemberType))
+                if (!typeof(IFormattable).IsAssignableFrom(Type))
                 {
                     format = null;
                 }
-                MustFormat = true;
-                FormatString = format.Format;
-                FormatProvider = format.Provider;
+                else
+                {
+                    MustFormat = true;
+                    FormatString = format.Format;
+                    FormatProvider = format.Provider;
+                }
             }
-            NonSerialized = ignoreSerialized;
-            Type = Member.MemberType;
-            CanRead = Member.CanRead;
-            CanWrite = Member.CanWrite;
         }
+
+        private void InitGetSet(out Type type, out Func<object, object> get, out Action<object, object> set)
+        {
+            if (Component.GetGeter != null && Component.GetSeter != null)
+            {
+                get = Component.GetGeter(Member);
+                set = Component.GetSeter(Member);
+                type = (Member as PropertyInfo)?.PropertyType ?? (Member as FieldInfo)?.FieldType;
+            }
+            else if (Member.MemberType == MemberTypes.Property)
+            {
+                var property = (PropertyInfo)Member;
+                type = property.PropertyType;
+                var o = Expression.Parameter(typeof(object), "o");
+                var cast = Expression.Convert(o, property.DeclaringType);
+                var p = Expression.Property(cast, property);
+                get = null;
+                if (property.CanRead)
+                {
+                    var ret = Expression.Convert(p, typeof(object));
+                    get = Expression.Lambda<Func<object, object>>(ret, o).Compile();
+                }
+                set = null;
+                if (property.CanWrite)
+                {
+                    var v = Expression.Parameter(typeof(object), "v");
+                    var val = Expression.Convert(v, type);
+                    var assign = Expression.MakeBinary(ExpressionType.Assign, p, val);
+                    var ret = Expression.Convert(assign, typeof(object));
+                    set = Expression.Lambda<Action<object, object>>(ret, o, v).Compile();
+                }
+            }
+            else
+            {
+                var field = (FieldInfo)Member;
+                type = field.FieldType;
+                var o = Expression.Parameter(typeof(object), "o");
+                var cast = Expression.Convert(o, field.DeclaringType);
+                var p = Expression.Field(cast, field);
+                var ret = Expression.Convert(p, typeof(object));
+                get = Expression.Lambda<Func<object, object>>(ret, o).Compile();
+                set = null;
+                if (field.IsLiteral == false)
+                {
+                    var v = Expression.Parameter(typeof(object), "v");
+                    var val = Expression.Convert(v, type);
+                    var assign = Expression.MakeBinary(ExpressionType.Assign, p, val);
+                    var ret2 = Expression.Convert(assign, typeof(object));
+                    set = Expression.Lambda<Action<object, object>>(ret2, o, v).Compile();
+                }
+            }
+        }
+
         /// <summary> Literacy组件的成员访问对象
         /// </summary>
-        public readonly ObjectProperty Member;
+        public readonly MemberInfo Member;
         /// <summary> 序列化和反序列化时的参考Json属性名称
         /// </summary>
         public readonly string JsonName;
@@ -99,8 +166,21 @@ namespace blqw
         /// </summary>
         public readonly bool CanRead;
 
+        /// <summary>
+        /// 用于显示的文本
+        /// </summary>
+        public readonly string DisplayText;
+
         /// <summary> 是否可写
         /// </summary>
         public readonly bool CanWrite;
+
+        /// <summary> 设置属性或字段的值
+        /// </summary>
+        public readonly Action<object, object> SetValue;
+
+        /// <summary> 获取属性或字段的值
+        /// </summary>
+        public readonly Func<object, object> GetValue;
     }
 }

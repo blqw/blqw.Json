@@ -1,15 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections;
+using System.Dynamic;
+using System.Runtime.Serialization;
+using System.Collections.Specialized;
 
-namespace blqw
+
+namespace blqw.Serializable
 {
     /// <summary> 用于将Json字符串转换为C#对象
     /// </summary>
     public sealed class JsonParser
     {
-        private readonly static JsonType JsonTypeArrayList = JsonType.Get(typeof(ArrayList));
-        private readonly static JsonType JsonTypeDictionary = JsonType.Get(typeof(Dictionary<string, object>));
+        private readonly static JsonType JsonTypeArrayList = JsonType.Get<IList<object>>();
+        private readonly static JsonType JsonTypeDictionary = JsonType.Get<JsonDictionary>();
+        private readonly static JsonType JsonTypeObject = JsonType.Get<object>();
 
         public JsonParser()
         {
@@ -88,19 +93,28 @@ namespace blqw
         {
             unsafe
             {
-                fixed (char* p = jsonString)
+                try
                 {
-                    using (UnsafeJsonReader reader = new UnsafeJsonReader(p, jsonString.Length))
+                    fixed (char* p = jsonString)
                     {
-                        //如果是由空白和回车组成的字符串,直接返回
-                        if (reader.IsEnd()) return;
-                        FillObject(ref obj, type, reader);
-                        if (reader.IsEnd() == false)
+                        using (UnsafeJsonReader reader = new UnsafeJsonReader(p, jsonString))
                         {
-                            ThrowException("json字符串正确结束");
+                            //如果是由空白和回车组成的字符串,直接返回
+                            if (reader.IsEnd()) return;
+                            FillObject(ref obj, type, reader);
+                            if (reader.IsEnd()) return;
                         }
                     }
                 }
+                catch (JsonParseException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    throw new JsonParseException("无法解析json : 详见内部异常", jsonString, ex);
+                }
+                throw new JsonParseException("Json字符串未正确结束", jsonString);
             }
         }
 
@@ -109,46 +123,53 @@ namespace blqw
         private void FillObject(ref object obj, Type type, UnsafeJsonReader reader)
         {
             reader.CheckEnd();
-            var toObject = obj as ILoadJson;
-            if (toObject != null)
-            {
-                obj = null;
-                type = null;
-            }
+            //var toObject = obj as ILoadJson;
+            //if (toObject != null)
+            //{
+            //    obj = null;
+            //    type = null;
+            //}
 
+
+            JsonType jsonType = null;
             if (type == null)
             {
                 switch (reader.Current)
                 {
                     case '{':
-                        type = _keyValueType.Type;
+                        jsonType = _keyValueType;
                         break;
                     case '[': // 中括号的json仅支持反序列化成IList的对象
-                        type = _arrayType.Type;
+                        jsonType = _arrayType;
                         break;
                     default:
-                        ThrowException("Json字符串必须以 { 或 [ 开始");
+                        jsonType = JsonTypeObject;
                         break;
                 }
             }
-            else if (TypesHelper.IsChild(typeof(ILoadJson), type))
+            //else if (typeof(ILoadJson).IsAssignableFrom(type))
+            //{
+            //    obj = Activator.CreateInstance(type);
+            //    FillObject(ref obj, null, reader);
+            //    return;
+            //}
+            else
             {
-                obj = Activator.CreateInstance(type);
-                FillObject(ref obj, null, reader);
-                return;
+                jsonType = JsonType.Get(type);
             }
-
-            var jsonType = JsonType.Get(type);
 
 
             //如果obj == null创建新对象
             if (obj == null)
             {
-                if (jsonType.TypeCodes == TypeCodes.AnonymousType)
+                if (jsonType.IsAnonymousType)
                 {
-                    throw new NotSupportedException("不支持匿名类型的反序列化操作");
+                    throw new NotSupportedException("暂不支持匿名类型的反序列化操作");
                 }
-                obj = jsonType.CreateInstance();
+                if (jsonType.Type != typeof(string))
+                {
+                    obj = Activator.CreateInstance(jsonType.Type);
+                }
             }
 
 
@@ -157,9 +178,9 @@ namespace blqw
             {
                 case '{':
                     reader.MoveNext();
-                    if (jsonType.IsDictionary)
+                    if (jsonType.IsDictionaryType)
                     {
-                        FillDictionary(obj, jsonType, reader);
+                        FillDictionary(ref obj, jsonType, reader);
                     }
                     else
                     {
@@ -180,30 +201,30 @@ namespace blqw
                             var arr = obj as Array;
                             if (arr == null)
                             {
-                                ThrowException("无法处理当前对象 : 类型( " + TypesHelper.DisplayName(obj.GetType()) + " )");
+                                throw new JsonParseException(jsonType.DisplayText + " 无法从集合型的Json反序列化", reader.RawJson);
                             }
                             FillArray(arr, jsonType, reader);
                         }
                     }
-                    else if (jsonType.IsList)
+                    else if (jsonType.IsListType)
                     {
                         FillList(obj, jsonType, reader);
                     }
                     else
                     {
-                        ThrowException("无法处理当前对象 : 类型( " + TypesHelper.DisplayName(obj.GetType()) + " )");
+                        throw new JsonParseException(jsonType.DisplayText + " 无法从集合型的Json反序列化", reader.RawJson);
                     }
                     reader.SkipChar(']', true);
                     break;
                 default:
-                    ThrowException("Json字符串必须以 { 或 [ 开始");
+                    obj = ReadValue(reader, jsonType);
                     break;
             }
-            if (toObject != null)
-            {
-                toObject.LoadJson(JsonObject.ToJsonObject(obj));
-                obj = toObject;
-            }
+            //if (toObject != null)
+            //{
+            //    toObject.LoadJson(JsonObject.ToJsonObject(obj));
+            //    obj = toObject;
+            //}
         }
 
         /// <summary> 填充一般对象的属性
@@ -213,6 +234,7 @@ namespace blqw
         /// <param name="reader"></param>
         private void FillProperty(object obj, JsonType jsonType, UnsafeJsonReader reader)
         {
+            reader.CheckEnd();
             if (reader.Current == '}')
             {
                 return;
@@ -223,8 +245,19 @@ namespace blqw
                 var member = jsonType[key, true];               //得到对象属性
                 if (member != null && member.CanWrite)
                 {
-                    object val = ReadValue(reader, member.JsonType);//得到值
-                    member.Member.SetValue(obj, val);           //赋值
+                    try
+                    {
+                        object val = ReadValue(reader, member.JsonType);//得到值
+                        member.SetValue(obj, val);           //赋值
+                    }
+                    catch (JsonParseException)
+                    {
+                        throw;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new JsonParseException(member.DisplayText + " 赋值失败", reader.RawJson, ex);
+                    }
                 }
                 else
                 {
@@ -235,6 +268,7 @@ namespace blqw
 
         private void FillArray(Array arr, JsonType jsonType, UnsafeJsonReader reader)
         {
+            reader.CheckEnd();
             if (reader.Current == ']' || arr.Length == 0)
             {
                 return;
@@ -258,35 +292,54 @@ namespace blqw
         /// <param name="obj">IDictionar或IDictionary<,>实例</param>
         /// <param name="jsonType"></param>
         /// <param name="reader"></param>
-        private void FillDictionary(object obj, JsonType jsonType, UnsafeJsonReader reader)
+        private void FillDictionary(ref object obj, JsonType jsonType, UnsafeJsonReader reader)
         {
+            reader.CheckEnd();
             if (reader.Current == '}')
             {
                 return;
             }
             if (jsonType.AddKeyValue == null)
             {
-                ThrowException("对象无法写入数据,对象有可能是只读的或找不到Add入口");
+                throw new JsonParseException(jsonType.DisplayText + " 无法写入数据,有可能是只读的或找不到Add入口", reader.RawJson);
             }
             var eleType = jsonType.ElementType;
-            var keyType = jsonType.KeyType.TypeInfo;
-            if (keyType.TypeCodes == TypeCodes.String || keyType.Type == typeof(object))
+            var keyType = jsonType.KeyType;
+            if (keyType.TypeCode == TypeCode.String || keyType.IsObjectType)
             {
-                do
+                string key = ReadKey(reader);               //获取Key
+                object val = ReadValue(reader, eleType);    //得到值
+                if (key != null && key.Length > 0 && val is string && key[0] == '$' && key == "$Type$")
                 {
-                    string key = ReadKey(reader);               //获取Key
-                    object val = ReadValue(reader, eleType);    //得到值
-                    jsonType.AddKeyValue(obj, key, val);
-                } while (reader.SkipChar(',', false));
+                    var type = Type.GetType((string)val, false, false);
+                    if (type != null)
+                    {
+                        jsonType = JsonType.Get(type);
+                        obj = Activator.CreateInstance(type);
+                        if (reader.SkipChar(',', false))
+                        {
+                            FillProperty(obj, jsonType, reader);
+                        }
+                        return;
+                    }
+                }
+                jsonType.AddKeyValue(obj, new[] { key, val });
+
+                while (reader.SkipChar(',', false))
+                {
+                    key = ReadKey(reader);               //获取Key
+                    val = ReadValue(reader, eleType);    //得到值
+                    jsonType.AddKeyValue(obj, new[] { key, val });
+                }
             }
             else
             {
                 do
                 {
                     string keyStr = ReadKey(reader);            //获取Key
-                    object key = keyType.Convert(keyStr);
+                    object key = keyType.Convertor.Convert(keyStr, jsonType.Type);
                     object val = ReadValue(reader, eleType);    //得到值
-                    jsonType.AddKeyValue(key, val);
+                    jsonType.AddKeyValue(obj, new[] { key, val });
                 } while (reader.SkipChar(',', false));
             }
         }
@@ -298,19 +351,20 @@ namespace blqw
         /// <param name="reader"></param>
         private void FillList(object obj, JsonType jsonType, UnsafeJsonReader reader)
         {
+            reader.CheckEnd();
             if (reader.Current == ']')
             {
                 return;
             }
             if (jsonType.AddValue == null)
             {
-                ThrowException("对象无法写入数据,对象有可能是只读的或找不到Add入口");
+                throw new JsonParseException(jsonType.DisplayText + " 无法写入数据,有可能是只读的或找不到Add入口", reader.RawJson);
             }
             var eleType = jsonType.ElementType;
             do
             {
                 object val = ReadValue(reader, eleType);  //得到值
-                jsonType.AddValue(obj, val);                  //赋值
+                jsonType.AddValue(obj, new[] { val });    //赋值
             } while (reader.SkipChar(',', false));
         }
 
@@ -370,8 +424,8 @@ namespace blqw
                         {
                             SkipValue(reader);
                         } while (reader.SkipChar(',', false));
-                        reader.SkipChar(']', true);
                     }
+                    reader.SkipChar(']', true);
                     break;
                 case '{':
                     reader.MoveNext();
@@ -383,15 +437,15 @@ namespace blqw
                             SkipKey(reader);
                             SkipValue(reader);
                         } while (reader.SkipChar(',', false));
-                        reader.SkipChar('}', true);
                     }
+                    reader.SkipChar('}', true);
                     break;
                 case '"':
                 case '\'':
                     reader.SkipString();
                     break;
                 default:
-                    reader.ReadConsts();
+                    reader.ReadConsts(false);
                     break;
             }
         }
@@ -418,51 +472,47 @@ namespace blqw
                     return obj;
                 case '"':
                 case '\'':
-                    if (jsonType.TypeCodes == TypeCodes.DateTime)
-                    {
-                        return reader.ReadDateTime();
-                    }
-                    return ParseString(reader, jsonType.TypeInfo);
+                    return ParseString(reader, jsonType);
                 default:
-                    object val = reader.ReadConsts();
-                    if (jsonType.TypeCodes == TypeCodes.Object && _convertString != null)
+                    object val = reader.ReadConsts(false);
+                    if (jsonType.TypeCode == TypeCode.Object && _convertString != null)
                     {
                         return _convertString((IConvertible)val);
                     }
-                    return jsonType.TypeInfo.Convert(val);
+                    return jsonType.Convertor.Convert(val, jsonType.Type);
             }
         }
 
         /// <summary> 将字符串解析为指定类型
         /// </summary>
         /// <param name="reader"></param>
-        /// <param name="type"></param>
+        /// <param name="jsonType"></param>
         /// <returns></returns>
-        private object ParseString(UnsafeJsonReader reader, TypeInfo typeInfo)
+        private object ParseString(UnsafeJsonReader reader, JsonType jsonType)
         {
             //数字
-            if (typeInfo.IsNumberType || typeInfo.TypeCodes == TypeCodes.Boolean)
+            if (jsonType.TypeCode == TypeCode.Boolean)
             {
                 //枚举
-                if (typeInfo.Type.IsEnum)
+                if (jsonType.Type.IsEnum)
                 {
-                    return typeInfo.Convert(reader.ReadString());
+                    return jsonType.Convertor.Convert(reader.ReadString(), jsonType.Type);
                 }
                 char quot = reader.Current;
                 reader.MoveNext();
-                var val = typeInfo.Convert(reader.ReadConsts());
+                var val = jsonType.Convertor.Convert(reader.ReadConsts(true), jsonType.Type);
                 reader.SkipChar(quot, true);
                 return val;
             }
-            else if (typeInfo.TypeCodes == TypeCodes.DateTime)
+            else if (jsonType.TypeCode == TypeCode.DateTime)
             {
                 return reader.ReadDateTime();
             }
-            else if (typeInfo.TypeCodes == TypeCodes.Object && _convertString != null)
+            else if (jsonType.TypeCode == TypeCode.Object && _convertString != null)
             {
                 return _convertString(reader.ReadString());
             }
-            return typeInfo.Convert(reader.ReadString());
+            return jsonType.Convertor.Convert(reader.ReadString(), jsonType.Type);
         }
 
 
@@ -473,21 +523,21 @@ namespace blqw
         /// <returns></returns>
         private object ReadList(UnsafeJsonReader reader, JsonType jsonType)
         {
-            if (jsonType.TypeInfo.IsArray)
+            if (jsonType.Type.IsArray)
             {
                 ArrayList list = new ArrayList();   //Array类型中的AddValue方法调用的是ArrayList
                 FillList(list, jsonType, reader);
                 return list.ToArray(jsonType.ElementType.Type);
             }
-            if (jsonType.Type == typeof(object))
+            if (jsonType.IsObjectType)
             {
-                object list = _arrayType.CreateInstance();
+                object list = Activator.CreateInstance(_arrayType.Type);
                 FillList(list, _arrayType, reader);
                 return list;
             }
             else
             {
-                var list = jsonType.CreateInstance();
+                var list = Activator.CreateInstance(jsonType.Type);
                 FillList(list, jsonType, reader);
                 return list;
             }
@@ -500,31 +550,28 @@ namespace blqw
         /// <returns></returns>
         private object ReadObject(UnsafeJsonReader reader, JsonType jsonType)
         {
-            if (jsonType.Type == typeof(object))
+            if (jsonType.IsObjectType)
             {
-                var obj = _keyValueType.CreateInstance();
-                FillDictionary(obj, _keyValueType, reader);
+                var obj = Activator.CreateInstance(_keyValueType.Type);
+                FillDictionary(ref obj, _keyValueType, reader);
                 return obj;
             }
-            else if (jsonType.IsDictionary)
+            else if (jsonType.IsDictionaryType)
             {
-                var obj = jsonType.CreateInstance();
-                FillDictionary(obj, jsonType, reader);
+                var obj = Activator.CreateInstance(jsonType.Type);
+                FillDictionary(ref obj, jsonType, reader);
                 return obj;
+            }
+            else if (jsonType.IsSoleType)
+            {
+                return ReadValue(reader, jsonType);
             }
             else
             {
-                var obj = jsonType.CreateInstance();
+                var obj = Activator.CreateInstance(jsonType.Type);
                 FillProperty(obj, jsonType, reader);
                 return obj;
             }
         }
-
-
-        private static void ThrowException(string word)
-        {
-            throw new NotSupportedException("无法解析:" + word);
-        }
-
     }
 }

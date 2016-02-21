@@ -5,6 +5,7 @@ using System.Text;
 using blqw;
 using System.Diagnostics;
 using fastJSON;
+using blqw.Serializable;
 
 namespace Demo
 {
@@ -17,7 +18,7 @@ namespace Demo
 
         private static string N(string title)
         {
-            return string.Join(" ", title, TypesHelper.DisplayName(TestObject.GetType()));
+            return string.Join(" ", title, TestObject.GetType().ToString());
         }
 
         //测试QuickJsonBuilder性能
@@ -25,9 +26,9 @@ namespace Demo
         {
             CodeTimer.Initialize();
             object obj = TestObject;
-            new QuickJsonBuilder().ToJsonString(obj);
+            new JsonBuilder().ToJsonString(obj);
             CodeTimer.Time(N("QuickJsonBuilder序列化"), TestCount, () => {
-                new QuickJsonBuilder().ToJsonString(obj);
+                new JsonBuilder().ToJsonString(obj);
             });
 
         }
@@ -50,6 +51,17 @@ namespace Demo
             fastJSON.JSON.Instance.ToJSON(obj, p);
             CodeTimer.Time(N("FastJson序列化"), TestCount, () => {
                 fastJSON.JSON.Instance.ToJSON(obj, p);
+            });
+        }
+
+        //测试Crylw.Json性能
+        public static void TestCrylwJson()
+        {
+            CodeTimer.Initialize();
+            object obj = TestObject;
+            Crylw.Json.Json.ToString(obj);
+            CodeTimer.Time(N("Crylw.Json序列化"), TestCount, () => {
+                Crylw.Json.Json.ToString(obj);
             });
         }
         //测试JayrockJson性能

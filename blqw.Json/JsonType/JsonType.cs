@@ -3,8 +3,15 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Linq;
+using System.Collections;
+using System.Collections.Specialized;
+using System.Runtime.Serialization;
 
-namespace blqw
+using blqw.Serializable;
+using blqw.JsonComponent;
+
+namespace blqw.Serializable
 {
     /// <summary> 指示可以被序列化json的对象类型信息
     /// </summary>
@@ -24,32 +31,25 @@ namespace blqw
                 throw new ArgumentException(message);
             }
         }
-        private static Dictionary<Type, JsonType> _Cache = new Dictionary<Type, JsonType>();
+        private readonly static TypeCache<JsonType> _cache = new TypeCache<JsonType>();
 
         public static JsonType Get(Type type)
         {
-            JsonType jtype;
-            if (_Cache.TryGetValue(type, out jtype) == false)
-            {
-                jtype = new JsonType(type);
-                _Cache[type] = jtype;
-            }
-            return jtype;
+            return _cache.GetOrCreate(type, () => new JsonType(type));
+        }
+
+        public static JsonType Get<T>()
+        {
+            return _cache.GetOrCreate<T>(() => new JsonType(typeof(T)));
         }
 
         private Dictionary<string, JsonMember> _members;
-
-        /// <summary> 对象构造函数委托
-        /// </summary>
-        private LiteracyNewObject _ctor;
 
         /// <summary> 对象类型
         /// </summary>
         public readonly Type Type;
 
-        public readonly TypeInfo TypeInfo;
-
-        public readonly TypeCodes TypeCodes;
+        public readonly TypeCode TypeCode;
 
         /// <summary> 如果是IDictionary 表示Key的类型,否则为null
         /// </summary>
@@ -64,29 +64,149 @@ namespace blqw
 
         /// <summary> TypeCodes 是否是 IList 或 IListT
         /// </summary>
-        public readonly bool IsList;
+        public readonly bool IsListType;
 
         /// <summary> TypeCodes 是否是 IDictionary 或 IDictionaryT
         /// </summary>
-        public readonly bool IsDictionary;
+        public readonly bool IsDictionaryType;
+
+        /// <summary> 获取一个值，通过该值指示类型是否属于单值类型
+        /// 除了基元类型以外,Guid,TimeSpan,DateTimeOffset,DateTime,DBNull,所有指针,以及这些类型的可空值类型,都属于特殊类型
+        /// </summary>
+        public readonly bool IsSoleType;
+        /// <summary> 是否是匿名类
+        /// </summary>
+        public readonly bool IsAnonymousType;
+
+        /// <summary> 是否是Object类
+        /// </summary>
+        public readonly bool IsObjectType;
+        /// <summary> 是否是数字类
+        /// </summary>
+        public readonly bool IsNumberType;
+
+        /// <summary> 转换器
+        /// </summary>
+        public readonly IFormatterConverter Convertor;
 
         /// <summary> 属性和字段集合
         /// </summary>
         public readonly JsonMember[] Members;
 
-        internal readonly LiteracyCaller AddValue;
+        internal readonly Func<object, object[], object> AddValue;
 
-        internal readonly LiteracyCaller AddKeyValue;
+        internal readonly Func<object, object[], object> AddKeyValue;
 
-        private JsonType(Type type, int i)
+        /// <summary> 从指定的 Type 创建新的 JsonType 对象
+        /// </summary>
+        public JsonType(Type type)
         {
             AreNull(type, "type");
             Type = type;
-            TypeInfo = TypesHelper.GetTypeInfo(type);
+            DisplayText = type.FullName;
             _members = new Dictionary<string, JsonMember>(StringComparer.OrdinalIgnoreCase);
             var list = new List<JsonMember>();
+
+            TypeCode = Type.GetTypeCode(type);
+            IsSoleType = AreSoleType(type);
+            IsAnonymousType = Type.IsGenericType && Type.Name.StartsWith("<>f__AnonymousType");
+            IsObjectType = type == typeof(object);
+            Convertor = Component.GetConverter(type, true);
+            IsNumberType = (TypeCode >= TypeCode.SByte && TypeCode <= TypeCode.Decimal);
+
+            //兼容IList,IDictionary,IList<T>,IDictionary<TKey, TValue>
+            //判断接口
+            var iType = GetInterface(type, typeof(IDictionary<,>));
+            if (iType != null)
+            {
+                IsDictionaryType = true;
+                var args = iType.GetGenericArguments();
+                if (type.IsInterface)//兼容 IDictionary<TKey, TValue>
+                {
+                    Type = typeof(Dictionary<,>).MakeGenericType(args);
+                }
+                KeyType = JsonType.Get(args[0]);
+                ElementType = JsonType.Get(args[1]);
+                AddKeyValue = ((MethodInfo)Component.Wrapper(iType.GetMethod("Add", args) ?? type.GetMethod("Add", args))).Invoke;
+                return;
+            }
+
+            iType = GetInterface(type, typeof(IDictionary));
+            if (iType != null)
+            {
+                IsDictionaryType = true;
+                var args = new Type[] { typeof(object), typeof(object) };
+                if (type.IsInterface)//兼容 IDictionary
+                {
+                    Type = typeof(Hashtable);
+                }
+                KeyType = JsonType.Get<object>();
+                ElementType = KeyType;
+                AddKeyValue = (o, v) => {
+                    ((System.Collections.IDictionary)o).Add(v[0], v[1]);
+                    return null;
+                };
+                return;
+            }
+
+
+            if (typeof(NameValueCollection).IsAssignableFrom(type))
+            {
+                var args = new Type[] { typeof(string), typeof(string) };
+                IsDictionaryType = true;
+                KeyType = JsonType.Get<string>();
+                ElementType = JsonType.Get<string>();
+                AddKeyValue = (o, v) => {
+                    ((NameValueCollection)o).Add((string)v[0], (string)v[1]);
+                    return null;
+                };
+                return;
+            }
+
+            if (type.IsArray)
+            {
+                IsListType = true;
+                var args = new Type[] { typeof(object) };
+                ElementType = JsonType.Get(type.GetElementType());
+                //AddValue = Literacy.CreateCaller(typeof(ArrayList).GetMethod("Add", args), typeof(ArrayList));
+                AddValue = (o, v) => ((System.Collections.ArrayList)o).Add(v[0]);
+
+                return;
+            }
+            iType = GetInterface(type, typeof(ICollection<>));
+            if (iType != null)
+            {
+                IsListType = true;
+                var args = iType.GetGenericArguments();
+                if (type.IsInterface)//兼容 ICollection<T>
+                {
+                    Type = typeof(List<>).MakeGenericType(args);
+                }
+                ElementType = JsonType.Get(args[0]);
+
+                AddValue = ((MethodInfo)Component.Wrapper(iType.GetMethod("Add", args) ?? type.GetMethod("Add", args))).Invoke;
+                return;
+            }
+
+            iType = GetInterface(type, typeof(IList));
+            if (iType != null)
+            {
+                var args = new Type[] { typeof(object) };
+                if (type.IsInterface)//兼容 ICollection<T>
+                {
+                    Type = typeof(ArrayList);
+                }
+                IsListType = true;
+                ElementType = JsonType.Get<object>();
+                //AddValue = Literacy.CreateCaller(typeof(ArrayList).GetMethod("Add", args) ?? type.GetMethod("Add", args), type);
+                AddValue = (o, v) => ((System.Collections.IList)o).Add(v[0]);
+
+                return;
+            }
+
+            var flags = BindingFlags.Instance | BindingFlags.Public;
             //枚举属性
-            foreach (var p in Type.GetProperties())
+            foreach (var p in Type.GetProperties(flags))
             {
                 var jm = JsonMember.Create(p);
                 if (jm != null)
@@ -98,9 +218,9 @@ namespace blqw
             }
             PropertyCount = list.Count;
             //枚举字段
-            foreach (var p in Type.GetFields())
+            foreach (var f in Type.GetFields(flags))
             {
-                var jm = JsonMember.Create(p);
+                var jm = JsonMember.Create(f);
                 if (jm != null)
                 {
                     AreTrue(_members.ContainsKey(jm.JsonName), "JsonName重复:" + jm.JsonName);
@@ -109,136 +229,74 @@ namespace blqw
                 }
             }
             Members = list.ToArray();
-            //设置 TypeCodes ,ElementType ,KeyType
-            switch (TypeCodes = TypeInfo.TypeCodes)
-            {
-                case TypeCodes.IListT:
-                    IsList = true;
-                    var args = SearchGenericInterface(type, typeof(IList<>)).GetGenericArguments();
-                    ElementType = JsonType.Get(args[0]);
-                    AddValue = Literacy.CreateCaller(type.GetMethod("Add", args));
-                    break;
-                case TypeCodes.IList:
-                    IsList = true;
-                    if (type.IsArray)
-                    {
-                        ElementType = JsonType.Get(type.GetElementType());
-                        AddValue = (o, v) => ((System.Collections.ArrayList)o).Add(v[0]);
-                    }
-                    else
-                    {
-                        ElementType = JsonType.Get(typeof(object));
-                        AddValue = (o, v) => ((System.Collections.IList)o).Add(v[0]);
-                    }
-                    break;
-                case TypeCodes.IDictionary:
-                    IsDictionary = true;
-                    KeyType = JsonType.Get(typeof(object));
-                    ElementType = KeyType;
-                    AddKeyValue = (o, v) => { ((System.Collections.IDictionary)o).Add(v[0], v[1]); return null; };
-                    break;
-                case TypeCodes.IDictionaryT:
-                    IsDictionary = true;
-                    var dictType = SearchGenericInterface(type, typeof(IDictionary<,>));
-                    args = dictType.GetGenericArguments();
-                    KeyType = JsonType.Get(args[0]);
-                    ElementType = JsonType.Get(args[1]);
-                    AddKeyValue = Literacy.CreateCaller(dictType.GetMethod("Add", args), type);
-                    break;
-                default:
-                    break;
-            }
         }
 
-        private Type SearchGenericInterface(Type type, Type interfaceType)
+        /// <summary> 获取指定类型的接口,如果不存在返回null
+        /// </summary>
+        /// <param name="type">需要获取接口的对象类型</param>
+        /// <param name="interfaceType">需要的接口类型</param>
+        /// <returns></returns>
+        private static Type GetInterface(Type type, Type interfaceType)
         {
-            var interfaces = type.GetInterfaces();
-            var length = interfaces.Length;
-            for (int i = 0; i < length; i++)
+            if (type == interfaceType)
             {
-                var inf = interfaces[i];
-                if (inf.IsGenericTypeDefinition)
-                {
-
-                }
-                else if (inf.IsGenericType)
-                {
-                    inf = inf.GetGenericTypeDefinition();
-                }
-                else
-                {
-                    continue;
-                }
-                if (inf == interfaceType)
-                {
-                    return interfaces[i];
-                }
+                return type;
+            }
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == interfaceType)
+            {
+                return type;
+            }
+            if (interfaceType.IsGenericTypeDefinition)
+            {
+                
+                return type.GetInterfaces()
+                    .Where(it => it.IsGenericType)
+                    .Where(it => it.GetGenericTypeDefinition() == interfaceType)
+                    .FirstOrDefault();
+            }
+            
+            if (type.GetInterfaces().Contains(interfaceType))
+            {
+                return interfaceType;
             }
             return null;
         }
 
-        /// <summary> 从指定的 Type 创建新的 JsonType 对象,该方法必须保证类型公开的构造函数有且只有一个
-        /// </summary>
-        public JsonType(Type type)
-            : this(type, 0)
-        {
-            _ctor = Literacy.CreateNewObject(type);
-            if (_ctor == null)
-            {
-                if (TypeInfo.IsSpecialType)
-                {
-                    return;
-                }
-                var ctors = type.GetConstructors();
-                switch (ctors.Length)
-                {
-                    case 0:
-                        _ctor = args => {
-                            throw new TypeInitializationException(TypesHelper.DisplayName(type),
-                                new MissingMethodException("当前类型没有构造函数"));
-                        };
-                        break;
-                    case 1:
-                        _ctor = Literacy.CreateNewObject(ctors[0]);
-                        break;
-                    default:
-                        _ctor = args => {
-                            throw new TypeInitializationException(TypesHelper.DisplayName(type),
-                                new MethodAccessException("构造函数调用不明确"));
-                        };
-                        break;
-                }
-            }
-        }
+        #region _soleTypes
+        private static HashSet<Type> _soleTypes = new HashSet<Type>() {
+            typeof(Guid),
+            typeof(TimeSpan),
+            typeof(DateTimeOffset),
+            typeof(DateTime),
+            typeof(DBNull),
+            typeof(UIntPtr),
+            typeof(IntPtr),
 
-        /// <summary> 从指定的 Type 创建新的 JsonType 对象,并指定构造函数
-        /// </summary>
-        public JsonType(Type type, ConstructorInfo ctor)
-            : this(type, 1)
-        {
-            if (ctor == null && TypeInfo.IsSpecialType)
-            {
-                return;
-            }
-            AreNull(ctor, "ctor");
-            AreTrue(type == ctor.ReflectedType, "ctor不属于当前类型");
-            _ctor = Literacy.CreateNewObject(ctor);
-        }
+            typeof(bool),
+            typeof(byte),
+            typeof(char),
+            typeof(decimal),
+            typeof(double),
+            typeof(short),
+            typeof(int),
+            typeof(long),
+            typeof(sbyte ),
+            typeof(float ),
+            typeof(string),
+            typeof(ushort),
+            typeof(uint ),
+            typeof(ulong ),
+        };
+        #endregion
 
-        /// <summary> 从指定的 Type 创建新的 JsonType 对象,并指定构造函数的参数
-        /// </summary>
-        public JsonType(Type type, Type[] ctorArgsType)
-            : this(type, 2)
+        private static bool AreSoleType(Type type)
         {
-            _ctor = Literacy.CreateNewObject(type, ctorArgsType);
-            if (_ctor == null && TypeInfo.IsSpecialType)
+            var t = Nullable.GetUnderlyingType(type);
+            if (t != null)
             {
-                return;
+                return AreSoleType(t);
             }
-            else
-            {
-                throw new ArgumentException("没有找到符合条件的构造函数");
-            }
+            return _soleTypes.Contains(type);
         }
 
 
@@ -262,14 +320,6 @@ namespace blqw
             }
         }
 
-        /// <summary> 创建当前类型的对象实例
-        /// </summary>
-        /// <param name="args">构造函数参数</param>
-        public object CreateInstance(params object[] args)
-        {
-            return _ctor(args);
-        }
-
         /// <summary> 枚举所有成员
         /// </summary>
         public IEnumerator<JsonMember> GetEnumerator()
@@ -281,6 +331,11 @@ namespace blqw
         {
             return _members.Values.GetEnumerator();
         }
+        
+        /// <summary>
+        /// 用于显示的文本
+        /// </summary>
+        public string DisplayText { get; private set; }
 
 
         public override bool Equals(object obj)

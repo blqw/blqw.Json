@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{7E500E9D-0EFF-4EB6-9112-2C70D34C3E20}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <OutputType>Library</OutputType>
+    <AssemblyName>Crylw.Json</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Platform)' == 'AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System.Data" />
+    <Reference Include="System" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Crylw.Core\CharEx.cs" />
+    <Compile Include="Crylw.Core\EmitEx.cs" />
+    <Compile Include="Crylw.Core\Memory.cs" />
+    <Compile Include="Crylw.Core\SBuffer.cs" />
+    <Compile Include="Crylw.Core\Standby.cs" />
+    <Compile Include="Crylw.Core\SystemEx.cs" />
+    <Compile Include="Crylw.Core\Throw.cs" />
+    <Compile Include="Crylw.Json\IToJson.cs" />
+    <Compile Include="Crylw.Json\Json.cs" />
+    <Compile Include="Crylw.Json\JsonFormatAttribute.cs" />
+    <Compile Include="Crylw.Json\JsonIgnoreAttribute.cs" />
+    <Compile Include="Crylw.Json\JsonNameAttribute.cs" />
+    <Compile Include="Crylw.Json\JsonWriter.cs" />
+    <Compile Include="Crylw.Json\JsonWriterEx.cs" />
+    <Compile Include="Crylw.Json\JsonWriterMember.cs" />
+    <Compile Include="Crylw.Json\JsonWriterSettings.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

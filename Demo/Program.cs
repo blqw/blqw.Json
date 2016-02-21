@@ -1,23 +1,30 @@
 ﻿using blqw;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Text;
 
 namespace Demo
 {
     class Program
     {
-
+        class MyClass
+        {
+            public string Name { get; set; }
+            public int Age { get; set; }
+        }
         static void Main(string[] args)
         {
-            Console.WriteLine(Json.ToJsonString(new object[]{null}));
-            //Test1(true);
-            //Test2();
-//var str = "{ Name : \"blqw\", Age : 11 ,Array : [\"2014-1-1 1:00:00\",false,{ a:1,b:2 }] }";
+            //Console.WriteLine(Json.ToJsonString(new object[]{null}));
+            Test1(true);
+            Test2();
+//
 //dynamic json = Json.ToDynamic(str);
 //Console.WriteLine(json.Name);
 //Console.WriteLine(json.Age);
@@ -31,24 +38,27 @@ namespace Demo
         static void Test1(bool fastjson)
         {
             var obj1 = User.TestUser();
-            var obj2 = blqw.Json.ToObject<ResultDTO>(File.ReadAllText("json1.txt"));
-            var obj3 = blqw.Json.ToObject<List<Object2>>(File.ReadAllText("json2.txt"));
+            var obj2 = Json.ToObject<ResultDTO>(File.ReadAllText("json1.txt"));
+            var obj3 = Json.ToObject<List<Object2>>(File.ReadAllText("json2.txt"));
 
             TimeTest.TestCount = 100000 * 5;
             TimeTest.TestObject = obj1;
             TimeTest.TestQuickJsonBuilder();
+            TimeTest.TestCrylwJson();
             if (fastjson) TimeTest.TestFastJson();
 
             Console.WriteLine("========================");
             TimeTest.TestCount = 2000 * 5;
             TimeTest.TestObject = obj2;
             TimeTest.TestQuickJsonBuilder();
+            TimeTest.TestCrylwJson();
             if (fastjson) TimeTest.TestFastJson();
 
             Console.WriteLine("========================"); ;
             TimeTest.TestCount = 250 * 5;
             TimeTest.TestObject = obj3;
             TimeTest.TestQuickJsonBuilder();
+            TimeTest.TestCrylwJson();
             if (fastjson) TimeTest.TestFastJson();
 
             //var obj2 = Newtonsoft.Json.JsonConvert.DeserializeObject<ResultDTO>(jsonStr);

@@ -89,9 +89,7 @@ namespace Demo
             }
             else
             {
-                var lit = blqw.Literacy.Cache(t1.GetType(), false);
-
-                foreach (var p in lit.Property)
+                foreach (var p in t1.GetType().GetProperties())
                 {
                     if (p.CanRead)
                     {

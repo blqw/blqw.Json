@@ -1,37 +1,36 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
+using blqw;
+using System.Collections.Specialized;
 
 namespace UnitTestProject1
 {
     [TestClass]
     public class UnitTest2
     {
-        class MyList : List<string>, blqw.IToJson, blqw.ILoadJson
+        class MyList : List<string>,  IFormatProvider
         {
             public int TotalCount { get; set; }
 
-            public object ToJson()
+            public object GetFormat(Type formatType)
             {
-                return new { Items = GetEnumerator(), TotalCount };
+                if (formatType != null && formatType.Name == "Json")
+                    return new { Items = GetEnumerator(), TotalCount };
+                return null;
             }
+        }
 
-            public void LoadJson(blqw.IJsonObject jsonObject)
-            {
-                var items = jsonObject["Items"];
-                if (items != null)
-                {
-                    foreach (var item in items)
-                    {
-                        Add(item.ToString());
-                    }
-                }
-                var total = jsonObject["TotalCount"] as IConvertible;
-                if (total != null)
-                {
-                    TotalCount = total.ToInt32(null);
-                }
-            }
+        class User
+        {
+            [JsonName("UserID")]
+            public int ID { get; set; }
+
+            [JsonFormat("d2")]
+            public int Money { get; set; }
+
+            [JsonIgnore]
+            public bool Sex { get; set; }
         }
 
         [TestMethod]
@@ -43,15 +42,42 @@ namespace UnitTestProject1
             var json = blqw.Json.ToJsonString(list);
             Assert.AreEqual("{\"Items\":[\"a\"],\"TotalCount\":100}", json);
         }
+        
 
         [TestMethod]
-        public void TestMethod2()
+        public void 动态类型()
         {
-            var json = "{\"Items\":[\"a\"],\"TotalCount\":100}";
-            var list = blqw.Json.ToObject<MyList>(json);
-            Assert.AreEqual(100, list.TotalCount);
-            Assert.AreEqual(1, list.Count);
-            Assert.AreEqual("a", list[0]);
+            var str = "{ Name : \"blqw\", Age : 11 ,Array : [\"2014-1-1 1:00:00\",false,{ a:1,b:2 }] }";
+            dynamic obj = Json.ToDynamic(str);
+
+
+            Assert.AreEqual("blqw", (string)obj.Name);
+            Assert.AreEqual(11, (int)obj.Age);
+            Assert.AreEqual(3, (int)obj.Array.Count);
+            Assert.AreEqual(1, obj.Array[2].a);
+            Assert.AreEqual(2, obj.Array[2].b);
+            //Assert.AreEqual(new DateTime(2014,1,1,1,0,0), (DateTime)obj.Array[0]);
+            //Assert.AreEqual(false, (bool)obj.Array[1]);
+
+
+        }
+
+
+        [TestMethod]
+        public void 支持NameValueCollection()
+        {
+            var nv = new NameValueCollection();
+            nv["Name"] = "blqw";
+            nv["Age"] = "11";
+
+            var str = Json.ToJsonString(nv);
+
+            Assert.AreEqual("{\"Name\":\"blqw\",\"Age\":\"11\"}", str);
+
+            var nv1 = Json.ToObject<NameValueCollection>(str);
+            Assert.AreEqual(2, nv1.Count);
+            Assert.AreEqual("blqw", nv1["Name"]);
+            Assert.AreEqual("11", nv1["Age"]);
 
         }
     }

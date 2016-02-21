@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Diagnostics;
 
-namespace blqw
+namespace blqw.Serializable
 {
     [DebuggerDisplay("当前字符: {Current}")]
     unsafe class UnsafeJsonReader : IDisposable
@@ -17,7 +17,7 @@ namespace blqw
         /// </summary>
         private readonly static byte[] _WordChars = new byte[char.MaxValue + 1];
         private readonly static sbyte[] _UnicodeFlags = new sbyte[123];
-        private readonly static sbyte[, ,] _DateTimeWords;
+        private readonly static sbyte[,,] _DateTimeWords;
         static UnsafeJsonReader()
         {
             for (int i = 0; i < 123; i++)
@@ -91,21 +91,26 @@ namespace blqw
         int _position;
         readonly int _length;
         int _end;
-        public UnsafeJsonReader(Char* origin, int length)
+        /// <summary>
+        /// 原始json
+        /// </summary>
+        public readonly string RawJson;
+        public UnsafeJsonReader(Char* origin, string str)
         {
             if (origin == null)
             {
                 throw new ArgumentNullException("origin");
             }
-            if (length <= 0)
+            if (str.Length <= 0)
             {
                 throw new ArgumentOutOfRangeException("length");
             }
             _p = origin;
-            _length = length;
-            _end = length - 1;
+            _length = str.Length;
+            _end = str.Length - 1;
             _position = 0;
             Current = *origin;
+            RawJson = str;
         }
 
         public char Current { get; private set; }
@@ -251,7 +256,6 @@ namespace blqw
             MoveNext();
             while (Current != quot)//是否是结束字符
             {
-                MoveNext();
                 if (Current == '\\')//是否是转义符
                 {
                     if ((_WordChars[Current] & 16) == 0)
@@ -260,6 +264,7 @@ namespace blqw
                     }
                     MoveNext();
                 }
+                MoveNext();
             }
             MoveNext();
         }
@@ -587,7 +592,7 @@ namespace blqw
                 td = td.AddHours(datetime[9]);
             }
             return td;
-        label_parse:
+            label_parse:
 
             while (Current != quot)
             {
@@ -643,7 +648,7 @@ namespace blqw
         /// <summary> 读取常量
         /// </summary>
         /// <returns></returns>
-        public object ReadConsts()
+        public object ReadConsts(bool warp)
         {
             if (IsEnd())//已到结尾
             {
@@ -653,6 +658,10 @@ namespace blqw
             {
                 case '\'':
                 case '"':
+                    if (warp == false)
+                    {
+                        ThrowException();
+                    }
                     return string.Empty;
                 case 'f'://false
                     MoveNext();
@@ -675,6 +684,8 @@ namespace blqw
                     MoveNext();
                     return true;
                 case 'n'://null
+                    if (warp)
+                        ThrowException();
                     MoveNext();
                     if (Current != 'u') ThrowException();
                     MoveNext();
@@ -684,6 +695,8 @@ namespace blqw
                     MoveNext();
                     return null;
                 case 'u'://undefined
+                    if (warp)
+                        ThrowException();
                     MoveNext();
                     if (Current != 'n') ThrowException();
                     MoveNext();
@@ -703,6 +716,8 @@ namespace blqw
                     MoveNext();
                     return null;
                 case 'N'://NaN
+                    if (warp)
+                        ThrowException();
                     MoveNext();
                     if (Current != 'a') ThrowException();
                     MoveNext();
@@ -710,6 +725,8 @@ namespace blqw
                     MoveNext();
                     return double.NaN;
                 case 'I'://Infinity
+                    if (warp)
+                        ThrowException();
                     MoveNext();
                     if (Current != 'n') ThrowException();
                     MoveNext();
@@ -727,6 +744,8 @@ namespace blqw
                     MoveNext();
                     return double.PositiveInfinity;
                 case '-'://-Infinity
+                    if (warp)
+                        ThrowException();
                     MoveNext();
                     if ((_WordChars[Current] & 4) > 0)
                     {
@@ -1135,7 +1154,7 @@ namespace blqw
             if (IsEnd())
             {
                 Dispose();
-                throw new NotSupportedException("遇到意外的字符串结尾,解析失败!");
+                throw new JsonParseException("遇到意外的字符串结尾,解析失败!", RawJson);
             }
             int i = Math.Max(_position - 20, 0);
             int j = Math.Min(_position + 20, _length);
@@ -1143,10 +1162,9 @@ namespace blqw
             string ch = Current.ToString(CultureInfo.InvariantCulture);
             string view = new string(_p, i, j - i);
             Dispose();
-            throw new NotSupportedException(string.Format(ERR_MESSAGE, view, pos, string.Format(title, ch)));
+            throw new JsonParseException($"解析失败!{string.Format(title, ch)}\n截取: {view}\n位置{pos}", RawJson);
         }
-
-        const string ERR_MESSAGE = "解析失败!{2}\n截取: {0}\n位置{1},";
+        
     }
 
 

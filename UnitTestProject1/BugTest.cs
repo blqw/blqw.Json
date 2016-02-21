@@ -46,26 +46,13 @@ namespace UnitTestProject1
         } 
         #endregion
 
-        [TestMethod]
-        public void TestMethod1()
-        {
-            using (var client = new WebClient())
-            {
-                client.Encoding = Encoding.UTF8;
-                var url = "http://api.map.baidu.com/telematics/v3/weather?location=北京&output=json&ak=hXWAgbsCC9UTkBO5V5Qg1WZ9";
-                var json = client.DownloadString(url);
-                var tq = Json.ToObject<BaiduTQ>(json);
-                Console.WriteLine("{0} {1}", tq.results[0].currentCity, tq.results[0].weather_data[0].date);
-            }
-        }
-
+       
         [TestMethod]
         public void Test_20141128()
         {
             var a = new { a = -10 };
-            var b = "{\"a\":-10}";
             var c = Json.ToJsonString(a);
-            Assert.AreEqual(b, c);
+            Assert.AreEqual("{\"a\":-10}", c);
         }
     }
 }

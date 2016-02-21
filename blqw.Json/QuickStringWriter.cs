@@ -6,8 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.Reflection;
+using System.Reflection.Emit;
+using System.Text;
 
-namespace blqw
+namespace blqw.Serializable
 {
     /// <summary> 高效的字符串拼接类, 无法继承此类
     /// </summary>
@@ -27,33 +30,46 @@ namespace blqw
         /// <param name="size"></param>
         public QuickStringWriter(ushort size)
         {
-            //确定最后一个字符的位置  长度-1
-            _endPosition = size - 1;
             //生成字符串缓冲指针 ,一个char是2个字节,所以要乘以2
-            _currIntPtr = System.Runtime.InteropServices.Marshal.AllocHGlobal(size * 2);
-            _current = (char*)_currIntPtr.ToPointer();
-            //申请数字缓冲区内存 ,20个char足够放下long 和 ulong
-            _numberIntPtr = System.Runtime.InteropServices.Marshal.AllocHGlobal(20 * 2);
-            _number = (char*)_numberIntPtr.ToPointer();
+            _intPtr = System.Runtime.InteropServices.Marshal.AllocHGlobal(size * 2);
+
+            //前20个用来放数字,char足够放下long 和 ulong
+            _number = (char*)_intPtr.ToPointer();
+            _current = _number + 20;
+
+            //确定最后一个字符的位置  长度-1
+            _endPosition = size - 1 - 20;
+        }
+
+        /// <summary> 初始化对象,并指定缓冲区大小
+        /// </summary>
+        /// <param name="size"></param>
+        public QuickStringWriter(char* p, ushort size)
+        {
+            //前20个用来放数字,char足够放下long 和 ulong
+            _number = (char*)p;
+            _current = _number + 20;
+
+            //确定最后一个字符的位置  长度-1
+            _endPosition = size - 1 - 20;
         }
 
         #region 字段
         /// <summary> 数字缓冲指针
         /// </summary>
         private unsafe char* _number;
-        private IntPtr _numberIntPtr;
         /// <summary> 指针句柄
         /// </summary>
-        private IntPtr _currIntPtr;
+        private IntPtr _intPtr;
         /// <summary> 一级缓冲指针
         /// </summary>
         private char* _current;
         /// <summary> 二级缓冲
         /// </summary>
-        private string[] _buffer = new string[8];
+        private SBBuffer _buffer;
         /// <summary> 备用二级缓冲索引
         /// </summary>
-        private int _bufferIndex;
+        //private int _bufferIndex;
         /// <summary> 总字符数
         /// </summary>
         private int _length;
@@ -542,10 +558,6 @@ namespace blqw
         /// </summary>
         public QuickStringWriter Append(String val)
         {
-            if (val == null)
-            {
-                return this;
-            }
             var length = val.Length;
             if (length == 0)
             {
@@ -553,8 +565,8 @@ namespace blqw
             }
             if (length <= 3)
             {
-                _current[_position++] = val[0];
                 TryWrite(length);
+                _current[_position++] = val[0];
                 if (length > 2)
                 {
                     _current[_position++] = val[1];
@@ -606,7 +618,8 @@ namespace blqw
             else
             {
                 Flush();
-                _buffer[_bufferIndex++] = val;
+                _buffer.Append(val);
+                //_buffer[_bufferIndex++] = val;
                 _length += val.Length;
             }
             return this;
@@ -667,7 +680,8 @@ namespace blqw
                 else
                 {
                     Flush();
-                    _buffer[_bufferIndex++] = new string(point, offset, length);
+                    _buffer.Append(point, offset, length);
+                    //_buffer[_bufferIndex++] = new string(point, offset, length);
                     _length += length;
                 }
             }
@@ -800,12 +814,12 @@ namespace blqw
         /// </summary>
         public void Clear()
         {
-            _buffer[0] = _buffer[1] =
-            _buffer[2] = _buffer[3] =
-            _buffer[4] = _buffer[5] =
-            _buffer[6] = _buffer[7] = null;
-            _length = 0;
-            _position = 0;
+            if (_length > 0)
+            {
+                _buffer.Clear();
+                _length = 0;
+                _position = 0;
+            }
         }
 
         /// <summary> 关闭当前实例
@@ -828,17 +842,7 @@ namespace blqw
             if (_position > 0)
             {
                 _length += _position;
-                if (_bufferIndex == 8)
-                {
-                    _buffer[0] = string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3],
-                                 _buffer[4], _buffer[5], _buffer[6], _buffer[7],
-                                 new string(_current, 0, _position));
-                    _bufferIndex = 1;
-                }
-                else
-                {
-                    _buffer[_bufferIndex++] = new string(_current, 0, _position);
-                }
+                _buffer.Append(_current, 0, _position);
                 _position = 0;
             }
         }
@@ -847,68 +851,116 @@ namespace blqw
         /// </summary>
         public override string ToString()
         {
-            switch (_bufferIndex)
-            {
-                case 0:
-                    return new string(_current, 0, _position);
-                case 1:
-                    return string.Concat(_buffer[0], new string(_current, 0, _position));
-                case 2:
-                    return string.Concat(_buffer[0], _buffer[1], new string(_current, 0, _position));
-                case 3:
-                    return string.Concat(_buffer[0], _buffer[1], _buffer[2], new string(_current, 0, _position));
-                case 4:
-                    return string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3], new string(_current, 0, _position));
-                case 5:
-                    return string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3], _buffer[4], new string(_current, 0, _position));
-                case 6:
-                    return string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3], _buffer[4], _buffer[5], new string(_current, 0, _position));
-                case 7:
-                    return string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3], _buffer[4], _buffer[5], _buffer[6], new string(_current, 0, _position));
-                case 8:
-                    return string.Concat(_buffer[0], _buffer[1], _buffer[2], _buffer[3], _buffer[4], _buffer[5], _buffer[6], _buffer[7], new string(_current, 0, _position));
-                default:
-                    throw new NotSupportedException();
-            }
+            Flush();
+            return _buffer.ToString();
         }
 
 
         #region Dispose
-        private int _disposeMark = 0;
+        private bool _disposed = false;
 
         public void Dispose()
         {
-            var mark = System.Threading.Interlocked.Exchange(ref _disposeMark, 2);
-            if (mark > 1)
+            if (_disposed)
             {
                 return;
             }
-            if (mark == 1)
+            _disposed = true;
+            Close();
+            GC.SuppressFinalize(this);
+            if (_intPtr != IntPtr.Zero)
             {
-                Close();
-                _buffer = null;
+                System.Runtime.InteropServices.Marshal.FreeHGlobal(_intPtr);
+                _intPtr = IntPtr.Zero;
             }
-            else
-            {
-                GC.SuppressFinalize(this);
-            }
-            System.Runtime.InteropServices.Marshal.FreeHGlobal(_currIntPtr);
-            _currIntPtr = IntPtr.Zero;
-            System.Runtime.InteropServices.Marshal.FreeHGlobal(_numberIntPtr);
-            _numberIntPtr = IntPtr.Zero;
         }
 
-        ~QuickStringWriter()
-        {
-            if (_disposeMark > 0)
-            {
-                return;
-            }
-            System.Threading.Interlocked.Increment(ref _disposeMark);
-            Dispose();
-        }
 
         #endregion
 
+    }
+
+    interface ICharBuffer
+    {
+        unsafe void Append(char* point, int start, int length);
+        void Append(string str);
+        string ToString();
+        void Clear();
+    }
+
+    struct SBBuffer : ICharBuffer
+    {
+        [ThreadStatic]
+        static StringBuilder _sb;
+        unsafe delegate StringBuilder AppendHandler(StringBuilder sb, char* p, int count);
+        static readonly AppendHandler _append = CreateHandler();
+
+        private unsafe static AppendHandler CreateHandler()
+        {
+            var method = typeof(StringBuilder)
+                .GetMethod("Append", (System.Reflection.BindingFlags)(-1), null, new[] { typeof(char*), typeof(int) }, null);
+            var dm = new DynamicMethod("", typeof(StringBuilder), new Type[] { typeof(StringBuilder), typeof(char*), typeof(int) }, method.DeclaringType, true);
+
+            var il = dm.GetILGenerator();
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldarg_1);
+            il.Emit(OpCodes.Ldarg_2);
+            il.Emit(OpCodes.Callvirt, method);
+            il.Emit(OpCodes.Ret);
+            return (AppendHandler)dm.CreateDelegate(typeof(AppendHandler));
+        }
+        public unsafe void Append(char* point, int start, int length)
+        {
+            if (_sb == null) _sb = new StringBuilder();
+            _append(_sb, point + start, length);
+        }
+        public override string ToString()
+        {
+            return _sb == null ? "" : _sb.ToString();
+        }
+
+
+        public void Append(string str)
+        {
+            if (_sb == null) _sb = new System.Text.StringBuilder();
+            _sb.Append(str);
+        }
+
+        public void Clear()
+        {
+            if (_sb != null)
+                _sb.Clear();
+        }
+    }
+
+    struct SWBuffer : ICharBuffer
+    {
+        [ThreadStatic]
+        static System.IO.StringWriter _sw;
+        public unsafe void Append(char* point, int start, int length)
+        {
+            if (_sw == null) _sw = new System.IO.StringWriter();
+            length = start + length;
+            for (int i = start; i < length; i++)
+            {
+                _sw.Write(point[i]);
+            }
+        }
+        public override string ToString()
+        {
+            return _sw == null ? "" : _sw.ToString();
+        }
+
+        public void Append(string str)
+        {
+            if (_sw == null) _sw = new System.IO.StringWriter();
+            _sw.Write(str);
+        }
+
+        public void Clear()
+        {
+            _sw.Dispose();
+            _sw = null;
+        }
     }
 }

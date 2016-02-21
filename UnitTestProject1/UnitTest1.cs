@@ -5,6 +5,7 @@ using System.IO;
 using System.Data;
 using System.Collections;
 using blqw;
+using blqw.Serializable;
 
 namespace UnitTestProject1
 {
@@ -122,7 +123,7 @@ namespace UnitTestProject1
         public void TestMethod1()
         {
             var user = User.TestUser();
-            var userJson = blqw.Json.ToJsonString(user);
+            var userJson = Json.ToJsonString(user);
             TestNewtonsoftResult<Object1>(File.ReadAllText("json1.txt"));
             TestNewtonsoftResult<Object2[]>(File.ReadAllText("json2.txt"));
             TestNewtonsoftResult<List<Object2>>(File.ReadAllText("json2.txt"));
@@ -139,27 +140,32 @@ namespace UnitTestProject1
 
             //时间处理
             DateTime date = new DateTime(2014, 1, 2, 3, 4, 5, 6);
-            Assert.AreEqual("{\"date\":\"2014-01-02 03:04:05\"}", new blqw.QuickJsonBuilder().ToJsonString(new { date = date }));
-            Assert.AreEqual("{\"date\":\"2014-01-02\"}", new blqw.QuickJsonBuilder( blqw.JsonBuilderSettings.FormatDate).ToJsonString(new { date = date }));
-            Assert.AreEqual("{\"date\":\"03:04:05\"}", new blqw.QuickJsonBuilder(blqw.JsonBuilderSettings.FormatTime).ToJsonString(new { date = date }));
-            Assert.AreEqual("{\"date\":\"2014-01-02\"}", new blqw.QuickJsonBuilder().ToJsonString(new { date = date.Date }));
-            Assert.AreEqual("{\"date\":\"\"}", new blqw.QuickJsonBuilder(blqw.JsonBuilderSettings.FormatTime | blqw.JsonBuilderSettings.IgnoreEmptyTime).ToJsonString(new { date = date.Date }));
+            Assert.AreEqual("{\"date\":\"2014-01-02 03:04:05\"}", Json.ToJsonString(new { date = date }));
+
+            Assert.AreEqual(
+                "{\"date\":\"2014-01-02\"}",
+                Json.ToJsonString(new { date = date }, JsonBuilderSettings.FormatDate
+                ));
+
+            Assert.AreEqual("{\"date\":\"03:04:05\"}", Json.ToJsonString(new { date = date }, blqw.JsonBuilderSettings.FormatTime));
+            Assert.AreEqual("{\"date\":\"2014-01-02\"}", Json.ToJsonString(new { date = date.Date }));
+            Assert.AreEqual("{\"date\":\"\"}", Json.ToJsonString(new { date = date.Date }, blqw.JsonBuilderSettings.FormatTime | blqw.JsonBuilderSettings.IgnoreEmptyTime));
 
             //枚举
-            Assert.AreEqual("{\"key\":\"Applications\"}", new blqw.QuickJsonBuilder().ToJsonString(new { key = ConsoleKey.Applications }));
-            Assert.AreEqual("{\"key\":93}", new blqw.QuickJsonBuilder(JsonBuilderSettings.EnumToNumber).ToJsonString(new { key = ConsoleKey.Applications }));
+            Assert.AreEqual("{\"key\":\"Applications\"}", Json.ToJsonString(new { key = ConsoleKey.Applications }, 0));
+            Assert.AreEqual("{\"key\":93}", Json.ToJsonString(new { key = ConsoleKey.Applications }, JsonBuilderSettings.EnumToNumber));
 
             //数字
-            Assert.AreEqual("{\"number\":1}", new blqw.QuickJsonBuilder().ToJsonString(new { number = 1 }));
-            Assert.AreEqual("{\"number\":\"1\"}", new blqw.QuickJsonBuilder(JsonBuilderSettings.QuotWrapNumber).ToJsonString(new { number = 1 }));
+            Assert.AreEqual("{\"number\":1}", Json.ToJsonString(new { number = 1 }));
+            Assert.AreEqual("{\"number\":\"1\"}", Json.ToJsonString(new { number = 1 }, JsonBuilderSettings.QuotWrapNumber));
 
             //布尔
-            Assert.AreEqual("{\"bool\":true}", new blqw.QuickJsonBuilder().ToJsonString(new { @bool = true }));
-            Assert.AreEqual("{\"bool\":false}", new blqw.QuickJsonBuilder().ToJsonString(new { @bool = false }));
-            Assert.AreEqual("{\"bool\":\"true\"}", new blqw.QuickJsonBuilder(JsonBuilderSettings.QuotWrapBoolean).ToJsonString(new { @bool = true }));
-            Assert.AreEqual("{\"bool\":\"false\"}", new blqw.QuickJsonBuilder(JsonBuilderSettings.QuotWrapBoolean).ToJsonString(new { @bool = false }));
-            Assert.AreEqual("{\"bool\":1}", new blqw.QuickJsonBuilder(JsonBuilderSettings.BooleanToNumber).ToJsonString(new { @bool = true }));
-            Assert.AreEqual("{\"bool\":0}", new blqw.QuickJsonBuilder(JsonBuilderSettings.BooleanToNumber).ToJsonString(new { @bool = false }));
+            Assert.AreEqual("{\"bool\":true}", Json.ToJsonString(new { @bool = true }));
+            Assert.AreEqual("{\"bool\":false}", Json.ToJsonString(new { @bool = false }));
+            Assert.AreEqual("{\"bool\":\"true\"}", Json.ToJsonString(new { @bool = true }, JsonBuilderSettings.QuotWrapBoolean));
+            Assert.AreEqual("{\"bool\":\"false\"}", Json.ToJsonString(new { @bool = false }, JsonBuilderSettings.QuotWrapBoolean));
+            Assert.AreEqual("{\"bool\":1}", Json.ToJsonString(new { @bool = true }, JsonBuilderSettings.BooleanToNumber));
+            Assert.AreEqual("{\"bool\":0}", Json.ToJsonString(new { @bool = false }, JsonBuilderSettings.BooleanToNumber));
 
             //循环引用
             try
@@ -174,7 +180,7 @@ namespace UnitTestProject1
             try
             {
                 user.Self = user;
-                new blqw.QuickJsonBuilder(JsonBuilderSettings.CheckLoopRef).ToJsonString(user);
+                Json.ToJsonString(user, JsonBuilderSettings.CheckLoopRef);
             }
             catch (Exception)
             {
@@ -183,13 +189,13 @@ namespace UnitTestProject1
 
 
             //忽略null属性
-            Assert.AreEqual("{\"a\":null,\"b\":1}", new blqw.QuickJsonBuilder(JsonBuilderSettings.None).ToJsonString(new { a = (string)null,b = 1 }));
-            Assert.AreEqual("{\"b\":1}", new blqw.QuickJsonBuilder(JsonBuilderSettings.IgnoreNullMember).ToJsonString(new { a = (string)null, b = 1 }));
+            Assert.AreEqual("{\"a\":null,\"b\":1}", Json.ToJsonString(new { a = (string)null, b = 1 }, JsonBuilderSettings.None));
+            Assert.AreEqual("{\"b\":1}", Json.ToJsonString(new { a = (string)null, b = 1 }, JsonBuilderSettings.IgnoreNullMember));
 
             //特性测试
             var test2 = new AttrTest { ID = 1, Name = "a", Time = new DateTime(2014, 1, 2, 3, 4, 5, 6) };
-            Assert.AreEqual("{\"name\":\"a\"}", new blqw.QuickJsonBuilder(JsonBuilderSettings.None).ToJsonString(test2));
-            Assert.AreEqual("{\"name\":\"a\",\"Time\":\"2014年1月2日\"}", new blqw.QuickJsonBuilder(JsonBuilderSettings.SerializableField).ToJsonString(test2));
+            Assert.AreEqual("{\"name\":\"a\"}", Json.ToJsonString(test2, JsonBuilderSettings.None));
+            Assert.AreEqual("{\"name\":\"a\",\"Time\":\"2014年1月2日\"}", Json.ToJsonString(test2, JsonBuilderSettings.SerializableField));
         }
 
         class AttrTest
@@ -223,9 +229,9 @@ namespace UnitTestProject1
         public void TestSafeResult(string jsonString)
         {
             var obj1 = blqw.Json.ToObject(jsonString);
-            var jsonString1 = blqw.Json.ToJsonString(obj1);
+            var jsonString1 = blqw.Json.ToJsonString(obj1, JsonBuilderSettings.Default ^ JsonBuilderSettings.IgnoreNullMember);
             var obj2 = blqw.Json.ToObject(jsonString1);
-            var jsonString2 = blqw.Json.ToJsonString(obj2);
+            var jsonString2 = blqw.Json.ToJsonString(obj2, JsonBuilderSettings.Default ^ JsonBuilderSettings.IgnoreNullMember);
             AssertEquals(obj1, obj2);
             Assert.AreEqual(jsonString1, jsonString2);
         }
@@ -311,9 +317,7 @@ namespace UnitTestProject1
             }
             else
             {
-                var lit = blqw.Literacy.Cache(t1.GetType(), false);
-
-                foreach (var p in lit.Property)
+                foreach (var p in t1.GetType().GetProperties())
                 {
                     if (p.CanRead)
                     {
