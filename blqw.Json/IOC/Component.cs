@@ -11,12 +11,10 @@ namespace blqw.JsonComponent
 {
     class Component
     {
-        public static bool IsInitialized { get; } = Initialize();
 
-        private static bool Initialize()
+        public Component()
         {
             MEFPart.Import(typeof(Component));
-            return true;
         }
 
         /// <summary> 包装反射对象
