@@ -97,7 +97,7 @@ namespace blqw.Serializable
                 {
                     fixed (char* p = jsonString)
                     {
-                        using (UnsafeJsonReader reader = new UnsafeJsonReader(p, jsonString))
+                        using (var reader = new UnsafeJsonReader(p, jsonString))
                         {
                             //如果是由空白和回车组成的字符串,直接返回
                             if (reader.IsEnd()) return;
@@ -123,14 +123,6 @@ namespace blqw.Serializable
         private void FillObject(ref object obj, Type type, UnsafeJsonReader reader)
         {
             reader.CheckEnd();
-            //var toObject = obj as ILoadJson;
-            //if (toObject != null)
-            //{
-            //    obj = null;
-            //    type = null;
-            //}
-
-
             JsonType jsonType = null;
             if (type == null)
             {
@@ -147,12 +139,6 @@ namespace blqw.Serializable
                         break;
                 }
             }
-            //else if (typeof(ILoadJson).IsAssignableFrom(type))
-            //{
-            //    obj = Activator.CreateInstance(type);
-            //    FillObject(ref obj, null, reader);
-            //    return;
-            //}
             else
             {
                 jsonType = JsonType.Get(type);
@@ -162,7 +148,14 @@ namespace blqw.Serializable
             //如果obj == null创建新对象
             if (obj == null)
             {
-                obj = FormatterServices.GetUninitializedObject(jsonType.Type);
+                if (jsonType.IsAnonymous)
+                {
+                    obj = FormatterServices.GetUninitializedObject(jsonType.Type);
+                }
+                else if (jsonType.Type != typeof(string))
+                {
+                    obj = Activator.CreateInstance(jsonType.Type);
+                }
             }
 
 
@@ -171,7 +164,7 @@ namespace blqw.Serializable
             {
                 case '{':
                     reader.MoveNext();
-                    if (jsonType.IsDictionaryType)
+                    if (jsonType.IsDictionary)
                     {
                         FillDictionary(ref obj, jsonType, reader);
                     }
@@ -199,7 +192,7 @@ namespace blqw.Serializable
                             FillArray(arr, jsonType, reader);
                         }
                     }
-                    else if (jsonType.IsListType)
+                    else if (jsonType.IsList)
                     {
                         FillList(obj, jsonType, reader);
                     }
@@ -213,11 +206,6 @@ namespace blqw.Serializable
                     obj = ReadValue(reader, jsonType);
                     break;
             }
-            //if (toObject != null)
-            //{
-            //    toObject.LoadJson(JsonObject.ToJsonObject(obj));
-            //    obj = toObject;
-            //}
         }
 
         /// <summary> 填充一般对象的属性
@@ -298,7 +286,7 @@ namespace blqw.Serializable
             }
             var eleType = jsonType.ElementType;
             var keyType = jsonType.KeyType;
-            if (keyType.TypeCode == TypeCode.String || keyType.IsObjectType)
+            if (keyType.TypeCode == TypeCode.String || keyType.IsObject)
             {
                 string key = ReadKey(reader);               //获取Key
                 object val = ReadValue(reader, eleType);    //得到值
@@ -316,13 +304,13 @@ namespace blqw.Serializable
                         return;
                     }
                 }
-                jsonType.AddKeyValue(obj, new[] { key, val });
+                jsonType.AddKeyValue(obj, key, val);
 
                 while (reader.SkipChar(',', false))
                 {
                     key = ReadKey(reader);               //获取Key
                     val = ReadValue(reader, eleType);    //得到值
-                    jsonType.AddKeyValue(obj, new[] { key, val });
+                    jsonType.AddKeyValue(obj, key, val);
                 }
             }
             else
@@ -332,7 +320,7 @@ namespace blqw.Serializable
                     string keyStr = ReadKey(reader);            //获取Key
                     object key = keyType.Convertor.Convert(keyStr, jsonType.Type);
                     object val = ReadValue(reader, eleType);    //得到值
-                    jsonType.AddKeyValue(obj, new[] { key, val });
+                    jsonType.AddKeyValue(obj, key, val);
                 } while (reader.SkipChar(',', false));
             }
         }
@@ -357,7 +345,8 @@ namespace blqw.Serializable
             do
             {
                 object val = ReadValue(reader, eleType);  //得到值
-                jsonType.AddValue(obj, new[] { val });    //赋值
+                //((dynamic)obj).Add((dynamic)val);
+                jsonType.AddValue(obj, val);    //赋值
             } while (reader.SkipChar(',', false));
         }
 
@@ -522,7 +511,7 @@ namespace blqw.Serializable
                 FillList(list, jsonType, reader);
                 return list.ToArray(jsonType.ElementType.Type);
             }
-            if (jsonType.IsObjectType)
+            if (jsonType.IsObject)
             {
                 object list = Activator.CreateInstance(_arrayType.Type);
                 FillList(list, _arrayType, reader);
@@ -543,19 +532,19 @@ namespace blqw.Serializable
         /// <returns></returns>
         private object ReadObject(UnsafeJsonReader reader, JsonType jsonType)
         {
-            if (jsonType.IsObjectType)
+            if (jsonType.IsObject)
             {
                 var obj = Activator.CreateInstance(_keyValueType.Type);
                 FillDictionary(ref obj, _keyValueType, reader);
                 return obj;
             }
-            else if (jsonType.IsDictionaryType)
+            else if (jsonType.IsDictionary)
             {
                 var obj = Activator.CreateInstance(jsonType.Type);
                 FillDictionary(ref obj, jsonType, reader);
                 return obj;
             }
-            else if (jsonType.IsSoleType)
+            else if (jsonType.IsMataType)
             {
                 return ReadValue(reader, jsonType);
             }
