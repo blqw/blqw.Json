@@ -96,13 +96,10 @@ namespace Demo
             {
                 if (name == null)
                 {
+                    yield return null;
                     yield break;
                 }
-                //a.b
-                //["a"]["b"]
-                //['a']['b']
                 var chars = name.ToCharArray();
-                var end = '\0';
                 var start = 0;
                 for (int i = 0, length = chars.Length; i < length; i++)
                 {
@@ -110,7 +107,34 @@ namespace Demo
                     switch (c)
                     {
                         case '[':
-
+                            yield return new string(chars, start, i - start);
+                            i++;
+                            start = i;
+                            while (i < length)
+                            {
+                                if (chars[i] == ']')
+                                {
+                                    break;
+                                }
+                                i++;
+                            }
+                            if (i == length)
+                            {
+                                yield return null;
+                                yield break;
+                            }
+                            int index;
+                            var str = new string(chars, start, i - start);
+                            if (int.TryParse(str, out index))
+                            {
+                                yield return str;
+                            }
+                            else
+                            {
+                                yield return null;
+                                yield break;
+                            }
+                            start = i + 1;
                             break;
                         case '.':
                             yield return new string(chars, start, i - start);
@@ -120,9 +144,10 @@ namespace Demo
                             break;
                     }
                 }
-
-
-
+                if (start != 0 && start != chars.Length)
+                {
+                    yield return new string(chars, start, chars.Length - start);
+                }
             }
 
             public override string Get(string name)
@@ -130,11 +155,19 @@ namespace Demo
                 var obj = _Data;
                 foreach (var n in ParseNames(name))
                 {
+                    if (n == null)
+                    {
+                        return ToString(Get(_Data, name, null));
+                    }
                     obj = Get(obj, n, null);
                     if (obj == null)
                     {
                         return ToString(Get(_Data, name, null));
                     }
+                }
+                if (ReferenceEquals(obj, _Data))
+                {
+                    return ToString(Get(_Data, name, null));
                 }
                 return ToString(obj);
             }
@@ -143,14 +176,15 @@ namespace Demo
 
         static void Main(string[] args)
         {
-            var body = "{a:{b:1},c:'xxx',d:[1]}";
+            var body = "{a:{b:1},c:'xxx',d:{e:[1]}}";
             var form = new JsonObject(body);
 
-            Console.WriteLine(form["a"] == "{\"b\":\"1\"}");
+            Console.WriteLine(form["a"] == "{\"b\":1}");
             Console.WriteLine(form["b"] == null);
             Console.WriteLine(form["c"] == "xxx");
             Console.WriteLine(form["a.b"] == "1");
-            Console.WriteLine(form["a.d[0]"] == "1");
+            Console.WriteLine(form["d.e[0]"] == "1");
+            Console.WriteLine(form["d.e[2]"] == null);
 
 
 
