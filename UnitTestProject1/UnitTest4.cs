@@ -17,6 +17,19 @@ namespace UnitTestProject1
             Assert.AreEqual("zzj", mc.name);
         }
 
+        [TestMethod]
+        public void 匿名对象的反序列化()
+        {
+            var a = new { id = 1, name = "blqw" };
+            var json = Json.ToJsonString(a);
+            dynamic b = Json.ToObject(a.GetType(), json);
+            Assert.IsNotNull(b);
+            Assert.IsInstanceOfType(b, a.GetType());
+            Assert.AreEqual(a.id, b.id);
+            Assert.AreEqual(a.name, b.name);
+
+        }
+
         class MyClass
         {
             public string name { get; set; }

@@ -63,6 +63,7 @@
     <Compile Include="TypeName.cs" />
     <Compile Include="UnsafeJsonReader.cs" />
     <Compile Include="Value\JsonDictionary.cs" />
+    <Compile Include="Value\JsonList.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

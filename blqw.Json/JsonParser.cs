@@ -12,7 +12,7 @@ namespace blqw.Serializable
     /// </summary>
     public sealed class JsonParser
     {
-        private readonly static JsonType JsonTypeArrayList = JsonType.Get<IList<object>>();
+        private readonly static JsonType JsonTypeArrayList = JsonType.Get<JsonList>();
         private readonly static JsonType JsonTypeDictionary = JsonType.Get<JsonDictionary>();
         private readonly static JsonType JsonTypeObject = JsonType.Get<object>();
 
@@ -162,14 +162,7 @@ namespace blqw.Serializable
             //如果obj == null创建新对象
             if (obj == null)
             {
-                if (jsonType.IsAnonymousType)
-                {
-                    throw new NotSupportedException("暂不支持匿名类型的反序列化操作");
-                }
-                if (jsonType.Type != typeof(string))
-                {
-                    obj = Activator.CreateInstance(jsonType.Type);
-                }
+                obj = FormatterServices.GetUninitializedObject(jsonType.Type);
             }
 
 

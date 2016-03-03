@@ -108,7 +108,7 @@ namespace blqw.Serializable
             var list = new List<JsonMember>();
 
             TypeCode = Type.GetTypeCode(type);
-            IsSoleType = AreSoleType(type);
+            IsSoleType = IsMataType(type);
             IsAnonymousType = Type.IsGenericType && Type.Name.StartsWith("<>f__AnonymousType");
             IsObjectType = type == typeof(object);
             Convertor = Component.GetConverter(type, true);
@@ -208,6 +208,7 @@ namespace blqw.Serializable
             //枚举属性
             foreach (var p in Type.GetProperties(flags))
             {
+                
                 var jm = JsonMember.Create(p);
                 if (jm != null)
                 {
@@ -262,8 +263,8 @@ namespace blqw.Serializable
             return null;
         }
 
-        #region _soleTypes
-        private static HashSet<Type> _soleTypes = new HashSet<Type>() {
+        #region _mataTypes
+        private static HashSet<Type> _mataTypes = new HashSet<Type>() {
             typeof(Guid),
             typeof(TimeSpan),
             typeof(DateTimeOffset),
@@ -289,14 +290,14 @@ namespace blqw.Serializable
         };
         #endregion
 
-        private static bool AreSoleType(Type type)
+        private static bool IsMataType(Type type)
         {
             var t = Nullable.GetUnderlyingType(type);
             if (t != null)
             {
-                return AreSoleType(t);
+                return IsMataType(t);
             }
-            return _soleTypes.Contains(type);
+            return _mataTypes.Contains(type);
         }
 
 
