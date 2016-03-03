@@ -18,6 +18,9 @@ blqw.Json.ToDynamic(string);
 性能测试请参考:[pk.md](https://github.com/blqw/blqw.Json/blob/master/pk.md)
 
 ##更新说明
+#### 2016.03.03  
+* 优化反序列化时的产生太多垃圾对象问题  
+
 #### 2016.02.21  
 * 优化IoC模块  
 

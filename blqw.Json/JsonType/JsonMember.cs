@@ -103,6 +103,12 @@ namespace blqw.Serializable
                     var ret = Expression.Convert(assign, typeof(object));
                     set = Expression.Lambda<Action<object, object>>(ret, o, v).Compile();
                 }
+                else if (property.DeclaringType.IsGenericType && property.DeclaringType.Name.StartsWith("<>f__AnonymousType")) //匿名类型
+                {
+                    var fieldName = $"<{property.Name}>i__Field";
+                    var field = property.DeclaringType.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
+                    set = field.SetValue;
+                }
             }
             else
             {
