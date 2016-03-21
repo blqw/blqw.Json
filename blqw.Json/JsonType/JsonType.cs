@@ -85,6 +85,7 @@ namespace blqw.Serializable
         /// <see cref="DBNull"/>,
         /// <see cref="IntPtr"/>,
         /// <see cref="UIntPtr"/>,
+        /// <see cref="String"/>,
         /// 以及这些类型的可空值类型(<see cref="Nullable{T}"/>)
         /// </summary>
         public readonly bool IsMataType;
@@ -101,8 +102,7 @@ namespace blqw.Serializable
         /// <summary> 是否是数字类
         /// </summary>
         public readonly bool IsNumber;
-
-
+        
         /// <summary> 
         /// 转换器
         /// </summary>
@@ -119,9 +119,7 @@ namespace blqw.Serializable
         internal readonly Action<object, object> AddValue;
 
         internal readonly Action<object, object, object> AddKeyValue;
-
-        static readonly char[] aa = new[] { ',' };
-
+        
         /// <summary> 从指定的 Type 创建新的 JsonType 对象
         /// </summary>
         public JsonType(Type type)
