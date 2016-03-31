@@ -18,6 +18,20 @@ namespace UnitTestProject1
         }
 
         [TestMethod]
+        public void 测试过滤特殊字符()
+        {
+            var obj = new { s = "ab\acd" };
+            var json = "{\"s\":\"ab\\acd\"}";
+            var json1 = Json.ToJsonString(obj, JsonBuilderSettings.Default ^ JsonBuilderSettings.FilterSpecialCharacter);
+            Assert.AreEqual(json, json1);
+
+
+            json = "{\"s\":\"abcd\"}";
+            var json2 = Json.ToJsonString(obj);
+            Assert.AreEqual(json, json2);
+        }
+
+        [TestMethod]
         public void 匿名对象的反序列化()
         {
             var a = new { id = 1, name = "blqw" };

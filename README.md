@@ -18,6 +18,9 @@ blqw.Json.ToDynamic(string);
 性能测试请参考:[pk.md](https://github.com/blqw/blqw.Json/blob/master/pk.md)
 
 ##更新说明
+#### 2016.03.31
+* 新增 ToStringJson 可选择过滤特殊字符的功能  
+    
 #### 2016.03.16
 * 更新EMF组件  
   
