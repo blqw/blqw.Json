@@ -42,12 +42,15 @@ namespace blqw
         IgnoreNullMember = 1 << 10,
         /// <summary> 默认序列化设置 FormatDate | FormatTime | IgnoreEmptyTime | IgnoreNullMember
         /// </summary>
-        Default = FormatDate | FormatTime | IgnoreEmptyTime | IgnoreNullMember | EnumToNumber,
+        Default = FormatDate | FormatTime | IgnoreEmptyTime | IgnoreNullMember | EnumToNumber | FilterSpecialCharacter,
         /// <summary> 输出类型信息
         /// </summary>
         SerializableType = 1 << 11,
         /// <summary> 输出所有属性/字段
         /// </summary>
         FormatAllMember = 1 << 12,
+        /// <summary> 过滤特殊字符
+        /// </summary>
+        FilterSpecialCharacter = 1 << 13,
     }
 }

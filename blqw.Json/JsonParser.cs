@@ -152,7 +152,7 @@ namespace blqw.Serializable
                 {
                     obj = FormatterServices.GetUninitializedObject(jsonType.Type);
                 }
-                else if (jsonType.Type != typeof(string))
+                else if (jsonType.IsMataType == false)
                 {
                     obj = Activator.CreateInstance(jsonType.Type);
                 }

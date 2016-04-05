@@ -353,6 +353,7 @@ namespace blqw.Serializable
             IgnoreNullMember = (settings & JsonBuilderSettings.IgnoreNullMember) != 0;
             SerializableType = (settings & JsonBuilderSettings.SerializableType) != 0;
             FormatAllMember = (settings & JsonBuilderSettings.FormatAllMember) != 0;
+            FilterSpecialCharacter = (settings & JsonBuilderSettings.FilterSpecialCharacter) != 0;
         }
 
         #region settings
@@ -381,18 +382,26 @@ namespace blqw.Serializable
         /// <summary> 格式化 DateTime 对象中的时间时忽略(00:00:00.000000) ,存在FormatTime时才生效
         /// </summary>
         public bool IgnoreEmptyTime;
-        /// <summary> 使用双引号包装布尔的值
+        /// <summary> 
+        /// 使用双引号包装布尔的值
         /// </summary>
         public bool QuotWrapBoolean;
-        /// <summary> 忽略值是null的属性
+        /// <summary> 
+        /// 忽略值是null的属性
         /// </summary>
         public bool IgnoreNullMember;
-        /// <summary> 输出类型信息
+        /// <summary> 
+        /// 输出类型信息
         /// </summary>
         public bool SerializableType;
-        /// <summary> 输出所有属性/字段
+        /// <summary> 
+        /// 输出所有属性/字段
         /// </summary>
         public bool FormatAllMember;
+        /// <summary> 
+        /// 过滤特殊字符
+        /// </summary>
+        public bool FilterSpecialCharacter;
         #endregion
 
         /// <summary> 将对象转换为Json字符串
@@ -629,58 +638,78 @@ namespace blqw.Serializable
                 Buffer.Append(value);
             }
         }
+
+        /// <summary>
+        /// 特殊字符表
+        /// </summary>
+        static readonly bool[] SpecialCharacters = InitSpecialCharacters();
+        private static bool[] InitSpecialCharacters()
+        {
+            var chars = new bool[char.MaxValue + 1];
+            var indexs = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, };
+            foreach (var index in indexs)
+            {
+                chars[index] = true;
+            }
+            return chars;
+        }
+
         /// <summary> 将 Char 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="value">Char 对象</param>
         protected virtual void AppendChar(Char value)
         {
             Buffer.Append('"');
-            //如果是特殊字符,将转义之后写入
-            switch (value)
+            if (FilterSpecialCharacter  == false 
+                || SpecialCharacters[value] == false)
             {
-                case '\\':
-                    Buffer.Append('\\');
-                    Buffer.Append('\\');
-                    break;
-                case '"':
-                    Buffer.Append('\\');
-                    Buffer.Append('"');
-                    break;
-                case '\n':
-                    Buffer.Append('\\');
-                    Buffer.Append('n');
-                    break;
-                case '\r':
-                    Buffer.Append('\\');
-                    Buffer.Append('r');
-                    break;
-                case '\t':
-                    Buffer.Append('\\');
-                    Buffer.Append('t');
-                    break;
-                case '\f':
-                    Buffer.Append('\\');
-                    Buffer.Append('f');
-                    break;
-                case '\0':
-                    Buffer.Append('\\');
-                    Buffer.Append('0');
-                    break;
-                case '\a':
-                    Buffer.Append('\\');
-                    Buffer.Append('a');
-                    break;
-                case '\b':
-                    Buffer.Append('\\');
-                    Buffer.Append('b');
-                    break;
-                case '\v':
-                    Buffer.Append('\\');
-                    Buffer.Append('v');
-                    break;
-                default:
-                    Buffer.Append(value);
-                    break;
+                //如果是特殊字符,将转义之后写入
+                switch (value)
+                {
+                    case '\\':
+                        Buffer.Append('\\');
+                        Buffer.Append('\\');
+                        break;
+                    case '"':
+                        Buffer.Append('\\');
+                        Buffer.Append('"');
+                        break;
+                    case '\n':
+                        Buffer.Append('\\');
+                        Buffer.Append('n');
+                        break;
+                    case '\r':
+                        Buffer.Append('\\');
+                        Buffer.Append('r');
+                        break;
+                    case '\t':
+                        Buffer.Append('\\');
+                        Buffer.Append('t');
+                        break;
+                    case '\f':
+                        Buffer.Append('\\');
+                        Buffer.Append('f');
+                        break;
+                    case '\0':
+                        Buffer.Append('\\');
+                        Buffer.Append('0');
+                        break;
+                    case '\a':
+                        Buffer.Append('\\');
+                        Buffer.Append('a');
+                        break;
+                    case '\b':
+                        Buffer.Append('\\');
+                        Buffer.Append('b');
+                        break;
+                    case '\v':
+                        Buffer.Append('\\');
+                        Buffer.Append('v');
+                        break;
+                    default:
+                        Buffer.Append(value);
+                        break;
+                }
             }
             Buffer.Append('"');
         }
@@ -701,64 +730,72 @@ namespace blqw.Serializable
                     while (p < end)
                     {
                         char c = *p;
-                        switch (c)
+                        if (FilterSpecialCharacter && SpecialCharacters[c])
                         {
-                            case '\\':
-                            case '"':
-                                Buffer.Append(flag, 0, (int)(p - flag));
-                                Buffer.Append('\\');
-                                flag = p;
-                                break;
-                            case '\n':
-                                Buffer.Append(flag, 0, (int)(p - flag));
-                                Buffer.Append('\\');
-                                Buffer.Append('n');
-                                flag = p + 1;
-                                break;
-                            case '\r':
-                                Buffer.Append(flag, 0, (int)(p - flag));
-                                Buffer.Append('\\');
-                                Buffer.Append('r');
-                                flag = p + 1;
-                                break;
-                            case '\t':
-                                Buffer.Append(flag, 0, (int)(p - flag));
-                                Buffer.Append('\\');
-                                Buffer.Append('t');
-                                flag = p + 1;
-                                break;
-                            case '\f':
-                                Buffer.Append(flag, 0, (int)(p - flag));
-                                Buffer.Append('\\');
-                                Buffer.Append('f');
-                                flag = p + 1;
-                                break;
-                            case '\0':
-                                Buffer.Append(flag, 0, (int)(p - flag));
-                                Buffer.Append('\\');
-                                Buffer.Append('0');
-                                flag = p + 1;
-                                break;
-                            case '\a':
-                                Buffer.Append(flag, 0, (int)(p - flag));
-                                Buffer.Append('\\');
-                                Buffer.Append('a');
-                                flag = p + 1;
-                                break;
-                            case '\b':
-                                Buffer.Append(flag, 0, (int)(p - flag));
-                                Buffer.Append('\\');
-                                Buffer.Append('b');
-                                flag = p + 1;
-                                break;
-                            case '\v':
-                                Buffer.Append(flag, 0, (int)(p - flag));
-                                Buffer.Append('\\');
-                                Buffer.Append('v');
-                                flag = p + 1;
-                                break;
-                            default:
-                                break;
+                            Buffer.Append(flag, 0, (int)(p - flag));
+                            flag = p + 1;
+                        }
+                        else
+                        {
+                            switch (c)
+                            {
+                                case '\\':
+                                case '"':
+                                    Buffer.Append(flag, 0, (int)(p - flag));
+                                    Buffer.Append('\\');
+                                    flag = p;
+                                    break;
+                                case '\n':
+                                    Buffer.Append(flag, 0, (int)(p - flag));
+                                    Buffer.Append('\\');
+                                    Buffer.Append('n');
+                                    flag = p + 1;
+                                    break;
+                                case '\r':
+                                    Buffer.Append(flag, 0, (int)(p - flag));
+                                    Buffer.Append('\\');
+                                    Buffer.Append('r');
+                                    flag = p + 1;
+                                    break;
+                                case '\t':
+                                    Buffer.Append(flag, 0, (int)(p - flag));
+                                    Buffer.Append('\\');
+                                    Buffer.Append('t');
+                                    flag = p + 1;
+                                    break;
+                                case '\f':
+                                    Buffer.Append(flag, 0, (int)(p - flag));
+                                    Buffer.Append('\\');
+                                    Buffer.Append('f');
+                                    flag = p + 1;
+                                    break;
+                                case '\0':
+                                    Buffer.Append(flag, 0, (int)(p - flag));
+                                    Buffer.Append('\\');
+                                    Buffer.Append('0');
+                                    flag = p + 1;
+                                    break;
+                                case '\a':
+                                    Buffer.Append(flag, 0, (int)(p - flag));
+                                    Buffer.Append('\\');
+                                    Buffer.Append('a');
+                                    flag = p + 1;
+                                    break;
+                                case '\b':
+                                    Buffer.Append(flag, 0, (int)(p - flag));
+                                    Buffer.Append('\\');
+                                    Buffer.Append('b');
+                                    flag = p + 1;
+                                    break;
+                                case '\v':
+                                    Buffer.Append(flag, 0, (int)(p - flag));
+                                    Buffer.Append('\\');
+                                    Buffer.Append('v');
+                                    flag = p + 1;
+                                    break;
+                                default:
+                                    break;
+                            }
                         }
                         p++;
                     }

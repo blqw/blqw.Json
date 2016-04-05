@@ -18,6 +18,12 @@ blqw.Json.ToDynamic(string);
 性能测试请参考:[pk.md](https://github.com/blqw/blqw.Json/blob/master/pk.md)
 
 ##更新说明
+#### 2016.03.31
+* 新增 ToStringJson 可选择过滤特殊字符的功能  
+    
+#### 2016.03.16
+* 更新EMF组件  
+  
 #### 2016.03.03  
 * 优化反序列化时的产生太多垃圾对象问题  
 
@@ -44,25 +50,7 @@ blqw.Json.ToDynamic(string);
 
 #### 2014.12.20
 * 优化`IList`的序列化性能  
-* 优化`IJsonObject`,现在实现它也必须现实`IEnumerable<IJsonObject>`接口,所以可以直接`foreach`操作,例如下面这段代码  
-```csharp
-    public void Fill(blqw.IJsonObject jsonObject)
-    {
-        var items = jsonObject["Items"];
-        if (items != null)
-        {
-            foreach (var item in items)
-            {
-                Add(item.ToString());
-            }
-        }
-        var total = jsonObject["TotalCount"] as IConvertible;
-        if (total != null)
-        {
-            TotalCount = total.ToInt32(null);
-        }
-    } 
-```  
+* 优化`IJsonObject`,现在实现它也必须现实`IEnumerable<IJsonObject>`接口,所以可以直接`foreach`操作  
 * 新增2个接口`IToJson`,`ILoadJson`允许对象自定义序列化和反序列化的部分行为  
 * 同步更新`Literacy`,增加2个转换全半角的方法  
 
