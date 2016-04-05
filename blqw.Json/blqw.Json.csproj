@@ -56,6 +56,7 @@
     <Compile Include="JsonBuilderSettings.cs" />
     <Compile Include="JsonParseException.cs" />
     <Compile Include="JsonParser.cs" />
+    <Compile Include="JsonType\ISetAdd.cs" />
     <Compile Include="JsonType\JsonMember.cs" />
     <Compile Include="JsonType\JsonType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -63,6 +64,7 @@
     <Compile Include="TypeName.cs" />
     <Compile Include="UnsafeJsonReader.cs" />
     <Compile Include="Value\JsonDictionary.cs" />
+    <Compile Include="Value\JsonList.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

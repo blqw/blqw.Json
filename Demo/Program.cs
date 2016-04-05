@@ -21,146 +21,21 @@ namespace Demo
         }
 
 
-        public class JsonObject : NameValueCollection
-        {
-            object _Data;
-            public JsonObject(string json)
-            {
-                _Data = Json.ToObject(json);
-            }
-
-            private object Get(object obj, string name, int? index)
-            {
-                var map = obj as IDictionary;
-                if (map != null)
-                {
-                    if (name != null)
-                    {
-                        return Get(map, name);
-                    }
-                    return Get(map, index.Value);
-                }
-                var list = obj as IList;
-                if (list != null)
-                {
-                    if (name != null)
-                    {
-                        return Get(list, name);
-                    }
-                    return Get(list, index.Value);
-                }
-                return null;
-            }
-
-
-
-            private object Get(IList list, int index)
-            {
-                if (index < list.Count)
-                {
-                    return list[index];
-                }
-                return null;
-            }
-
-            private object Get(IList list, string name)
-            {
-                int index;
-                if (int.TryParse(name, out index))
-                {
-                    return Get(list, index);
-                }
-                return null;
-            }
-
-            private object Get(IDictionary map, int index)
-            {
-                return map[index.ToString()];
-            }
-
-            private object Get(IDictionary map, string name)
-            {
-                return map[name];
-            }
-
-            private string ToString(object obj)
-            {
-                if (obj is IDictionary || obj is IList)
-                {
-                    return Json.ToJsonString(obj);
-                }
-                return obj?.ToString();
-            }
-
-            private IEnumerable<string> ParseNames(string name)
-            {
-                if (name == null)
-                {
-                    yield break;
-                }
-                //a.b
-                //["a"]["b"]
-                //['a']['b']
-                var chars = name.ToCharArray();
-                var end = '\0';
-                var start = 0;
-                for (int i = 0, length = chars.Length; i < length; i++)
-                {
-                    var c = chars[i];
-                    switch (c)
-                    {
-                        case '[':
-
-                            break;
-                        case '.':
-                            yield return new string(chars, start, i - start);
-                            start = i + 1;
-                            break;
-                        default:
-                            break;
-                    }
-                }
-
-
-
-            }
-
-            public override string Get(string name)
-            {
-                var obj = _Data;
-                foreach (var n in ParseNames(name))
-                {
-                    obj = Get(obj, n, null);
-                    if (obj == null)
-                    {
-                        return ToString(Get(_Data, name, null));
-                    }
-                }
-                return ToString(obj);
-            }
-        }
-
-
         static void Main(string[] args)
         {
-            var body = "{a:{b:1},c:'xxx',d:[1]}";
-            var form = new JsonObject(body);
+            //var body = "{a:{b:1},c:'xxx',d:{e:[1]}}";
+            //var json = Json.ToObject(body);
+            //var form = new JsonObject(json);
 
-            Console.WriteLine(form["a"] == "{\"b\":\"1\"}");
-            Console.WriteLine(form["b"] == null);
-            Console.WriteLine(form["c"] == "xxx");
-            Console.WriteLine(form["a.b"] == "1");
-            Console.WriteLine(form["a.d[0]"] == "1");
-
-
-
-
-
-
-
-
+            //Console.WriteLine(form["a"] == "{\"b\":1}");
+            //Console.WriteLine(form["b"] == null);
+            //Console.WriteLine(form["c"] == "xxx");
+            //Console.WriteLine(form["a.b"] == "1");
+            //Console.WriteLine(form["d.e[0]"] == "1");
+            //Console.WriteLine(form["d.e[2]"] == null);
+            
             //Console.WriteLine(Json.ToJsonString(new object[]{null}));
-            Test1(true);
+            //Test1(true);
             Test2();
             //
             //dynamic json = Json.ToDynamic(str);
@@ -223,7 +98,7 @@ namespace Demo
             //TimeTest.TestFastJson<ResultDTO>();
 
             Console.WriteLine("========================"); ;
-            TimeTest.TestCount = 25;
+            TimeTest.TestCount = 500;
             TimeTest.TestJsonString = json3;
             TimeTest.TestQuickJsonBuilder<List<Object2>>();
             TimeTest.TestFastJson<List<Object2>>();
@@ -233,8 +108,6 @@ namespace Demo
 
             //Class1.AssertEquals(obj1, obj2);
         }
-
-
     }
 
 

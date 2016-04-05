@@ -277,13 +277,28 @@ namespace blqw.Serializable
         //袖珍版字符串处理类
         sealed class MiniBuffer : IDisposable
         {
+            [ThreadStatic]
+            static MiniBuffer Instance;
+
+            public static MiniBuffer Create(char* p)
+            {
+                if (Instance == null)
+                {
+                    Instance = new MiniBuffer();
+                }
+                Instance._p = p;
+                Instance._index = 0;
+                Instance._position = 0;
+                return Instance;
+            }
+
             char* _p;
             string[] _str;
             int _index;
             int _position;
-            public MiniBuffer(char* p)
+            private MiniBuffer()
             {
-                _p = p;
+
             }
 
             public void AddString(char* point, int offset, int length)
@@ -1003,11 +1018,8 @@ namespace blqw.Serializable
             {
                 if (Current == '\\')//是否是转义符
                 {
-                    char[] arr = new char[255];
-                    fixed (char* p = arr)
-                    {
-                        return ReadString(index, quot, new MiniBuffer(p));
-                    }
+                    char* p = stackalloc char[255];
+                    return ReadString(index, quot, MiniBuffer.Create(p));
                 }
                 MoveNext();
             } while (Current != quot);//是否是结束字符

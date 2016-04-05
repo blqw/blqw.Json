@@ -251,5 +251,10 @@ namespace blqw.Serializable
         }
 
         #endregion
+
+        public override string ToString()
+        {
+            return Json.ToJsonString(this);
+        }
     }
 }

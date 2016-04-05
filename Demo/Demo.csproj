@@ -67,6 +67,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="JsonObject.cs" />
     <Compile Include="models\Class1.cs" />
     <Compile Include="models\Class2.cs" />
     <Compile Include="CodeTimer.cs" />
