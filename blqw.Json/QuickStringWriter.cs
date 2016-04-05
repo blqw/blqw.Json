@@ -1,8 +1,4 @@
-﻿/*
- * 如果引入 blqw.Core.dll 可以删除此文件 
- */
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;

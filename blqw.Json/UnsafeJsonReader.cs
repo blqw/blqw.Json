@@ -73,6 +73,8 @@ namespace blqw.Serializable
             #region 非标准 但兼容转义符
             _WordChars['\''] |= 16;
             _WordChars['0'] |= 16;
+            _WordChars['a'] |= 16;
+            _WordChars['v'] |= 16;
             #endregion
 
             string[] a = { "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec" };
@@ -1071,6 +1073,14 @@ namespace blqw.Serializable
                             break;
                         case '0':
                             buff.AddChar('\0');
+                            index = _position + 1;
+                            break;
+                        case 'a':
+                            buff.AddChar('\a');
+                            index = _position + 1;
+                            break;
+                        case 'v':
+                            buff.AddChar('\v');
                             index = _position + 1;
                             break;
                         case 'u':

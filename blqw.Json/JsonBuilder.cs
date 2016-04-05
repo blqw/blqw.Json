@@ -82,41 +82,59 @@ namespace blqw.Serializable
             }
             switch (obj.GetTypeCode())
             {
-                case TypeCode.Boolean: AppendBoolean(obj.ToBoolean(CultureInfo.InvariantCulture));
+                case TypeCode.Boolean:
+                    AppendBoolean(obj.ToBoolean(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.Byte: AppendByte(obj.ToByte(CultureInfo.InvariantCulture));
+                case TypeCode.Byte:
+                    AppendByte(obj.ToByte(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.Char: AppendChar(obj.ToChar(CultureInfo.InvariantCulture));
+                case TypeCode.Char:
+                    AppendChar(obj.ToChar(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.DBNull: AppendObject(DBNull.Value);
+                case TypeCode.DBNull:
+                    AppendObject(DBNull.Value);
                     break;
-                case TypeCode.DateTime: AppendDateTime(obj.ToDateTime(CultureInfo.InvariantCulture));
+                case TypeCode.DateTime:
+                    AppendDateTime(obj.ToDateTime(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.Decimal: AppendDecimal(obj.ToDecimal(CultureInfo.InvariantCulture));
+                case TypeCode.Decimal:
+                    AppendDecimal(obj.ToDecimal(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.Double: AppendDouble(obj.ToDouble(CultureInfo.InvariantCulture));
+                case TypeCode.Double:
+                    AppendDouble(obj.ToDouble(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.Empty: AppendObject(null);
+                case TypeCode.Empty:
+                    AppendObject(null);
                     break;
-                case TypeCode.Int16: AppendInt16(obj.ToInt16(CultureInfo.InvariantCulture));
+                case TypeCode.Int16:
+                    AppendInt16(obj.ToInt16(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.Int32: AppendInt32(obj.ToInt32(CultureInfo.InvariantCulture));
+                case TypeCode.Int32:
+                    AppendInt32(obj.ToInt32(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.Int64: AppendInt64(obj.ToInt64(CultureInfo.InvariantCulture));
+                case TypeCode.Int64:
+                    AppendInt64(obj.ToInt64(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.Object: AppendObject(obj.ToType(typeof(object), CultureInfo.InvariantCulture));
+                case TypeCode.Object:
+                    AppendObject(obj.ToType(typeof(object), CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.SByte: AppendSByte(obj.ToSByte(CultureInfo.InvariantCulture));
+                case TypeCode.SByte:
+                    AppendSByte(obj.ToSByte(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.Single: AppendSingle(obj.ToSingle(CultureInfo.InvariantCulture));
+                case TypeCode.Single:
+                    AppendSingle(obj.ToSingle(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.String: AppendString(obj.ToString(CultureInfo.InvariantCulture));
+                case TypeCode.String:
+                    AppendString(obj.ToString(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.UInt16: AppendUInt16(obj.ToUInt16(CultureInfo.InvariantCulture));
+                case TypeCode.UInt16:
+                    AppendUInt16(obj.ToUInt16(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.UInt32: AppendUInt32(obj.ToUInt32(CultureInfo.InvariantCulture));
+                case TypeCode.UInt32:
+                    AppendUInt32(obj.ToUInt32(CultureInfo.InvariantCulture));
                     break;
-                case TypeCode.UInt64: AppendUInt64(obj.ToUInt64(CultureInfo.InvariantCulture));
+                case TypeCode.UInt64:
+                    AppendUInt64(obj.ToUInt64(CultureInfo.InvariantCulture));
                     break;
                 default:
                     break;
@@ -642,15 +660,24 @@ namespace blqw.Serializable
         /// <summary>
         /// 特殊字符表
         /// </summary>
-        static readonly bool[] SpecialCharacters = InitSpecialCharacters();
-        private static bool[] InitSpecialCharacters()
+        static readonly string[] SpecialCharacters = InitSpecialCharacters();
+        private static string[] InitSpecialCharacters()
         {
-            var chars = new bool[char.MaxValue + 1];
-            var indexs = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, };
-            foreach (var index in indexs)
+            var chars = new string[256];
+            for (int i = 0; i < 256; i++)
             {
-                chars[index] = true;
+                if (char.IsControl((char)i))
+                {
+                    chars[i] = "\\u" + i.ToString("x4");
+                }
             }
+            chars['\"'] = @"\""";
+            chars['/'] = @"\/"; //json标准中该字符是否转换均可
+            chars['\b'] = @"\b";
+            chars['\f'] = @"\f";
+            chars['\n'] = @"\n";
+            chars['\r'] = @"\r";
+            chars['\t'] = @"\t";
             return chars;
         }
 
@@ -660,56 +687,14 @@ namespace blqw.Serializable
         protected virtual void AppendChar(Char value)
         {
             Buffer.Append('"');
-            if (FilterSpecialCharacter  == false 
-                || SpecialCharacters[value] == false)
+            var escape = SpecialCharacters[value];
+            if (escape == null)
             {
-                //如果是特殊字符,将转义之后写入
-                switch (value)
-                {
-                    case '\\':
-                        Buffer.Append('\\');
-                        Buffer.Append('\\');
-                        break;
-                    case '"':
-                        Buffer.Append('\\');
-                        Buffer.Append('"');
-                        break;
-                    case '\n':
-                        Buffer.Append('\\');
-                        Buffer.Append('n');
-                        break;
-                    case '\r':
-                        Buffer.Append('\\');
-                        Buffer.Append('r');
-                        break;
-                    case '\t':
-                        Buffer.Append('\\');
-                        Buffer.Append('t');
-                        break;
-                    case '\f':
-                        Buffer.Append('\\');
-                        Buffer.Append('f');
-                        break;
-                    case '\0':
-                        Buffer.Append('\\');
-                        Buffer.Append('0');
-                        break;
-                    case '\a':
-                        Buffer.Append('\\');
-                        Buffer.Append('a');
-                        break;
-                    case '\b':
-                        Buffer.Append('\\');
-                        Buffer.Append('b');
-                        break;
-                    case '\v':
-                        Buffer.Append('\\');
-                        Buffer.Append('v');
-                        break;
-                    default:
-                        Buffer.Append(value);
-                        break;
-                }
+                Buffer.Append(value);
+            }
+            else if (FilterSpecialCharacter == false)
+            {
+                Buffer.Append(escape);
             }
             Buffer.Append('"');
         }
@@ -730,71 +715,21 @@ namespace blqw.Serializable
                     while (p < end)
                     {
                         char c = *p;
-                        if (FilterSpecialCharacter && SpecialCharacters[c])
+                        if (c < 256)
                         {
-                            Buffer.Append(flag, 0, (int)(p - flag));
-                            flag = p + 1;
-                        }
-                        else
-                        {
-                            switch (c)
+                            var escape = SpecialCharacters[c];
+                            if (escape != null)
                             {
-                                case '\\':
-                                case '"':
+                                if (FilterSpecialCharacter)
+                                {
                                     Buffer.Append(flag, 0, (int)(p - flag));
-                                    Buffer.Append('\\');
-                                    flag = p;
-                                    break;
-                                case '\n':
+                                }
+                                else
+                                {
                                     Buffer.Append(flag, 0, (int)(p - flag));
-                                    Buffer.Append('\\');
-                                    Buffer.Append('n');
-                                    flag = p + 1;
-                                    break;
-                                case '\r':
-                                    Buffer.Append(flag, 0, (int)(p - flag));
-                                    Buffer.Append('\\');
-                                    Buffer.Append('r');
-                                    flag = p + 1;
-                                    break;
-                                case '\t':
-                                    Buffer.Append(flag, 0, (int)(p - flag));
-                                    Buffer.Append('\\');
-                                    Buffer.Append('t');
-                                    flag = p + 1;
-                                    break;
-                                case '\f':
-                                    Buffer.Append(flag, 0, (int)(p - flag));
-                                    Buffer.Append('\\');
-                                    Buffer.Append('f');
-                                    flag = p + 1;
-                                    break;
-                                case '\0':
-                                    Buffer.Append(flag, 0, (int)(p - flag));
-                                    Buffer.Append('\\');
-                                    Buffer.Append('0');
-                                    flag = p + 1;
-                                    break;
-                                case '\a':
-                                    Buffer.Append(flag, 0, (int)(p - flag));
-                                    Buffer.Append('\\');
-                                    Buffer.Append('a');
-                                    flag = p + 1;
-                                    break;
-                                case '\b':
-                                    Buffer.Append(flag, 0, (int)(p - flag));
-                                    Buffer.Append('\\');
-                                    Buffer.Append('b');
-                                    flag = p + 1;
-                                    break;
-                                case '\v':
-                                    Buffer.Append(flag, 0, (int)(p - flag));
-                                    Buffer.Append('\\');
-                                    Buffer.Append('v');
-                                    flag = p + 1;
-                                    break;
-                                default:
-                                    break;
+                                    Buffer.Append(escape);
+                                }
+                                flag = p + 1;
                             }
                         }
                         p++;
@@ -1161,7 +1096,8 @@ namespace blqw.Serializable
             AppendJson(
                 obj.GetDynamicMemberNames().GetEnumerator(),
                 name => (string)name,
-                name => {
+                name =>
+                {
                     object val;
                     if (obj.TryGetMember(new MyGetMemberBinder((string)name), out val) == false)
                     {

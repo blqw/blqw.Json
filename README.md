@@ -18,6 +18,11 @@ blqw.Json.ToDynamic(string);
 性能测试请参考:[pk.md](https://github.com/blqw/blqw.Json/blob/master/pk.md)
 
 ##更新说明
+#### 2016.04.05
+* 根据Json官方文档对转义符进行优化  
+* 序列化支持官方转义符:`"\" \\ \/ \b \f \n \r \t `其他控制类字符转为`\u****`
+* 反序列化支持官方转义符同上,另外支持非官方转义符 `\0 \a \v \'`  
+  
 #### 2016.03.31
 * 新增 ToStringJson 可选择过滤特殊字符的功能  
     
