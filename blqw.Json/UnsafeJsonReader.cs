@@ -58,16 +58,22 @@ namespace blqw.Serializable
             _WordChars['\n'] = 8;
 
 
-            _WordChars['t'] |= 16;
-            _WordChars['r'] |= 16;
-            _WordChars['n'] |= 16;
-            _WordChars['f'] |= 16;
-            _WordChars['0'] |= 16;
+            #region 标准转义符
             _WordChars['"'] |= 16;
-            _WordChars['\''] |= 16;
             _WordChars['\\'] |= 16;
             _WordChars['/'] |= 16;
+            _WordChars['b'] |= 16;
+            _WordChars['f'] |= 16;
+            _WordChars['n'] |= 16;
+            _WordChars['r'] |= 16;
+            _WordChars['t'] |= 16;
+            _WordChars['u'] |= 16; 
+            #endregion
 
+            #region 非标准 但兼容转义符
+            _WordChars['\''] |= 16;
+            _WordChars['0'] |= 16;
+            #endregion
 
             string[] a = { "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec" };
             string[] b = { "mon", "tue", "wed", "thu", "fri", "sat", "sun" };
@@ -1016,16 +1022,27 @@ namespace blqw.Serializable
             {
                 if (Current == '\\')//是否是转义符
                 {
+                    buff.AddString(_p, index, _position - index);
+                    MoveNext();
                     if ((_WordChars[Current] & 16) == 0)
                     {
                         ThrowException();
                     }
-                    buff.AddString(_p, index, _position - index);
-                    MoveNext();
                     switch (Current)
                     {
-                        case 't':
-                            buff.AddChar('\t');
+                        case '"':
+                        case '\'':
+                        case '\\':
+                        case '/':
+                            buff.AddChar(Current);
+                            index = _position + 1;
+                            break;
+                        case 'b':
+                            buff.AddChar('\b');
+                            index = _position + 1;
+                            break;
+                        case 'f':
+                            buff.AddChar('\f');
                             index = _position + 1;
                             break;
                         case 'n':
@@ -1036,12 +1053,12 @@ namespace blqw.Serializable
                             buff.AddChar('\r');
                             index = _position + 1;
                             break;
-                        case '0':
-                            buff.AddChar('\0');
+                        case 't':
+                            buff.AddChar('\t');
                             index = _position + 1;
                             break;
-                        case 'f':
-                            buff.AddChar('\f');
+                        case '0':
+                            buff.AddChar('\0');
                             index = _position + 1;
                             break;
                         case 'u':

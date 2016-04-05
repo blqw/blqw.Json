@@ -71,8 +71,12 @@
     <Compile Include="UnitTest2.cs" />
     <Compile Include="UnitTest3.cs" />
     <Compile Include="UnitTest4.cs" />
+    <Compile Include="UnitTest5.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="json3.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="json2.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
