@@ -18,6 +18,9 @@ blqw.Json.ToDynamic(string);
 性能测试请参考:[pk.md](https://github.com/blqw/blqw.Json/blob/master/pk.md)
 
 ##更新说明
+#### 2016.04.08
+* 新增可以将255以上的字符序列化为unicode编码  
+  
 #### 2016.04.05
 * 根据Json官方文档对转义符进行优化  
 * 序列化支持官方转义符:`"\" \\ \/ \b \f \n \r \t `其他控制类字符转为`\u****`

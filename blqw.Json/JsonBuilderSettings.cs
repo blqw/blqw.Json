@@ -52,5 +52,9 @@ namespace blqw
         /// <summary> 过滤特殊字符
         /// </summary>
         FilterSpecialCharacter = 1 << 13,
+        /// <summary>
+        /// 是否将大于255的字符转为Unicode编码
+        /// </summary>
+        CastUnicode = 1 << 14,
     }
 }

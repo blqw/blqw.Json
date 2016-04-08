@@ -17,5 +17,17 @@ namespace UnitTestProject1
             var json2 = Json.ToJsonString(obj, 0);
             Assert.AreEqual(json[1], json2);
         }
+
+        [TestMethod]
+        public void 测试Unicode编码()
+        {
+            var obj = new { c = '我', s = "a哈ffff哈看1" };
+            var json = Json.ToJsonString(obj, JsonBuilderSettings.CastUnicode);
+            Assert.AreEqual(@"{""c"":""\u6211"",""s"":""a\u54c8ffff\u54c8\u770b1""}", json);
+            var obj2 = Json.ToDynamic(json);
+            Assert.AreEqual(obj.c.ToString() , obj2.c.ToString());
+            Assert.AreEqual(obj.s.ToString(), obj2.s.ToString());
+
+        }
     }
 }

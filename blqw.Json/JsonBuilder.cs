@@ -372,6 +372,7 @@ namespace blqw.Serializable
             SerializableType = (settings & JsonBuilderSettings.SerializableType) != 0;
             FormatAllMember = (settings & JsonBuilderSettings.FormatAllMember) != 0;
             FilterSpecialCharacter = (settings & JsonBuilderSettings.FilterSpecialCharacter) != 0;
+            CastUnicode = (settings & JsonBuilderSettings.CastUnicode) != 0;
         }
 
         #region settings
@@ -420,6 +421,10 @@ namespace blqw.Serializable
         /// 过滤特殊字符
         /// </summary>
         public bool FilterSpecialCharacter;
+        /// <summary>
+        /// 是否将大于255的字符转为Unicode编码
+        /// </summary>
+        public bool CastUnicode;
         #endregion
 
         /// <summary> 将对象转换为Json字符串
@@ -663,7 +668,7 @@ namespace blqw.Serializable
         static readonly string[] SpecialCharacters = InitSpecialCharacters();
         private static string[] InitSpecialCharacters()
         {
-            var chars = new string[256];
+            var chars = new string[65536];
             for (int i = 0; i < 256; i++)
             {
                 if (char.IsControl((char)i))
@@ -678,6 +683,12 @@ namespace blqw.Serializable
             chars['\n'] = @"\n";
             chars['\r'] = @"\r";
             chars['\t'] = @"\t";
+
+            //unicode编码
+            for (int i = 256; i < 65536; i++)
+            {
+                chars[i] = "\\u" + i.ToString("x4");
+            }
             return chars;
         }
 
@@ -687,14 +698,25 @@ namespace blqw.Serializable
         protected virtual void AppendChar(Char value)
         {
             Buffer.Append('"');
-            var escape = SpecialCharacters[value];
-            if (escape == null)
+            if (value < 256)
+            {
+                var escape = SpecialCharacters[value];
+                if (escape == null)
+                {
+                    Buffer.Append(value);
+                }
+                else if (FilterSpecialCharacter == false)
+                {
+                    Buffer.Append(escape);
+                }
+            }
+            else if(CastUnicode)
+            {
+                Buffer.Append(SpecialCharacters[value]);
+            }
+            else
             {
                 Buffer.Append(value);
-            }
-            else if (FilterSpecialCharacter == false)
-            {
-                Buffer.Append(escape);
             }
             Buffer.Append('"');
         }
@@ -731,6 +753,12 @@ namespace blqw.Serializable
                                 }
                                 flag = p + 1;
                             }
+                        }
+                        else if (CastUnicode)
+                        {
+                            Buffer.Append(flag, 0, (int)(p - flag));
+                            Buffer.Append(SpecialCharacters[c]);
+                            flag = p + 1;
                         }
                         p++;
                     }
