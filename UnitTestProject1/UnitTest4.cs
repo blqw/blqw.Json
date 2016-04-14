@@ -21,7 +21,7 @@ namespace UnitTestProject1
         public void 测试过滤特殊字符()
         {
             var obj = new { s = "ab\acd" };
-            var json = "{\"s\":\"ab\\acd\"}";
+            var json = "{\"s\":\"ab\\u0007cd\"}";
             var json1 = Json.ToJsonString(obj, JsonBuilderSettings.Default ^ JsonBuilderSettings.FilterSpecialCharacter);
             Assert.AreEqual(json, json1);
 
