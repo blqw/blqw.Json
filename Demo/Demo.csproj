@@ -91,6 +91,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <Content Include="TestReslut\2.7.6-2016.05.03.txt" />
+    <Content Include="TestReslut\2.7.5-2016.05.01.txt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\blqw.Json\blqw.Json.csproj">
@@ -98,6 +100,7 @@
       <Name>blqw.Json</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>

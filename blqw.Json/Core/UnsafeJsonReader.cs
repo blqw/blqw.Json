@@ -7,76 +7,9 @@ namespace blqw.Serializable
     [DebuggerDisplay("当前字符: {Current}")]
     unsafe class UnsafeJsonReader : IDisposable
     {
-        /// <summary>
-        /// <para>包含1: 可以为头的字符</para>
-        /// <para>包含2: 可以为单词的字符</para>
-        /// <para>包含4: 可以为数字的字符</para>
-        /// <para>等于8: 空白字符</para>
-        /// <para>包含16:转义字符</para>
-        /// <para></para>
-        /// </summary>
-        private readonly static byte[] _WordChars = new byte[char.MaxValue + 1];
-        private readonly static sbyte[] _UnicodeFlags = new sbyte[123];
         private readonly static sbyte[,,] _DateTimeWords;
         static UnsafeJsonReader()
         {
-            for (int i = 0; i < 123; i++)
-            {
-                _UnicodeFlags[i] = -1;
-            }
-
-            _WordChars['-'] = 1 | 4;
-            _WordChars['+'] = 1 | 4;
-
-            _WordChars['$'] = 1 | 2;
-            _WordChars['_'] = 1 | 2;
-            for (char c = 'a'; c <= 'z'; c++)
-            {
-                _WordChars[c] = 1 | 2;
-                _UnicodeFlags[c] = (sbyte)(c - 'a' + 10);
-            }
-            for (char c = 'A'; c <= 'Z'; c++)
-            {
-                _WordChars[c] = 1 | 2;
-                _UnicodeFlags[c] = (sbyte)(c - 'A' + 10);
-            }
-
-            _WordChars['.'] = 1 | 2 | 4;
-            for (char c = '0'; c <= '9'; c++)
-            {
-                _WordChars[c] = 4;
-                _UnicodeFlags[c] = (sbyte)(c - '0');
-            }
-
-            //科学计数法
-            _WordChars['e'] |= 4;
-            _WordChars['E'] |= 4;
-
-            _WordChars[' '] = 8;
-            _WordChars['\t'] = 8;
-            _WordChars['\r'] = 8;
-            _WordChars['\n'] = 8;
-
-
-            #region 标准转义符
-            _WordChars['"'] |= 16;
-            _WordChars['\\'] |= 16;
-            _WordChars['/'] |= 16;
-            _WordChars['b'] |= 16;
-            _WordChars['f'] |= 16;
-            _WordChars['n'] |= 16;
-            _WordChars['r'] |= 16;
-            _WordChars['t'] |= 16;
-            _WordChars['u'] |= 16; 
-            #endregion
-
-            #region 非标准 但兼容转义符
-            _WordChars['\''] |= 16;
-            _WordChars['0'] |= 16;
-            _WordChars['a'] |= 16;
-            _WordChars['v'] |= 16;
-            #endregion
-
             string[] a = { "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec" };
             string[] b = { "mon", "tue", "wed", "thu", "fri", "sat", "sun" };
             _DateTimeWords = new sbyte[23, 21, 25];
@@ -150,13 +83,13 @@ namespace blqw.Serializable
             {
                 return true;
             }
-            if (_WordChars[Current] == 8)
+            if (Current.IsWhiteSpace())
             {
                 while (_position < _end)
                 {
                     _position++;
                     Current = _p[_position];
-                    if (_WordChars[Current] != 8)
+                    if (Current.IsWhiteSpace() == false)
                     {
                         return false;
                     }
@@ -206,12 +139,12 @@ namespace blqw.Serializable
                 ThrowException();
             }
 
-            if (_WordChars[Current] != 3)      //只能是3 可以为开头的单词
+            if (Current.IsVariableNameInitial())
             {
                 ThrowException();
             }
             MoveNext();
-            while ((_WordChars[Current] & 2) != 0)//读取下一个字符 可是是单词
+            while (Current.IsValidVariableName())//读取下一个字符 可是是单词
             {
                 MoveNext();
             }
@@ -266,7 +199,7 @@ namespace blqw.Serializable
             {
                 if (Current == '\\')//是否是转义符
                 {
-                    if ((_WordChars[Current] & 16) == 0)
+                    if (Current.IsEscapeCode() == false)
                     {
                         ThrowException();
                     }
@@ -447,7 +380,7 @@ namespace blqw.Serializable
 
             do
             {
-                if (Current >= '0' && Current <= '9')
+                if (Current.IsDigit())
                 {
                     number = ReadPositiveInteger();
                 }
@@ -456,7 +389,7 @@ namespace blqw.Serializable
                     datetime[numindex++] = number;
                     MoveNext();
                 }
-                else if ((_WordChars[Current] & 3) == 3)
+                else if (Current.IsLetter())
                 {
                     var wk = GetDateTimeWord();
                     if (wk == 0) goto label_parse;
@@ -770,11 +703,17 @@ namespace blqw.Serializable
                     if (warp)
                         ThrowException();
                     MoveNext();
-                    if ((_WordChars[Current] & 4) > 0)
+                    if (Current.IsNumber())
                     {
-                        _position--;
-                        Current = _p[_position];
-                        return ReadNumber();
+                        Position--;
+                        var number = ReadNumber();
+                        if (number % 1 == 0
+                            && number > int.MinValue
+                            && number < int.MaxValue)
+                        {
+                            return (int)number;
+                        }
+                        return number;
                     }
                     if (Current != 'I') ThrowException();
                     MoveNext();
@@ -794,9 +733,16 @@ namespace blqw.Serializable
                     MoveNext();
                     return double.NegativeInfinity;
                 default:
-                    if ((_WordChars[Current] & 4) > 0)
+                    if (Current.IsNumber())
                     {
-                        return ReadNumber();
+                        var number = ReadNumber();
+                        if (number % 1 == 0
+                            && number > int.MinValue
+                            && number < int.MaxValue)
+                        {
+                            return (int)number;
+                        }
+                        return number;
                     }
                     ThrowException();
                     return null;
@@ -813,14 +759,13 @@ namespace blqw.Serializable
                 ThrowException();
             }
 
-            //单词起始字符只能是1+2
-            if ((_WordChars[Current] & 3) != 3)
+            if (Current.IsVariableNameInitial() == false)
             {
                 return null;
             }
 
             var index = _position;
-            while ((_WordChars[Current] & 6) != 0)//2或者4都可以
+            while (Current.IsValidVariableName())
             {
                 MoveNext();//读取下一个字符
             }
@@ -830,167 +775,95 @@ namespace blqw.Serializable
         /// <summary> 读取数字
         /// </summary>
         /// <returns></returns>
-        private object ReadNumber()
+        private double ReadNumber()
         {
             if (IsEnd())//已到结尾
             {
                 ThrowException();
             }
 
-            int pot = -1;
-            bool neg = false;
+
+            var minus = false; //是否是负数
+            var number = 0d;   //数字
+            var rate = 10d;    //当前转化倍率,大于0为整数 小于0为小数
 
             switch (Current)
             {
                 case '.':
-                    pot = 0;
+                    rate = 0.1d;
                     break;
                 case '+':
                     MoveNext();//读取下一个字符
                     break;
                 case '-':
                     MoveNext();//读取下一个字符
-                    neg = true;
+                    minus = true;
                     break;
                 default:
                     break;
             }
-            int index = _position;
-
+            var index = _position;
 
             while (true)
             {
-                switch ((_WordChars[Current] & 6))
+                var result = Current.ContainsFlag(CharFlags.Digit | CharFlags.NumberSymbol);
+
+                switch (result)
                 {
-                    case 0:
-                        if (pot >= 0)
+                    case CharFlags.Nothing:
+                        return minus ? -number : number;
+                    case CharFlags.Digit:
+                        if (rate < 1)
                         {
-                            if (neg)
-                            {
-                                return -ReadDecimal(index, _position);
-                            }
-                            return ReadDecimal(index, _position);
+                            number += (Current - '0') * rate;
+                            rate /= 10;
                         }
-                        return ReadInteger(index, _position, neg);
-                    case 4:
+                        else
+                        {
+                            number = number * 10 + (Current - '0');
+                        }
+                        MoveNext();//读取下一个字符
                         break;
-                    case 6:
-                        if (pot < 0)
+                    case CharFlags.NumberSymbol:
+                        switch (Current)
                         {
-                            pot = _position;
-                        }
-                        else if (Current == '.')
-                        {
-                            ThrowException();
-                        }
-
-                        if (Current != '.')
-                        {
-                            if (neg)
-                            {
-                                index--;
-                            }
-                            string str = null;
-                            if (Current == 'e' || Current == 'E')
-                            {
-                                //如果是用科学计数法计的,那么小数点后面最多保存5位
-                                //不然有可能会报错
-                                if (_position - pot > 6)
+                            case '+':
+                            case '-':
+                                ThrowException();
+                                break;
+                            case '.':
+                                if (rate < 1)
                                 {
-                                    str = new string(_p, index, pot + 6 - index);
-                                    index = _position;
+                                    ThrowException();
                                 }
-                            }
-                            MoveNext();
-                            while ((_WordChars[Current] & 4) != 0)
-                            {
+                                rate = 0.1;
                                 MoveNext();//读取下一个字符
-                            }
-
-                            str += new string(_p, index, _position - index);
-                            double d;
-                            if (double.TryParse(str, out d))
-                            {
-                                return d;
-                            }
-                            ThrowException();
-                            return null;
+                                break;
+                            case 'e':
+                            case 'E':
+                                MoveNext();
+                                var power = ReadNumber();
+                                if (power < -308d)
+                                {
+                                    number *= Math.Pow(10d, -308d);
+                                    number *= Math.Pow(10d, power + 308d);
+                                }
+                                else
+                                {
+                                    number *= Math.Pow(10, power);
+                                }
+                                continue;
+                            default:
+                                ThrowException();
+                                break;
                         }
                         break;
                     default:
                         ThrowException();
                         break;
                 }
-                MoveNext();//读取下一个字符
-            }
-        }
 
-        /// <summary> 读取小数
-        /// </summary>
-        /// <param name="index"></param>
-        /// <param name="end"></param>
-        /// <returns></returns>
-        private double ReadDecimal(int index, int end)
-        {
-            double d1 = 0d;
-            for (; _p[index] != '.'; index++)
-            {
-                d1 = d1 * 10 + (_p[index] - (double)'0');
             }
-            index++;
-            end--;
-            double d2 = 0d;
-            for (; index <= end; end--)
-            {
-                d2 = d2 * 0.1 + (_p[end] - (long)'0');
-            }
-            return d1 + d2 * 0.1;
-        }
-
-        /// <summary> 读取整数
-        /// </summary>
-        /// <param name="index"></param>
-        /// <param name="end"></param>
-        /// <returns></returns>
-        private IConvertible ReadInteger(int index, int end, bool neg)
-        {
-            var length = end - index;
-            if (length > 19)
-            {
-                if (neg)
-                {
-                    return -ReadDecimal(index, _position);
-                }
-                return ReadDecimal(index, _position);
-            }
-            ulong ul = 0uL;
-            for (; index < end; index++)
-            {
-                ul = ul * 10 + (_p[index] - (ulong)'0');
-            }
-
-            if (!neg)
-            {
-                if (ul > long.MaxValue)
-                {
-                    return ul;
-                }
-                if (ul > int.MaxValue)
-                {
-                    return (long)ul;
-                }
-                return (int)ul;
-            }
-            else if (ul > long.MaxValue)
-            {
-                return (double)ul;
-            }
-            long l = (long)ul * (long)-1;
-            if (l < int.MinValue)
-            {
-                return l;
-            }
-            return (int)l;
         }
 
         /// <summary> 读取字符串
@@ -1038,58 +911,34 @@ namespace blqw.Serializable
                 {
                     buff.AddString(_p, index, _position - index);
                     MoveNext();
-                    if ((_WordChars[Current] & 16) == 0)
+                    var escape = Current.Escape();
+                    if (escape == null)
                     {
-                        ThrowException();
+                        if (Current != 'u')
+                        {
+                            ThrowException();
+                        }
+
+                        MoveNext();
+                        var a = Current;
+                        MoveNext();
+                        var b = Current;
+                        MoveNext();
+                        var c = Current;
+                        MoveNext();
+                        var d = Current;
+                        var unicode = CharExtensions.UnicodeToChar(a, b, c, d);
+                        if (unicode == null)
+                        {
+                            ThrowException($"Unicode转义串解析失败!\\u{a}{b}{c}{d}");
+                        }
+                        buff.AddChar(unicode.Value);
                     }
-                    switch (Current)
+                    else
                     {
-                        case '"':
-                        case '\'':
-                        case '\\':
-                        case '/':
-                            buff.AddChar(Current);
-                            index = _position + 1;
-                            break;
-                        case 'b':
-                            buff.AddChar('\b');
-                            index = _position + 1;
-                            break;
-                        case 'f':
-                            buff.AddChar('\f');
-                            index = _position + 1;
-                            break;
-                        case 'n':
-                            buff.AddChar('\n');
-                            index = _position + 1;
-                            break;
-                        case 'r':
-                            buff.AddChar('\r');
-                            index = _position + 1;
-                            break;
-                        case 't':
-                            buff.AddChar('\t');
-                            index = _position + 1;
-                            break;
-                        case '0':
-                            buff.AddChar('\0');
-                            index = _position + 1;
-                            break;
-                        case 'a':
-                            buff.AddChar('\a');
-                            index = _position + 1;
-                            break;
-                        case 'v':
-                            buff.AddChar('\v');
-                            index = _position + 1;
-                            break;
-                        case 'u':
-                            index = _position + ReadUnicode(buff);
-                            break;
-                        default:
-                            index = _position;
-                            break;
+                        buff.AddChar(escape.Value);
                     }
+                    index = _position + 1;
                 }
                 MoveNext();
             } while (Current != quot);//是否是结束字符
@@ -1101,69 +950,6 @@ namespace blqw.Serializable
             return str;
         }
 
-        private int ReadUnicode(MiniBuffer buff)
-        {
-            MoveNext();
-            var c1 = Current;
-            var n1 = UnicodeNumber(Current);
-            if (n1 == -1)
-            {
-                buff.AddChar('\\');
-                buff.AddChar('u');
-                buff.AddChar(c1);
-                return 2;
-            }
-
-            MoveNext();
-            var c2 = Current;
-            var n2 = UnicodeNumber(Current);
-            if (n2 == -1)
-            {
-                buff.AddChar('\\');
-                buff.AddChar('u');
-                buff.AddChar(c1);
-                buff.AddChar(c2);
-                return 3;
-            }
-
-            MoveNext();
-            var c3 = Current;
-            var n3 = UnicodeNumber(Current);
-            if (n3 == -1)
-            {
-                buff.AddChar('\\');
-                buff.AddChar('u');
-                buff.AddChar(c1);
-                buff.AddChar(c2);
-                buff.AddChar(c3);
-                return 4;
-            }
-
-            MoveNext();
-            var c4 = Current;
-            var n4 = UnicodeNumber(Current);
-            if (n4 == -1)
-            {
-                buff.AddChar('\\');
-                buff.AddChar('u');
-                buff.AddChar(c1);
-                buff.AddChar(c2);
-                buff.AddChar(c3);
-                buff.AddChar(c4);
-                return 5;
-            }
-            buff.AddChar((char)(n1 * 0x1000 + n2 * 0x100 + n3 * 0x10 + n4));
-            return 5;
-        }
-
-        private static sbyte UnicodeNumber(char c)
-        {
-            if (c > 122)
-            {
-                return -1;
-            }
-            return _UnicodeFlags[c];
-        }
 
         bool _isDisposed;
 
@@ -1203,7 +989,7 @@ namespace blqw.Serializable
             Dispose();
             throw new JsonParseException($"解析失败!{string.Format(title, ch)}\n截取: {view}\n位置{pos}", RawJson);
         }
-        
+
     }
 
 

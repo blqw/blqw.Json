@@ -36,6 +36,11 @@ namespace blqw.JsonComponent
                 {
                     if (type.IsEnum)
                     {
+                        var enumBaseType = type.GetEnumUnderlyingType();
+                        if (value.GetType() != enumBaseType)
+                        {
+                            value = Convert(value, enumBaseType, true);
+                        }
                         return Enum.ToObject(type, value);
                     }
                     return System.Convert.ChangeType(value, type);

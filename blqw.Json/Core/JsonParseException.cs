@@ -12,6 +12,7 @@ namespace blqw.Serializable
             : base(message + ",原JSON字符串详见Exception.Source属性", ex)
         {
             base.Source = json;
+            Data["JsonString"] = json;
         }
     }
 }

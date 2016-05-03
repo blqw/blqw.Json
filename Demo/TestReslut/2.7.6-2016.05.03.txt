@@ -1,0 +1,46 @@
+﻿QuickJsonBuilder序列化 Demo.User 循环 500000 次
+ 运行时间    CPU时钟周期    垃圾回收( 1代      2代      3代 )
+ 2,136ms     4,890,996,164            364      1        0
+
+Crylw.Json序列化 Demo.User 循环 500000 次
+ 运行时间    CPU时钟周期    垃圾回收( 1代      2代      3代 )
+ 1,623ms     3,724,258,966            284      1        0
+
+FastJson序列化 Demo.User 循环 500000 次
+ 运行时间    CPU时钟周期    垃圾回收( 1代      2代      3代 )
+ 4,640ms     10,629,448,792           1096     1        0
+
+========================
+QuickJsonBuilder序列化 Demo.ResultDTO 循环 10000 次
+ 运行时间    CPU时钟周期    垃圾回收( 1代      2代      3代 )
+ 1,994ms     4,573,994,849            413      0        0
+
+Crylw.Json序列化 Demo.ResultDTO 循环 10000 次
+ 运行时间    CPU时钟周期    垃圾回收( 1代      2代      3代 )
+ 1,326ms     3,042,284,112            416      1        0
+
+FastJson序列化 Demo.ResultDTO 循环 10000 次
+ 运行时间    CPU时钟周期    垃圾回收( 1代      2代      3代 )
+ 3,875ms     8,888,597,891            897      0        0
+
+========================
+QuickJsonBuilder序列化 System.Collections.Generic.List`1[Demo.Object2] 循环 1250 次
+ 运行时间    CPU时钟周期    垃圾回收( 1代      2代      3代 )
+ 2,415ms     5,225,899,972            441      105      105
+
+Crylw.Json序列化 System.Collections.Generic.List`1[Demo.Object2] 循环 1250 次
+ 运行时间    CPU时钟周期    垃圾回收( 1代      2代      3代 )
+ 1,703ms     3,546,183,701            201      169      104
+
+FastJson序列化 System.Collections.Generic.List`1[Demo.Object2] 循环 1250 次
+ 运行时间    CPU时钟周期    垃圾回收( 1代      2代      3代 )
+ 3,431ms     7,641,429,474            354      210      105
+
+========================
+QuickJsonBuilder反序列化 System.Collections.Generic.List`1[Demo.Object2] 循环 500 次
+ 运行时间    CPU时钟周期    垃圾回收( 1代      2代      3代 )
+ 4,775ms     10,934,873,253           187      73       0
+
+FastJson反序列化 System.Collections.Generic.List`1[Demo.Object2] 循环 500 次
+ 运行时间    CPU时钟周期    垃圾回收( 1代      2代      3代 )
+ 10,332ms    19,648,335,919           651      431      183

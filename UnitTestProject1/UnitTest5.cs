@@ -25,9 +25,25 @@ namespace UnitTestProject1
             var json = Json.ToJsonString(obj, JsonBuilderSettings.CastUnicode);
             Assert.AreEqual(@"{""c"":""\u6211"",""s"":""a\u54c8ffff\u54c8\u770b1""}", json);
             var obj2 = Json.ToDynamic(json);
-            Assert.AreEqual(obj.c.ToString() , obj2.c.ToString());
+            Assert.AreEqual(obj.c.ToString(), obj2.c.ToString());
             Assert.AreEqual(obj.s.ToString(), obj2.s.ToString());
 
+        }
+
+
+        [TestMethod]
+        public void 测试Double的bug()
+        {
+            var str = "{\"a\":2.2}";
+            var obj = Json.ToDynamic(str);
+            Assert.AreEqual(2.2d, obj.a);
+
+            str = "{\"a\":123e+123}";
+            obj = Json.ToDynamic(str);
+            Assert.AreEqual(123e+123d, obj.a);
+            str = "{\"a\":234e-315}";
+            obj = Json.ToDynamic(str);
+            Assert.AreEqual(234e-315d, obj.a);
         }
     }
 }
