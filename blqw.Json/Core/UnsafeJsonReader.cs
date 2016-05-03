@@ -1,33 +1,13 @@
 ﻿using System;
 using System.Globalization;
 using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace blqw.Serializable
 {
     [DebuggerDisplay("当前字符: {Current}")]
     unsafe class UnsafeJsonReader : IDisposable
     {
-        private readonly static sbyte[,,] _DateTimeWords;
-        static UnsafeJsonReader()
-        {
-            string[] a = { "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec" };
-            string[] b = { "mon", "tue", "wed", "thu", "fri", "sat", "sun" };
-            _DateTimeWords = new sbyte[23, 21, 25];
-
-            for (sbyte i = 0; i < a.Length; i++)
-            {
-                var d = a[i];
-                _DateTimeWords[d[0] - 97, d[1] - 97, d[2] - 97] = (sbyte)(i + 1);
-            }
-
-            for (sbyte i = 0; i < b.Length; i++)
-            {
-                var d = b[i];
-                _DateTimeWords[d[0] - 97, d[1] - 97, d[2] - 97] = (sbyte)-(i + 1);
-            }
-            _DateTimeWords['g' - 97, 'm' - 97, 't' - 97] = sbyte.MaxValue;
-        }
-
         Char* _p;
         int _position;
         readonly int _length;
@@ -350,245 +330,16 @@ namespace blqw.Serializable
         /// <returns></returns>
         public object ReadDateTime()
         {
-            if (IsEnd())//已到结尾
-            {
-                ThrowException();
-            }
-
-            Char quot = Current;
-            if (quot != '"' && quot != '\'')
-            {
-                ThrowException();
-            }
-            MoveNext();
-            if (Current == quot)
-            {
-                MoveNext();
-                return null;
-            }
-            var index = _position;
-
-            //0年,1月,2日,3时,4分,5秒,6毫秒,7星期,8+12,9gmt,10 月
-            int[] datetime = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
-            int numindex = 0;
-            if (IsEnd())//跳过空白
-            {
-                ThrowException();
-            }
-
-            int number = -1;
-
-            do
-            {
-                if (Current.IsDigit())
-                {
-                    number = ReadPositiveInteger();
-                }
-                else if (Current == 'T' && numindex == 2)
-                {
-                    datetime[numindex++] = number;
-                    MoveNext();
-                }
-                else if (Current.IsLetter())
-                {
-                    var wk = GetDateTimeWord();
-                    if (wk == 0) goto label_parse;
-                    if (wk == sbyte.MaxValue)
-                    {
-                        if (datetime[9] >= 0) goto label_parse;
-                        datetime[9] = 8;
-                    }
-                    else if (wk > 0)
-                    {
-                        if (datetime[10] >= 0) goto label_parse;
-                        datetime[10] = wk;
-                    }
-                    else
-                    {
-                        if (datetime[7] >= 0) goto label_parse;
-                        datetime[7] = -wk;
-                    }
-                }
-                else if (Current == quot)
-                {
-                    if (number >= 0)
-                    {
-                        datetime[numindex++] = number;
-                    }
-                    break;
-                }
-                else
-                {
-                    switch (Current)
-                    {
-                        case '-':
-                        case '/':
-                            if (number < 0 || numindex > 2) goto label_parse;
-                            datetime[numindex++] = number;
-                            break;
-                        case ' ':
-                            if (numindex == 2)
-                            {
-                                datetime[numindex++] = number;
-                            }
-                            break;
-                        case ':':
-                            if (numindex < 3) numindex = 3;
-                            datetime[numindex++] = number;
-                            break;
-                        case '.':
-                            if (numindex != 6) goto label_parse;
-                            datetime[6] = number;
-                            break;
-                        case 'a':
-                        case 'A':
-                            MoveNext();
-                            if (Current != 'm' && Current != 'M') goto label_parse;
-                            if (datetime[8] >= 0) goto label_parse;
-                            datetime[8] = 0;
-                            break;
-                        case 'p':
-                        case 'P':
-                            MoveNext();
-                            if (Current != 'm' && Current != 'M') goto label_parse;
-                            if (datetime[8] >= 0) goto label_parse;
-                            datetime[8] = 12;
-                            break;
-                        case '年':
-                            if (datetime[0] >= 0) goto label_parse;
-                            datetime[0] = number;
-                            break;
-                        case '月':
-                            if (datetime[1] >= 0) goto label_parse;
-                            datetime[1] = number;
-                            break;
-                        case '日':
-                            if (datetime[2] >= 0) goto label_parse;
-                            datetime[2] = number;
-                            break;
-                        case '时':
-                            if (datetime[3] >= 0) goto label_parse;
-                            datetime[3] = number;
-                            break;
-                        case '分':
-                            if (datetime[4] >= 0) goto label_parse;
-                            datetime[4] = number;
-                            break;
-                        case '秒':
-                            if (datetime[5] >= 0) goto label_parse;
-                            datetime[5] = number;
-                            break;
-                        case '上':
-                            MoveNext();
-                            if (Current != '午') goto label_parse;
-                            if (datetime[8] >= 0) goto label_parse;
-                            datetime[8] = 0;
-                            break;
-                        case '下':
-                            MoveNext();
-                            if (Current != '午') goto label_parse;
-                            if (datetime[8] >= 0) goto label_parse;
-                            datetime[8] = 12;
-                            break;
-                        case '星':
-                            if (datetime[7] >= 0) goto label_parse;
-                            datetime[7] = 1;
-                            MoveNext();
-                            if (Current != '期') goto label_parse;
-                            MoveNext();
-                            MoveNext();
-                            break;
-                        case '周':
-                            if (datetime[7] >= 0) goto label_parse;
-                            datetime[7] = 1;
-                            MoveNext();
-                            MoveNext();
-                            break;
-                        case ',':
-                            break;
-                        default:
-                            goto label_parse;
-                    }
-                    number = -1;
-                    MoveNext();
-                }
-            } while (Current != quot || number != -1);//是否是结束字符
-
-            if (datetime[2] == -1 && datetime[10] >= 0)
-            {
-                datetime[2] = datetime[1];
-                datetime[1] = datetime[10];
-            }
-            if (datetime[2] > 31)
-            {
-                datetime[10] = datetime[2];
-                datetime[2] = datetime[0];
-                datetime[0] = datetime[10];
-            }
-
-            MoveNext();
-            if (datetime[0] > 9999 || datetime[1] > 12 || datetime[2] > 31 ||
-                datetime[3] > 24 || datetime[4] > 59 || datetime[5] > 59 || datetime[6] > 999)
-            {
-                goto label_parse;
-            }
-
-            if (datetime[0] <= 0) datetime[0] = 1990;
-            else if (datetime[0] < 100) datetime[0] += 1900;
-            if (datetime[1] <= 0) datetime[1] = 1;
-            if (datetime[2] <= 0) datetime[2] = 1;
-            if (datetime[3] <= 0) datetime[3] = 0;
-            if (datetime[4] <= 0) datetime[4] = 0;
-            if (datetime[5] <= 0) datetime[5] = 0;
-            if (datetime[6] <= 0) datetime[6] = 0;
-            if (datetime[8] > 0) datetime[3] = datetime[3] + datetime[8];
-            var td = new DateTime(datetime[0], datetime[1], datetime[2], datetime[3], datetime[4], datetime[5], datetime[6]);
-            if (datetime[9] >= 0)
-            {
-                td = td.AddHours(datetime[9]);
-            }
-            return td;
-            label_parse:
-
-            while (Current != quot)
-            {
-                MoveNext();
-            }
-            var str = new string(_p, index, _position - index);
-            MoveNext();
-            return DateTime.Parse(str);
+            var text = ReadString();
+            return DateTime.Parse(text);
         }
-
-        /// <summary> 获取时间中的英文字符,返回127 = GMT, 大于0 表示月份, 小于0 表示星期
-        /// </summary>
-        /// <returns></returns>
-        private int GetDateTimeWord()
-        {
-            char[] c = new char[3];
-            for (int i = 0; i < 3; i++)
-            {
-                if (Current >= 'a' && Current <= 'z')
-                {
-                    c[i] = (char)(Current - 'a');
-                }
-                else if (Current >= 'A' && Current <= 'Z')
-                {
-                    c[i] = (char)(Current - 'A');
-                }
-                else
-                {
-                    return 0;
-                }
-                MoveNext();
-            }
-            return _DateTimeWords[c[0], c[1], c[2]];
-        }
+        
         /// <summary> 读取正整数,在ReadDateTime函数中使用
         /// </summary>
         /// <returns></returns>
         private int ReadPositiveInteger()
         {
-            if (Current < '0' || Current > '9')
+            if (Current.IsDigit() == false)
             {
                 return -1;
             }
@@ -597,7 +348,7 @@ namespace blqw.Serializable
             {
                 num = num * 10 + (Current - '0');
                 MoveNext();
-            } while (Current >= '0' && Current <= '9');
+            } while (Current.IsDigit());
             return num;
         }
 

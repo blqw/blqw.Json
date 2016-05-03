@@ -488,7 +488,13 @@ namespace blqw.Serializable
             }
             else if (jsonType.TypeCode == TypeCode.DateTime)
             {
-                return reader.ReadDateTime();
+                var text = reader.ReadString();
+                DateTime time;
+                if (DateTime.TryParse(text, out time))
+                {
+                    return time;
+                }
+                throw new JsonParseException($"{text} 不是有效的 DateTime 数值", reader.RawJson);
             }
             else if (jsonType.TypeCode == TypeCode.Object && _convertString != null)
             {
