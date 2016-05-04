@@ -63,20 +63,22 @@ namespace blqw.Serializable
 
         /// <summary> 
         /// 是否是索引集合相关的类型
-        /// <para></para>
+        /// <para>
         /// 类型是数组或实现 <see cref="IList"/>,或实现<see cref="ICollection{T}"/>
+        /// </para>
         /// </summary>
         public readonly bool IsList;
 
         /// <summary> 
         /// 是否是键值对集合相关的类型
-        /// <para></para>
+        /// <para>
         /// 包括继承 <see cref="NameValueCollection"/> ,实现 <see cref="IDictionary"/> ,实现<see cref="IDictionary{TKey, TValue}"/>
+        /// </para>
         /// </summary>
         public readonly bool IsDictionary;
 
         /// <summary> 获取一个值，通过该值指示类型是否属于元类型
-        /// <para></para>
+        /// <para>
         /// 除了基元类型(<see cref="Type.IsPrimitive"/>)以外,还包括
         /// <see cref="Guid"/>,
         /// <see cref="TimeSpan"/>,
@@ -87,6 +89,7 @@ namespace blqw.Serializable
         /// <see cref="UIntPtr"/>,
         /// <see cref="String"/>,
         /// 以及这些类型的可空值类型(<see cref="Nullable{T}"/>)
+        /// </para>
         /// </summary>
         public readonly bool IsMataType;
 
@@ -102,7 +105,7 @@ namespace blqw.Serializable
         /// <summary> 是否是数字类
         /// </summary>
         public readonly bool IsNumber;
-        
+
         /// <summary> 
         /// 转换器
         /// </summary>
@@ -114,12 +117,16 @@ namespace blqw.Serializable
         public readonly JsonMember[] Members;
 
         /// <summary>
-        /// 用于操作
+        /// 用于操作列表中元素的添加
         /// </summary>
         internal readonly Action<object, object> AddValue;
 
-        internal readonly Action<object, object, object> AddKeyValue;
+        /// <summary>
+        /// 用于操作键值对中元素的设置
+        /// </summary>
+        internal readonly Action<object, object, object> SetKeyValue;
         
+
         /// <summary> 从指定的 Type 创建新的 JsonType 对象
         /// </summary>
         public JsonType(Type type)
@@ -144,7 +151,7 @@ namespace blqw.Serializable
 
             //兼容IList,IDictionary,IList<T>,IDictionary<TKey, TValue>
             //判断接口
-            var iType = GetInterface(type, typeof(IDictionary<,>));
+            var iType = FindInterface(type, typeof(IDictionary<,>));
             if (iType != null)
             {
                 IsDictionary = true;
@@ -155,22 +162,21 @@ namespace blqw.Serializable
                 }
                 KeyType = JsonType.Get(args[0]);
                 ElementType = JsonType.Get(args[1]);
-                AddKeyValue = ((ISetAdd)Activator.CreateInstance(typeof(SetAdd<,>).MakeGenericType(KeyType.Type, ElementType.Type))).IDictionaryT;
+                SetKeyValue = SetValueEntryFactory.Create(KeyType.Type, ElementType.Type).IDictionaryT;
                 return;
             }
 
-            iType = GetInterface(type, typeof(IDictionary));
+            iType = FindInterface(type, typeof(IDictionary));
             if (iType != null)
             {
                 IsDictionary = true;
-                var args = new Type[] { typeof(object), typeof(object) };
                 if (type.IsInterface)//兼容 IDictionary
                 {
                     Type = typeof(Hashtable);
                 }
                 KeyType = JsonType.Get<object>();
                 ElementType = KeyType;
-                AddKeyValue = ((ISetAdd)Activator.CreateInstance(typeof(SetAdd<,>).MakeGenericType(KeyType.Type, ElementType.Type))).IDictionary;
+                SetKeyValue = SetValueEntryFactory.Create(KeyType.Type, ElementType.Type).IDictionaryT;
                 return;
             }
 
@@ -181,7 +187,7 @@ namespace blqw.Serializable
                 IsDictionary = true;
                 KeyType = JsonType.Get<string>();
                 ElementType = JsonType.Get<string>();
-                AddKeyValue = (o, k, v) => ((NameValueCollection)o).Add((string)k, (string)v);
+                SetKeyValue = (o, k, v) => ((NameValueCollection)o).Add((string)k, (string)v);
                 return;
             }
 
@@ -189,11 +195,11 @@ namespace blqw.Serializable
             {
                 IsList = true;
                 ElementType = JsonType.Get(type.GetElementType());
-                AddValue = (o, v) => ((System.Collections.ArrayList)o).Add(v);
+                AddValue = (o, v) => ((ArrayList)o).Add(v);
                 return;
             }
 
-            iType = GetInterface(type, typeof(ICollection<>));
+            iType = FindInterface(type, typeof(ICollection<>));
             if (iType != null)
             {
                 IsList = true;
@@ -203,11 +209,11 @@ namespace blqw.Serializable
                     Type = typeof(List<>).MakeGenericType(args);
                 }
                 ElementType = JsonType.Get(args[0]);
-                AddValue = ((ISetAdd)Activator.CreateInstance(typeof(SetAdd<,>).MakeGenericType(typeof(object), ElementType.Type))).ICollectionT;
+                AddValue = SetValueEntryFactory.Create(ElementType.Type).ICollectionT;
                 return;
             }
 
-            iType = GetInterface(type, typeof(IList));
+            iType = FindInterface(type, typeof(IList));
             if (iType != null)
             {
                 if (type.IsInterface)//兼容 ICollection<T>
@@ -216,8 +222,7 @@ namespace blqw.Serializable
                 }
                 IsList = true;
                 ElementType = JsonType.Get<object>();
-                AddValue = ((ISetAdd)Activator.CreateInstance(typeof(SetAdd<,>).MakeGenericType(typeof(object), ElementType.Type))).IList;
-
+                AddValue = SetValueEntryFactory.Create(ElementType.Type).IList;
                 return;
             }
 
@@ -260,7 +265,7 @@ namespace blqw.Serializable
         /// <param name="type">需要获取接口的对象类型</param>
         /// <param name="interfaceType">需要的接口类型</param>
         /// <returns></returns>
-        private static Type GetInterface(Type type, Type interfaceType)
+        private static Type FindInterface(Type type, Type interfaceType)
         {
             if (type == interfaceType)
             {

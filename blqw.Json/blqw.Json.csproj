@@ -58,7 +58,7 @@
     <Compile Include="JsonBuilderSettings.cs" />
     <Compile Include="Core\JsonParseException.cs" />
     <Compile Include="Core\JsonParser.cs" />
-    <Compile Include="JsonType\ISetAdd.cs" />
+    <Compile Include="JsonType\SetValueEntry.cs" />
     <Compile Include="JsonType\JsonMember.cs" />
     <Compile Include="JsonType\JsonType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

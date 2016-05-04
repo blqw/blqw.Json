@@ -222,22 +222,18 @@ namespace blqw.Serializable
             }
             do
             {
-                var key = ReadKey(reader);                      //获取Key
-                var member = jsonType[key, true];               //得到对象属性
-                if (member != null && member.CanWrite)
+                var key = ReadKey(reader);                    //获取Key
+                var prop = jsonType[key, true];               //得到对象属性
+                if (prop != null && prop.CanWrite)
                 {
                     try
                     {
-                        object val = ReadValue(reader, member.JsonType);//得到值
-                        member.SetValue(obj, val);           //赋值
+                        object val = ReadValue(reader, prop.JsonType);  //得到值
+                        prop.SetValue(obj, val);                        //赋值
                     }
-                    catch (JsonParseException)
+                    catch (Exception ex) when(ex is JsonParseException == false)
                     {
-                        throw;
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new JsonParseException(member.DisplayText + " 赋值失败", reader.RawJson, ex);
+                        throw new JsonParseException(prop.DisplayText + " 赋值失败", reader.RawJson, ex);
                     }
                 }
                 else
@@ -247,28 +243,8 @@ namespace blqw.Serializable
             } while (reader.SkipChar(',', false));
         }
 
-        private void FillArray(Array arr, JsonType jsonType, UnsafeJsonReader reader)
-        {
-            reader.CheckEnd();
-            if (reader.Current == ']' || arr.Length == 0)
-            {
-                return;
-            }
-
-            var length = arr.Length;
-            var eleType = jsonType.ElementType;
-            for (int i = 0; i < length; i++)
-            {
-                object val = ReadValue(reader, eleType);  //得到值
-                arr.SetValue(val, i);
-                if (reader.SkipChar(',', false) == false)
-                {
-                    return;
-                }
-            }
-        }
-
-        /// <summary> 填充 IDictionary 或者 IDictionary&lt;,&gt;
+        /// <summary> 
+        /// 填充 IDictionary 或者 IDictionary&lt;,&gt;
         /// </summary>
         /// <param name="obj">IDictionar或IDictionary<,>实例</param>
         /// <param name="jsonType"></param>
@@ -280,50 +256,67 @@ namespace blqw.Serializable
             {
                 return;
             }
-            if (jsonType.AddKeyValue == null)
+            if (jsonType.SetKeyValue == null)
             {
-                throw new JsonParseException(jsonType.DisplayText + " 无法写入数据,有可能是只读的或找不到Add入口", reader.RawJson);
+                throw new JsonParseException(jsonType.DisplayText + " 无法写入数据,有可能对象是只读的", reader.RawJson);
             }
-            var eleType = jsonType.ElementType;
+            var valType = jsonType.ElementType;
             var keyType = jsonType.KeyType;
+
+            string strkey = ReadKey(reader);            //获取Key
+            object value = ReadValue(reader, valType);    //得到值
+            var newtype = TryGetType(strkey, value);
+            if (newtype != null)
+            {
+                jsonType = JsonType.Get(newtype);
+                obj = Activator.CreateInstance(newtype);
+                if (reader.SkipChar(',', false))
+                {
+                    FillProperty(obj, jsonType, reader);
+                }
+                return;
+            }
+
             if (keyType.TypeCode == TypeCode.String || keyType.IsObject)
             {
-                string key = ReadKey(reader);               //获取Key
-                object val = ReadValue(reader, eleType);    //得到值
-                if (key != null && key.Length > 0 && val is string && key[0] == '$' && key == "$Type$")
-                {
-                    var type = Type.GetType((string)val, false, false);
-                    if (type != null)
-                    {
-                        jsonType = JsonType.Get(type);
-                        obj = Activator.CreateInstance(type);
-                        if (reader.SkipChar(',', false))
-                        {
-                            FillProperty(obj, jsonType, reader);
-                        }
-                        return;
-                    }
-                }
-                jsonType.AddKeyValue(obj, key, val);
+                jsonType.SetKeyValue(obj, strkey, value);
 
                 while (reader.SkipChar(',', false))
                 {
-                    key = ReadKey(reader);               //获取Key
-                    val = ReadValue(reader, eleType);    //得到值
-                    jsonType.AddKeyValue(obj, key, val);
+                    strkey = ReadKey(reader);               //获取Key
+                    value = ReadValue(reader, valType);    //得到值
+                    jsonType.SetKeyValue(obj, strkey, value);
                 }
             }
             else
             {
+                object key = keyType.Convertor.Convert(strkey, jsonType.Type);
+                jsonType.SetKeyValue(obj, strkey, value);
                 do
                 {
-                    string keyStr = ReadKey(reader);            //获取Key
-                    object key = keyType.Convertor.Convert(keyStr, jsonType.Type);
-                    object val = ReadValue(reader, eleType);    //得到值
-                    jsonType.AddKeyValue(obj, key, val);
+                    strkey = ReadKey(reader);            //获取Key
+                    key = keyType.Convertor.Convert(strkey, jsonType.Type);
+                    value = ReadValue(reader, valType);    //得到值
+                    jsonType.SetKeyValue(obj, key, value);
                 } while (reader.SkipChar(',', false));
             }
         }
+
+        /// <summary>
+        /// 尝试从当前的键值对中获取一个类型
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        private Type TryGetType(string key, object value)
+        {
+            if (key != null && key.Length == 6 && key == "$Type$")
+            {
+                return Type.GetType(value as string ?? "", false, false);
+            }
+            return null;
+        }
+        
 
         /// <summary> 填充 IList 或者 IList &lt;&gt;
         /// </summary>
@@ -348,6 +341,27 @@ namespace blqw.Serializable
                 //((dynamic)obj).Add((dynamic)val);
                 jsonType.AddValue(obj, val);    //赋值
             } while (reader.SkipChar(',', false));
+        }
+
+        private void FillArray(Array arr, JsonType jsonType, UnsafeJsonReader reader)
+        {
+            reader.CheckEnd();
+            if (reader.Current == ']' || arr.Length == 0)
+            {
+                return;
+            }
+
+            var length = arr.Length;
+            var eleType = jsonType.ElementType;
+            for (int i = 0; i < length; i++)
+            {
+                object val = ReadValue(reader, eleType);  //得到值
+                arr.SetValue(val, i);
+                if (reader.SkipChar(',', false) == false)
+                {
+                    return;
+                }
+            }
         }
 
         /// <summary> 跳过一个键

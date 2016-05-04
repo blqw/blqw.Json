@@ -153,35 +153,35 @@ namespace blqw.Serializable
 
         /// <summary> 将 Guid 对象转换为字符串追加到当前实例。
         /// </summary>
-        public QuickStringWriter Append(Guid val, char format = 'd')
+        public QuickStringWriter Append(Guid val, string format = "d")
         {
             int flag;
             switch (format)
             {
-                case 'd':
-                case 'D':
+                case "d":
+                case "D":
                     flag = 1;
                     TryWrite(36);
                     break;
-                case 'N':
-                case 'n':
+                case "N":
+                case "n":
                     flag = 0;
                     TryWrite(32);
                     break;
-                case 'P':
-                case 'p':
+                case "P":
+                case "p":
                     TryWrite(38);
                     _current[_position++] = '(';
                     flag = ')';
                     break;
-                case 'B':
-                case 'b':
+                case "B":
+                case "b":
                     TryWrite(38);
                     _current[_position++] = '{';
                     flag = '}';
                     break;
                 default:
-                    Append(val.ToString(format.ToString()));
+                    Append(val.ToString(format));
                     return this;
             }
             var bs = val.ToByteArray();
@@ -559,21 +559,7 @@ namespace blqw.Serializable
             {
                 return this;
             }
-            if (length <= 3)
-            {
-                TryWrite(length);
-                _current[_position++] = val[0];
-                if (length > 2)
-                {
-                    _current[_position++] = val[1];
-                    _current[_position++] = val[2];
-                }
-                else if (length > 1)
-                {
-                    _current[_position++] = val[1];
-                }
-            }
-            else if (TryWrite(length))
+            if (TryWrite(length))
             {
                 fixed (char* c = val)
                 {
@@ -800,7 +786,7 @@ namespace blqw.Serializable
             }
             else if (val is Guid && (format == null || format.Length == 1))
             {
-                return Append((Guid)val, format[0]);
+                return Append((Guid)val, format);
             }
             return Append(val.ToString(format, provider));
         }

@@ -1289,7 +1289,7 @@ namespace blqw.Serializable
             else if (formattable is Guid && (format == null || format.Length == 1))
             {
                 Buffer.Append('"');
-                Buffer.Append((Guid)formattable, format[0]);
+                Buffer.Append((Guid)formattable, format);
                 Buffer.Append('"');
             }
             else
