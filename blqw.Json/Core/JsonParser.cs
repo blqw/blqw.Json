@@ -215,11 +215,11 @@ namespace blqw.Serializable
         /// <param name="reader"></param>
         private void FillProperty(object obj, JsonType jsonType, UnsafeJsonReader reader)
         {
-            reader.CheckEnd();
-            if (reader.Current == '}')
+            if (reader.SkipChar('}', false))
             {
                 return;
             }
+
             do
             {
                 var key = ReadKey(reader);                    //获取Key
@@ -231,7 +231,7 @@ namespace blqw.Serializable
                         object val = ReadValue(reader, prop.JsonType);  //得到值
                         prop.SetValue(obj, val);                        //赋值
                     }
-                    catch (Exception ex) when(ex is JsonParseException == false)
+                    catch (Exception ex) when (ex is JsonParseException == false)
                     {
                         throw new JsonParseException(prop.DisplayText + " 赋值失败", reader.RawJson, ex);
                     }
@@ -251,11 +251,11 @@ namespace blqw.Serializable
         /// <param name="reader"></param>
         private void FillDictionary(ref object obj, JsonType jsonType, UnsafeJsonReader reader)
         {
-            reader.CheckEnd();
-            if (reader.Current == '}')
+            if (reader.SkipChar('}', false))
             {
                 return;
             }
+
             if (jsonType.SetKeyValue == null)
             {
                 throw new JsonParseException(jsonType.DisplayText + " 无法写入数据,有可能对象是只读的", reader.RawJson);
@@ -316,7 +316,7 @@ namespace blqw.Serializable
             }
             return null;
         }
-        
+
 
         /// <summary> 填充 IList 或者 IList &lt;&gt;
         /// </summary>
@@ -325,8 +325,7 @@ namespace blqw.Serializable
         /// <param name="reader"></param>
         private void FillList(object obj, JsonType jsonType, UnsafeJsonReader reader)
         {
-            reader.CheckEnd();
-            if (reader.Current == ']')
+            if (reader.SkipChar(']', false))
             {
                 return;
             }
@@ -345,8 +344,7 @@ namespace blqw.Serializable
 
         private void FillArray(Array arr, JsonType jsonType, UnsafeJsonReader reader)
         {
-            reader.CheckEnd();
-            if (reader.Current == ']' || arr.Length == 0)
+            if (reader.SkipChar(']', false))
             {
                 return;
             }
@@ -362,6 +360,11 @@ namespace blqw.Serializable
                     return;
                 }
             }
+            do
+            {
+                SkipValue(reader);
+            } while (reader.SkipChar(',', false));
+
         }
 
         /// <summary> 跳过一个键

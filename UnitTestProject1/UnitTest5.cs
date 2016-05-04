@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using blqw;
 using System.IO;
+using blqw.Serializable;
 
 namespace UnitTestProject1
 {
@@ -46,6 +47,32 @@ namespace UnitTestProject1
             Assert.AreEqual(234e-315d, obj.a);
         }
 
-        
+        [TestMethod]
+        public void 测试FillArray的Bug()
+        {
+            var json = "[0,1,2,3,4,5]";
+            var arr = new int[6];
+            new JsonParser().FillObject(arr, json);
+            for (int i = 0; i < arr.Length; i++)
+            {
+                Assert.AreEqual(arr[i], i);
+            }
+
+            arr = new int[9];
+            new JsonParser().FillObject(arr, json);
+            for (int i = 0; i < arr.Length; i++)
+            {
+                Assert.AreEqual(arr[i], i > 5 ? 0 : i);
+            }
+
+            arr = new int[3];
+            new JsonParser().FillObject(arr, json);
+            for (int i = 0; i < arr.Length; i++)
+            {
+                Assert.AreEqual(arr[i], i);
+            }
+
+        }
+
     }
 }
