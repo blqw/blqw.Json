@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "blqw.Json", "blqw.Json\blqw
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "说明文件", "说明文件", "{583E44BB-3957-4E4B-81A0-A9A4FDEC9C55}"
 	ProjectSection(SolutionItems) = preProject
+		blqw.Json\blqw.Json.nuspec = blqw.Json\blqw.Json.nuspec
+		LICENSE = LICENSE
 		pk.md = pk.md
 		README.md = README.md
 		test.txt = test.txt
