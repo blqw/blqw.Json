@@ -11,7 +11,9 @@
     <iconUrl>https://avatars0.githubusercontent.com/u/9656154</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>一个优秀的Json序列化类库.</releaseNotes>
+    <releaseNotes>
+      优化对键值对枚举器的支持  
+    </releaseNotes>
     <copyright>Copyright 2016</copyright>
     <tags>blqw Json</tags>
   </metadata>

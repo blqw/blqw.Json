@@ -18,6 +18,9 @@ blqw.Json.ToDynamic(string);
 性能测试请参考:[pk.md](https://github.com/blqw/blqw.Json/blob/master/pk.md)
 
 ##更新说明
+#### 2016.06.29
+* 优化对键值对枚举器的支持  
+
 #### 2016.04.15
 * 更新MEF  
 

@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using blqw;
 using System.IO;
+using System.Collections.Generic;
 
 namespace UnitTestProject1
 {
@@ -29,5 +30,19 @@ namespace UnitTestProject1
             Assert.AreEqual(obj.s.ToString(), obj2.s.ToString());
 
         }
+
+        [TestMethod]
+        public void 支持键值枚举()
+        {
+            var list = new List<KeyValuePair<string, object>>()
+            {
+                new KeyValuePair<string, object> ("name","blqw"),
+                new KeyValuePair<string, object> ("age",30),
+                new KeyValuePair<string, object> ("sex",true),
+            };
+            var json = Json.ToJsonString(list);
+            Assert.AreEqual(@"{""name"":""blqw"",""age"":30,""sex"":true}", json);
+        }
+        
     }
 }

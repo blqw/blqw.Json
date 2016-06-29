@@ -161,3 +161,4 @@ $RECYCLE.BIN/
 /blqw.Json/core/DynamicCompile.cs
 /blqw.Json/core/EasyStringReader.cs
 /blqw.Json/core/Security.cs
+*.nupkg

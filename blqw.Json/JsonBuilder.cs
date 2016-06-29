@@ -151,6 +151,7 @@ namespace blqw.Serializable
             if (obj is ValueType)
             {
                 if (obj is IDictionary) AppendJson((IDictionary)obj);
+                else if (obj is IEnumerable<KeyValuePair<string, object>>) AppendJson((IEnumerable<KeyValuePair<string, object>>)obj);
                 else if (obj is IDataReader) AppendDataReader((IDataReader)obj);
                 else if (obj is IList) AppendArray((IList)obj);
                 else if (obj is IEnumerable) AppendArray((IEnumerable)obj);
@@ -166,7 +167,7 @@ namespace blqw.Serializable
                 else if (obj is DataRowView) AppendDataRow((DataRow)obj);
                 else if (obj is NameValueCollection) AppendNameValueCollection((NameValueCollection)obj);
                 else if (obj is IDictionary) AppendJson((IDictionary)obj);
-                else if (obj is IDictionary<string, object>) AppendJson((IDictionary<string, object>)obj);
+                else if (obj is IEnumerable<KeyValuePair<string, object>>) AppendJson((IEnumerable<KeyValuePair<string, object>>)obj);
                 else if (obj is IDataReader) AppendDataReader((IDataReader)obj);
                 else if (obj is IList) AppendArray((IList)obj);
                 else if (obj is IEnumerable) AppendArray((IEnumerable)obj);
@@ -183,7 +184,7 @@ namespace blqw.Serializable
                 else if (obj is DataRowView) AppendDataRow((DataRow)obj);
                 else if (obj is NameValueCollection) AppendNameValueCollection((NameValueCollection)obj);
                 else if (obj is IDictionary) AppendJson((IDictionary)obj);
-                else if (obj is IDictionary<string, object>) AppendJson((IDictionary<string, object>)obj);
+                else if (obj is IEnumerable<KeyValuePair<string, object>>) AppendJson((IEnumerable<KeyValuePair<string, object>>)obj);
                 else if (obj is IDataReader) AppendDataReader((IDataReader)obj);
                 else if (obj is IList) AppendArray((IList)obj);
                 else if (obj is IEnumerable) AppendArray((IEnumerable)obj);
@@ -710,7 +711,7 @@ namespace blqw.Serializable
                     Buffer.Append(escape);
                 }
             }
-            else if(CastUnicode)
+            else if (CastUnicode)
             {
                 Buffer.Append(SpecialCharacters[value]);
             }
@@ -965,10 +966,18 @@ namespace blqw.Serializable
         /// <summary> 将 键值对 对象转换Json中的键值字符串写入Buffer,兼容动态类型
         /// </summary>
         /// <param name="dict">键值对 对象</param>
-        protected virtual void AppendJson(IDictionary<string, object> dict)
+        protected virtual void AppendJson(IEnumerable<KeyValuePair<string, object>> enumerable)
         {
-            AppendJson(dict.Keys.GetEnumerator(), dict.Values.GetEnumerator());
+            var enumerator = enumerable.GetEnumerator();
+            Buffer.Append('{');
+            var comma = false;
+            while (enumerator.MoveNext())
+            {
+                comma = AppendObject(enumerator.Current.Key, true, enumerator.Current.Value, comma) || comma;
+            }
+            Buffer.Append('}');
         }
+
         /// <summary> 将 DataSet 对象转换Json字符串写入Buffer
         /// </summary>
         /// <param name="dataset">DataSet 对象</param>
