@@ -12,7 +12,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes>
-      优化对键值对枚举器的支持  
+      * 为了更好的兼容性,加入组件 blqw.Convert3
     </releaseNotes>
     <copyright>Copyright 2016</copyright>
     <tags>blqw Json</tags>

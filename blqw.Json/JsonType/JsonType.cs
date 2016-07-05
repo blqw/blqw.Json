@@ -9,7 +9,8 @@ using System.Collections.Specialized;
 using System.Runtime.Serialization;
 
 using blqw.Serializable;
-using blqw.JsonComponent;
+using blqw.IOC;
+using blqw.Converts;
 
 namespace blqw.Serializable
 {
@@ -102,11 +103,11 @@ namespace blqw.Serializable
         /// <summary> 是否是数字类
         /// </summary>
         public readonly bool IsNumber;
-        
+
         /// <summary> 
         /// 转换器
         /// </summary>
-        public readonly IFormatterConverter Convertor;
+        public readonly IConvertor Convertor;
 
         /// <summary> 
         /// 属性和字段集合
@@ -119,7 +120,7 @@ namespace blqw.Serializable
         internal readonly Action<object, object> AddValue;
 
         internal readonly Action<object, object, object> AddKeyValue;
-        
+
         /// <summary> 从指定的 Type 创建新的 JsonType 对象
         /// </summary>
         public JsonType(Type type)
@@ -139,7 +140,7 @@ namespace blqw.Serializable
             IsMataType = EqualMataType(type);
             IsAnonymous = Type.IsGenericType && Type.Name.StartsWith("<>f__AnonymousType");
             IsObject = type == typeof(object);
-            Convertor = Component.GetConverter(type, true);
+            Convertor = ConvertorContainer.Default.Get(type);
             IsNumber = (TypeCode >= TypeCode.SByte && TypeCode <= TypeCode.Decimal);
 
             //兼容IList,IDictionary,IList<T>,IDictionary<TKey, TValue>
@@ -344,6 +345,28 @@ namespace blqw.Serializable
             }
         }
 
+        public object Convert(string str, Type type)
+        {
+            bool b;
+            var obj = Convertor.ChangeType(str, type, out b);
+            if (b)
+            {
+                return obj;
+            }
+            throw new InvalidCastException($"'{str}'转为类型{CType.GetFriendlyName(type)}失败");
+        }
+
+        public object Convert(object val, Type type)
+        {
+            bool b;
+            var obj = Convertor.ChangeType(val, type, out b);
+            if (b)
+            {
+                return obj;
+            }
+            throw new InvalidCastException($"'{val.To<string>()}<{CType.GetFriendlyName(val?.GetType())}>'转为类型{CType.GetFriendlyName(type)}失败");
+        }
+
         /// <summary> 枚举所有成员
         /// </summary>
         public IEnumerator<JsonMember> GetEnumerator()
@@ -376,5 +399,6 @@ namespace blqw.Serializable
         {
             return this.Type.GetHashCode();
         }
+
     }
 }

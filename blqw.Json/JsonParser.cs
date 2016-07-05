@@ -318,7 +318,7 @@ namespace blqw.Serializable
                 do
                 {
                     string keyStr = ReadKey(reader);            //获取Key
-                    object key = keyType.Convertor.Convert(keyStr, jsonType.Type);
+                    object key = keyType.Convert(keyStr, jsonType.Type);
                     object val = ReadValue(reader, eleType);    //得到值
                     jsonType.AddKeyValue(obj, key, val);
                 } while (reader.SkipChar(',', false));
@@ -461,7 +461,7 @@ namespace blqw.Serializable
                     {
                         return _convertString((IConvertible)val);
                     }
-                    return jsonType.Convertor.Convert(val, jsonType.Type);
+                    return jsonType.Convert(val, jsonType.Type);
             }
         }
 
@@ -478,11 +478,11 @@ namespace blqw.Serializable
                 //枚举
                 if (jsonType.Type.IsEnum)
                 {
-                    return jsonType.Convertor.Convert(reader.ReadString(), jsonType.Type);
+                    return jsonType.Convert(reader.ReadString(), jsonType.Type);
                 }
                 char quot = reader.Current;
                 reader.MoveNext();
-                var val = jsonType.Convertor.Convert(reader.ReadConsts(true), jsonType.Type);
+                var val = jsonType.Convert(reader.ReadConsts(true), jsonType.Type);
                 reader.SkipChar(quot, true);
                 return val;
             }
@@ -494,7 +494,7 @@ namespace blqw.Serializable
             {
                 return _convertString(reader.ReadString());
             }
-            return jsonType.Convertor.Convert(reader.ReadString(), jsonType.Type);
+            return jsonType.Convert(reader.ReadString(), jsonType.Type);
         }
 
 

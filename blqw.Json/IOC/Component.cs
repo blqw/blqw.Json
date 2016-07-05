@@ -7,14 +7,14 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace blqw.JsonComponent
+namespace blqw.IOC
 {
-    class Component
+    class Components
     {
 
-        public Component()
+        public Components()
         {
-            MEFPart.Import(typeof(Component));
+            MEFLite.Import(typeof(Components));
         }
 
         /// <summary> 包装反射对象
@@ -22,25 +22,6 @@ namespace blqw.JsonComponent
         [Import("MemberInfoWrapper")]
         public static readonly Func<MemberInfo, MemberInfo> Wrapper = m => m;
         
-        /// <summary> 获取动态类型
-        /// </summary>
-        [Import("GetDynamic")]
-        public static readonly Func<object, dynamic> GetDynamic;
-
-
-        /// <summary> 获取转换器
-        /// </summary>
-        [Import("GetConverter")]
-        public static readonly Func<Type, bool, IFormatterConverter> GetConverter = (type, @throw) => {
-            return new InnerComverter(@throw);
-        };
-
-
-        /// <summary> 获取转换器
-        /// </summary>
-        [Import()]
-        public static readonly IFormatterConverter Converter = new InnerComverter(true);
-
         [Import("CreateGetter")]
         public static Func<MemberInfo, Func<object, object>> GetGeter;
 

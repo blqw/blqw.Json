@@ -1,4 +1,4 @@
-﻿using blqw.JsonComponent;
+﻿using blqw.IOC;
 using blqw.Serializable;
 using System;
 using System.ComponentModel.Composition;
@@ -55,18 +55,7 @@ namespace blqw
         /// </summary>
         public static dynamic ToDynamic(string json)
         {
-            if (json == null || json.Length == 0)
-            {
-                return null;
-            }
-            if (Component.GetDynamic == null)
-            {
-                return new JsonParser(null, typeof(System.Dynamic.ExpandoObject), null).ToObject(null, json);
-            }
-            else
-            {
-                return Component.GetDynamic(new JsonParser().ToObject(null, json));
-            }
+            return new JsonParser().ToObject(null, json).ToDynamic();
         }
 
         /// <summary> 将json字符串转换为指定对象

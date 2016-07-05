@@ -1,4 +1,4 @@
-﻿using blqw.JsonComponent;
+﻿using blqw.IOC;
 using System;
 using System.Collections.Specialized;
 using System.ComponentModel.Composition;
@@ -75,10 +75,10 @@ namespace blqw.Serializable
 
         private void InitGetSet(out Type type, out Func<object, object> get, out Action<object, object> set)
         {
-            if (Component.GetGeter != null && Component.GetSeter != null)
+            if (Components.GetGeter != null && Components.GetSeter != null)
             {
-                get = Component.GetGeter(Member);
-                set = Component.GetSeter(Member);
+                get = Components.GetGeter(Member);
+                set = Components.GetSeter(Member);
                 type = (Member as PropertyInfo)?.PropertyType ?? (Member as FieldInfo)?.FieldType;
             }
             else if (Member.MemberType == MemberTypes.Property)
