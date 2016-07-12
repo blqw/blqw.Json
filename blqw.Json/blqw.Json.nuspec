@@ -12,7 +12,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes>
-      * 为了更好的兼容性,加入组件 blqw.Convert3
+      * 修复反斜杠序列化失败的问题
     </releaseNotes>
     <copyright>Copyright 2016</copyright>
     <tags>blqw Json</tags>

@@ -26,7 +26,7 @@ namespace UnitTestProject1
             var json = Json.ToJsonString(obj, JsonBuilderSettings.CastUnicode);
             Assert.AreEqual(@"{""c"":""\u6211"",""s"":""a\u54c8ffff\u54c8\u770b1""}", json);
             var obj2 = Json.ToDynamic(json);
-            Assert.AreEqual(obj.c.ToString() , obj2.c.ToString());
+            Assert.AreEqual(obj.c.ToString(), obj2.c.ToString());
             Assert.AreEqual(obj.s.ToString(), obj2.s.ToString());
 
         }
@@ -43,6 +43,13 @@ namespace UnitTestProject1
             var json = Json.ToJsonString(list);
             Assert.AreEqual(@"{""name"":""blqw"",""age"":30,""sex"":true}", json);
         }
-        
+
+        [TestMethod]
+        public void 反斜杠序列化失败的问题()
+        {
+            var obj = new { s = "\\abc" };
+            var json = obj.ToJsonString();
+            Assert.AreEqual("{\"s\":\"\\\\abc\"}", json);
+        }
     }
 }
