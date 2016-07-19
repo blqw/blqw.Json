@@ -15,7 +15,7 @@ namespace blqw
         /// <param name="obj"></param>
         /// <returns></returns>
         [Export("ToJsonString")]
-        [ExportMetadata("Priority", 100)]
+        [ExportMetadata("Priority", 102)]
         public static string ToJsonString(this object obj)
         {
             return new JsonBuilder().ToJsonString(obj);
@@ -61,7 +61,7 @@ namespace blqw
         /// <summary> 将json字符串转换为指定对象
         /// </summary>
         [Export("ToJsonObject")]
-        [ExportMetadata("Priority", 100)]
+        [ExportMetadata("Priority", 102)]
         public static Object ToObject(Type type, string json)
         {
             if (json == null || json.Length == 0)
