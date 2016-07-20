@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.ComponentModel.Composition.Primitives;
+using System.ComponentModel.Composition.ReflectionModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -319,6 +320,7 @@ namespace blqw.IOC
                 {
                     return null;
                 }
+                
                 return new ImportDefinitionImpl(
                     GetExpression(importMany.ContractName, importMany.ContractType, actualType),
                     importMany.ContractName,
@@ -420,6 +422,7 @@ namespace blqw.IOC
             Expression left = null;
             Expression right = null;
             Type validType;
+
             if (contractName != null)
             {
                 var a = Expression.Property(p, "ContractName");
@@ -439,7 +442,7 @@ namespace blqw.IOC
             {
                 var t = AttributedModelServices.GetTypeIdentity(validType);
                 var metadata = Expression.Property(p, "Metadata");
-                var typeIdentity = Expression.Constant("TypeIdentity");
+                var typeIdentity = Expression.Constant("ExportTypeIdentity");
                 var containsKey = Expression.Call(metadata, _ContainsKey, typeIdentity);
 
                 var getItem = Expression.Call(metadata, _getItem, typeIdentity);

@@ -81,7 +81,7 @@ namespace blqw.Serializable
         /// </summary>
         /// <param name="key">缓存键</param>
         /// <param name="create">用于创建缓存项委托</param>
-        public T GetOrCreate(Type key, Func<T> create)
+        public T GetOrCreate(Type key, Func<Type, T> create)
         {
             if (key == null)
             {
@@ -96,7 +96,7 @@ namespace blqw.Serializable
             {
                 throw new ArgumentNullException("create");
             }
-            item = create();
+            item = create(key);
             lock (_cache)
             {
                 if (_cache.ContainsKey(key))
@@ -112,7 +112,7 @@ namespace blqw.Serializable
         /// </summary>
         /// <typeparam name="Key">缓存键的类型</typeparam>
         /// <param name="create">用于创建缓存项委托</param>
-        public T GetOrCreate<Key>(Func<T> create)
+        public T GetOrCreate<Key>(Func<Type, T> create)
         {
             if (GenericCache<Key>.IsReadied)
             {
@@ -122,7 +122,7 @@ namespace blqw.Serializable
             {
                 throw new ArgumentNullException("create");
             }
-            var item = create();
+            var item = create(typeof(Key));
             lock (_cache)
             {
                 if (GenericCache<Key>.IsReadied)

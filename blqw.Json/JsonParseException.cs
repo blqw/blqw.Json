@@ -9,9 +9,9 @@ namespace blqw.Serializable
     class JsonParseException : Exception
     {
         public JsonParseException(string message, string json, Exception ex = null)
-            : base(message + ",原JSON字符串详见Exception.Source属性", ex)
+            : base(message + ",原JSON字符串详见Exception.Data[\"SourceJsonString\"]", ex)
         {
-            base.Source = json;
+            base.Data["SourceJsonString"] = json;
         }
     }
 }

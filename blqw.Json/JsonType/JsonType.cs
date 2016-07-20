@@ -24,12 +24,12 @@ namespace blqw.Serializable
 
         public static JsonType Get(Type type)
         {
-            return _cache.GetOrCreate(type, () => new JsonType(type));
+            return _cache.GetOrCreate(type, (t) => new JsonType(t));
         }
 
         public static JsonType Get<T>()
         {
-            return _cache.GetOrCreate<T>(() => new JsonType(typeof(T)));
+            return _cache.GetOrCreate<T>((t) => new JsonType(t));
         }
 
         #endregion

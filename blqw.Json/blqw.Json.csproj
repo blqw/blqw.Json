@@ -52,6 +52,8 @@
     <Compile Include="Attribute\JsonIgnoreAttribute.cs" />
     <Compile Include="Attribute\JsonNameAttribute.cs" />
     <Compile Include="Cache\TypeCache.cs" />
+    <Compile Include="JsonWriters\Int32.cs" />
+    <Compile Include="JsonWriters\Interfaces\IJsonWriter.cs" />
     <Compile Include="IOC\Component.cs" />
     <Compile Include="IOC\MEFLite.cs" />
     <Compile Include="Json.cs" />
@@ -68,11 +70,13 @@
     <Compile Include="UnsafeJsonReader.cs" />
     <Compile Include="Value\JsonDictionary.cs" />
     <Compile Include="Value\JsonList.cs" />
+    <Compile Include="JsonWriters\JsonWriterContainer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="update-ioc.ps1" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>
