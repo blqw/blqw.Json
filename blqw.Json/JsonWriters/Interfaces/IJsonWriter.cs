@@ -22,8 +22,8 @@ namespace blqw.Serializable
         /// <summary>
         /// 写入一个对象
         /// </summary>
-        /// <param name="writer">字符编写器</param>
         /// <param name="obj">需要写入的对象</param>
-        void Write(TextWriter writer, object obj);
+        /// <param name="args">写入对象时需要使用的参数</param>
+        void Write(object obj, JsonWriterArgs args);
     }
 }

@@ -52,7 +52,8 @@
     <Compile Include="Attribute\JsonIgnoreAttribute.cs" />
     <Compile Include="Attribute\JsonNameAttribute.cs" />
     <Compile Include="Cache\TypeCache.cs" />
-    <Compile Include="JsonWriters\Int32.cs" />
+    <Compile Include="JsonWriterArgs.cs" />
+    <Compile Include="JsonWriters\IConvertible.cs" />
     <Compile Include="JsonWriters\Interfaces\IJsonWriter.cs" />
     <Compile Include="IOC\Component.cs" />
     <Compile Include="IOC\MEFLite.cs" />
