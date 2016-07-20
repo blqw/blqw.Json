@@ -17,11 +17,6 @@ namespace blqw.Serializable
         [ImportMany()]
         static List<IJsonWriter> _Writers;
 
-        class MyClass
-        {
-            [ImportMany()]
-            public List<IJsonWriter> _Writers { get; set; }
-        }
         static TypeCache<IJsonWriterPackage> _Items;
 
         static Type _ObjectType = typeof(Type);
@@ -43,8 +38,6 @@ namespace blqw.Serializable
 
         public static void Reload()
         {
-            var a = new MyClass();
-            MEFLite.Import(a);
             MEFLite.Import(typeof(JsonWriterContainer));
             _Items = new TypeCache<IJsonWriterPackage>();
             foreach (var w in _Writers)
@@ -148,5 +141,46 @@ namespace blqw.Serializable
         /// </summary>
         /// <returns></returns>
         public static IEnumerable<IJsonWriter> GetAll => _Writers?.AsReadOnly();
+
+
+
+        public static IJsonWriter BooleanWriter { get { return null; } }
+        public static IJsonWriter ByteWriter { get { return null; } }
+        public static IJsonWriter CharWriter { get { return null; } }
+        public static IJsonWriter DateTimeWriter { get { return null; } }
+        public static IJsonWriter DecimalWriter { get { return null; } }
+        public static IJsonWriter DoubleWriter { get { return null; } }
+        public static IJsonWriter Int16Writer { get { return null; } }
+        public static IJsonWriter Int32Writer { get { return null; } }
+        public static IJsonWriter Int64Writer { get { return null; } }
+        public static IJsonWriter SByteWriter { get { return null; } }
+        public static IJsonWriter SingleWriter { get { return null; } }
+        public static IJsonWriter StringWriter { get { return null; } }
+        public static IJsonWriter TypeWriter { get { return null; } }
+        public static IJsonWriter UInt16Writer { get { return null; } }
+        public static IJsonWriter UInt32Writer { get { return null; } }
+        public static IJsonWriter UInt64Writer { get { return null; } }
+        public static IJsonWriter GuidWriter { get { return null; } }
+        public static IJsonWriter TimeSpanWriter { get { return null; } }
+        public static IJsonWriter UriWriter { get { return null; } }
+        public static IJsonWriter VersionWriter { get { return null; } }
+        public static IJsonWriter NullableWriter { get { return null; } }
+        public static IJsonWriter EnumWriter { get { return null; } }
+        public static IJsonWriter ObjectWriter { get { return null; } }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 }

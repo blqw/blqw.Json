@@ -52,7 +52,7 @@
     <Compile Include="Attribute\JsonIgnoreAttribute.cs" />
     <Compile Include="Attribute\JsonNameAttribute.cs" />
     <Compile Include="Cache\TypeCache.cs" />
-    <Compile Include="JsonWriterArgs.cs" />
+    <Compile Include="JsonWriters\Base\JsonWriterArgs.cs" />
     <Compile Include="JsonWriters\IConvertible.cs" />
     <Compile Include="JsonWriters\Interfaces\IJsonWriter.cs" />
     <Compile Include="IOC\Component.cs" />
@@ -65,13 +65,14 @@
     <Compile Include="JsonType\ISetAdd.cs" />
     <Compile Include="JsonType\JsonMember.cs" />
     <Compile Include="JsonType\JsonType.cs" />
+    <Compile Include="JsonWriters\Base\JsonWriterBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QuickStringWriter.cs" />
     <Compile Include="TypeName.cs" />
     <Compile Include="UnsafeJsonReader.cs" />
     <Compile Include="Value\JsonDictionary.cs" />
     <Compile Include="Value\JsonList.cs" />
-    <Compile Include="JsonWriters\JsonWriterContainer.cs" />
+    <Compile Include="JsonWriters\Base\JsonWriterContainer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using blqw.Converts;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -14,167 +15,83 @@ namespace blqw.Serializable.JsonWriters
         {
             get
             {
-                
+
                 return typeof(IConvertible);
             }
         }
-
+        
         public void Write(object obj, JsonWriterArgs args)
         {
             var value = (IConvertible)obj;
-            var writer = args.Writer;
-            switch (value.GetTypeCode())
+            var typecode = value.GetTypeCode();
+            switch (typecode)
             {
                 case TypeCode.Decimal:
-                    if (args.QuotWrapNumber)
-                    {
-                        writer.Write('"');
-                        writer.Write(value.ToDecimal(CultureInfo.InvariantCulture));
-                        writer.Write('"');
-                    }
-                    else
-                    {
-                        writer.Write(value.ToDecimal(CultureInfo.InvariantCulture));
-                    }
+                    JsonWriterContainer.DecimalWriter.Write(obj, args);
+                    //if (args.QuotWrapNumber)
+                    //{
+                    //    writer.Write('"');
+                    //    writer.Write(value.ToDecimal(CultureInfo.InvariantCulture));
+                    //    writer.Write('"');
+                    //}
+                    //else
+                    //{
+                    //    writer.Write(value.ToDecimal(CultureInfo.InvariantCulture));
+                    //}
                     break;
                 case TypeCode.Double:
-                    if (args.QuotWrapNumber)
-                    {
-                        writer.Write('"');
-                        writer.Write(value.ToDouble(CultureInfo.InvariantCulture));
-                        writer.Write('"');
-                    }
-                    else
-                    {
-                        writer.Write(value.ToDouble(CultureInfo.InvariantCulture));
-                    }
+                    JsonWriterContainer.DoubleWriter.Write(obj, args);
                     break;
                 case TypeCode.Single:
-                    if (args.QuotWrapNumber)
-                    {
-                        writer.Write('"');
-                        writer.Write(value.ToSingle(CultureInfo.InvariantCulture));
-                        writer.Write('"');
-                    }
-                    else
-                    {
-                        writer.Write(value.ToSingle(CultureInfo.InvariantCulture));
-                    }
+                    JsonWriterContainer.SingleWriter.Write(obj, args);
                     break;
                 case TypeCode.Int16:
-                    if (args.QuotWrapNumber)
-                    {
-                        writer.Write('"');
-                        writer.Write(value.ToInt16(CultureInfo.InvariantCulture));
-                        writer.Write('"');
-                    }
-                    else
-                    {
-                        writer.Write(value.ToInt16(CultureInfo.InvariantCulture));
-                    }
+                    JsonWriterContainer.Int16Writer.Write(obj, args);
                     break;
                 case TypeCode.Int32:
-                    if (args.QuotWrapNumber)
-                    {
-                        writer.Write('"');
-                        writer.Write(value.ToInt32(CultureInfo.InvariantCulture));
-                        writer.Write('"');
-                    }
-                    else
-                    {
-                        writer.Write(value.ToInt32(CultureInfo.InvariantCulture));
-                    }
+                    JsonWriterContainer.Int32Writer.Write(obj, args);
                     break;
                 case TypeCode.Int64:
-                    if (args.QuotWrapNumber)
-                    {
-                        writer.Write('"');
-                        writer.Write(value.ToInt64(CultureInfo.InvariantCulture));
-                        writer.Write('"');
-                    }
-                    else
-                    {
-                        writer.Write(value.ToInt64(CultureInfo.InvariantCulture));
-                    }
+                    JsonWriterContainer.Int64Writer.Write(obj, args);
                     break;
                 case TypeCode.SByte:
-                    if (args.QuotWrapNumber)
-                    {
-                        writer.Write('"');
-                        writer.Write(value.ToSByte(CultureInfo.InvariantCulture));
-                        writer.Write('"');
-                    }
-                    else
-                    {
-                        writer.Write(value.ToSByte(CultureInfo.InvariantCulture));
-                    }
+                    JsonWriterContainer.SByteWriter.Write(obj, args);
                     break;
                 case TypeCode.Byte:
-                    if (args.QuotWrapNumber)
-                    {
-                        writer.Write('"');
-                        writer.Write(value.ToByte(CultureInfo.InvariantCulture));
-                        writer.Write('"');
-                    }
-                    else
-                    {
-                        writer.Write(value.ToByte(CultureInfo.InvariantCulture));
-                    }
+                    JsonWriterContainer.ByteWriter.Write(obj, args);
                     break;
                 case TypeCode.UInt16:
-                    if (args.QuotWrapNumber)
-                    {
-                        writer.Write('"');
-                        writer.Write(value.ToUInt16(CultureInfo.InvariantCulture));
-                        writer.Write('"');
-                    }
-                    else
-                    {
-                        writer.Write(value.ToUInt16(CultureInfo.InvariantCulture));
-                    }
+                    JsonWriterContainer.UInt16Writer.Write(obj, args);
                     break;
                 case TypeCode.UInt32:
-                    if (args.QuotWrapNumber)
-                    {
-                        writer.Write('"');
-                        writer.Write(value.ToUInt32(CultureInfo.InvariantCulture));
-                        writer.Write('"');
-                    }
-                    else
-                    {
-                        writer.Write(value.ToUInt32(CultureInfo.InvariantCulture));
-                    }
+                    JsonWriterContainer.UInt32Writer.Write(obj, args);
                     break;
                 case TypeCode.UInt64:
-                    if (args.QuotWrapNumber)
-                    {
-                        writer.Write('"');
-                        writer.Write(value.ToUInt64(CultureInfo.InvariantCulture));
-                        writer.Write('"');
-                    }
-                    else
-                    {
-                        writer.Write(value.ToUInt64(CultureInfo.InvariantCulture));
-                    }
+                    JsonWriterContainer.UInt64Writer.Write(obj, args);
                     break;
                 case TypeCode.Empty:
-                    writer.Write("null");
+                    args.Writer.Write("null");
                     break;
                 case TypeCode.Object:
+                    JsonWriterContainer.ObjectWriter.Write(obj, args);
                     break;
                 case TypeCode.DBNull:
-                    writer.Write("null");
+                    args.Writer.Write("null");
                     break;
                 case TypeCode.Boolean:
+                    JsonWriterContainer.BooleanWriter.Write(obj, args);
                     break;
                 case TypeCode.Char:
+                    JsonWriterContainer.CharWriter.Write(obj, args);
                     break;
                 case TypeCode.DateTime:
+                    JsonWriterContainer.DateTimeWriter.Write(obj, args);
                     break;
                 case TypeCode.String:
+                    JsonWriterContainer.StringWriter.Write(obj, args);
                     break;
                 default:
-                    break;
+                    throw new TypeLoadException($"TypeCode:{typecode} 未知");
             }
         }
     }

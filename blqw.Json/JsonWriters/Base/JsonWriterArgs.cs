@@ -1,10 +1,12 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections;
+using System.IO;
 
 namespace blqw.Serializable
 {
     public class JsonWriterArgs
     {
-        public JsonWriterArgs(TextWriter writer,JsonBuilderSettings settings)
+        public JsonWriterArgs(TextWriter writer, JsonBuilderSettings settings)
         {
             FormatDate = (settings & JsonBuilderSettings.FormatDate) != 0;
             FormatTime = (settings & JsonBuilderSettings.FormatTime) != 0;
@@ -21,6 +23,11 @@ namespace blqw.Serializable
             FilterSpecialCharacter = (settings & JsonBuilderSettings.FilterSpecialCharacter) != 0;
             CastUnicode = (settings & JsonBuilderSettings.CastUnicode) != 0;
             Writer = writer;
+            Depth = 0;
+            if (CheckLoopRef)
+            {
+                _loopObject = new ArrayList(32);
+            }
         }
 
         /// <summary>
@@ -93,6 +100,44 @@ namespace blqw.Serializable
         /// </summary>
         public bool SerializableType { get; }
 
-        public TextWriter Writer { get;}
+        public TextWriter Writer { get; }
+
+
+        //循环引用对象缓存区
+        private IList _loopObject;
+
+        public int Depth { get; private set; }
+
+        public bool Entry(object value)
+        {
+            Depth++;
+            if (CheckLoopRef)
+            {
+                if (value is ValueType)
+                {
+                    return true;
+                }
+                else if (_loopObject.Contains(value) == false)
+                {
+                    _loopObject.Add(value);
+                    return true;
+                }
+                return false;
+            }
+            else if (Depth > 64)
+            {
+                throw new NotSupportedException("对象过于复杂或存在循环引用");
+            }
+            return true;
+        }
+
+        public void Exit()
+        {
+            Depth--;
+            if (CheckLoopRef)
+            {
+                _loopObject.RemoveAt(_loopObject.Count - 1);
+            }
+        }
     }
 }
