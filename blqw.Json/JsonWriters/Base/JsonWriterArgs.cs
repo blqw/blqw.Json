@@ -100,6 +100,12 @@ namespace blqw.Serializable
         /// </summary>
         public bool SerializableType { get; }
 
+        public string TimeFormatString { get; }
+        public string DateFormatString { get; }
+        public string DateTimeFormatString { get; }
+
+        public bool GuidHasHyphens { get; private set; }
+
         public TextWriter Writer { get; }
 
 
@@ -139,5 +145,7 @@ namespace blqw.Serializable
                 _loopObject.RemoveAt(_loopObject.Count - 1);
             }
         }
+
+
     }
 }

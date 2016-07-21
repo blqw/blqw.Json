@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace blqw.Serializable.JsonWriters
 {
-    class IConvertibleWriter : IJsonWriter
+    sealed class IConvertibleWriter : IJsonWriter
     {
         public Type Type
         {
@@ -27,68 +27,56 @@ namespace blqw.Serializable.JsonWriters
             switch (typecode)
             {
                 case TypeCode.Decimal:
-                    JsonWriterContainer.DecimalWriter.Write(obj, args);
-                    //if (args.QuotWrapNumber)
-                    //{
-                    //    writer.Write('"');
-                    //    writer.Write(value.ToDecimal(CultureInfo.InvariantCulture));
-                    //    writer.Write('"');
-                    //}
-                    //else
-                    //{
-                    //    writer.Write(value.ToDecimal(CultureInfo.InvariantCulture));
-                    //}
+                    JsonWriterContainer.DecimalWriter.Write(value.ToDecimal(CultureInfo.InvariantCulture), args);
                     break;
                 case TypeCode.Double:
-                    JsonWriterContainer.DoubleWriter.Write(obj, args);
+                    JsonWriterContainer.DoubleWriter.Write(value.ToDouble(CultureInfo.InvariantCulture), args);
                     break;
                 case TypeCode.Single:
-                    JsonWriterContainer.SingleWriter.Write(obj, args);
+                    JsonWriterContainer.SingleWriter.Write(value.ToSingle(CultureInfo.InvariantCulture), args);
                     break;
                 case TypeCode.Int16:
-                    JsonWriterContainer.Int16Writer.Write(obj, args);
+                    JsonWriterContainer.Int16Writer.Write(value.ToInt16(CultureInfo.InvariantCulture), args);
                     break;
                 case TypeCode.Int32:
-                    JsonWriterContainer.Int32Writer.Write(obj, args);
+                    JsonWriterContainer.Int32Writer.Write(value.ToInt32(CultureInfo.InvariantCulture), args);
                     break;
                 case TypeCode.Int64:
-                    JsonWriterContainer.Int64Writer.Write(obj, args);
+                    JsonWriterContainer.Int64Writer.Write(value.ToInt64(CultureInfo.InvariantCulture), args);
                     break;
                 case TypeCode.SByte:
-                    JsonWriterContainer.SByteWriter.Write(obj, args);
+                    JsonWriterContainer.SByteWriter.Write(value.ToSByte(CultureInfo.InvariantCulture), args);
                     break;
                 case TypeCode.Byte:
-                    JsonWriterContainer.ByteWriter.Write(obj, args);
+                    JsonWriterContainer.ByteWriter.Write(value.ToByte(CultureInfo.InvariantCulture), args);
                     break;
                 case TypeCode.UInt16:
-                    JsonWriterContainer.UInt16Writer.Write(obj, args);
+                    JsonWriterContainer.UInt16Writer.Write(value.ToUInt16(CultureInfo.InvariantCulture), args);
                     break;
                 case TypeCode.UInt32:
-                    JsonWriterContainer.UInt32Writer.Write(obj, args);
+                    JsonWriterContainer.UInt32Writer.Write(value.ToUInt32(CultureInfo.InvariantCulture), args);
                     break;
                 case TypeCode.UInt64:
-                    JsonWriterContainer.UInt64Writer.Write(obj, args);
-                    break;
-                case TypeCode.Empty:
-                    args.Writer.Write("null");
+                    JsonWriterContainer.UInt64Writer.Write(value.ToUInt64(CultureInfo.InvariantCulture), args);
                     break;
                 case TypeCode.Object:
-                    JsonWriterContainer.ObjectWriter.Write(obj, args);
+                    JsonWriterContainer.ObjectWriter.Write(value, args);
                     break;
+                case TypeCode.Empty:
                 case TypeCode.DBNull:
                     args.Writer.Write("null");
                     break;
                 case TypeCode.Boolean:
-                    JsonWriterContainer.BooleanWriter.Write(obj, args);
+                    JsonWriterContainer.BooleanWriter.Write(value.ToBoolean(CultureInfo.InvariantCulture), args);
                     break;
                 case TypeCode.Char:
-                    JsonWriterContainer.CharWriter.Write(obj, args);
+                    JsonWriterContainer.CharWriter.Write(value.ToChar(CultureInfo.InvariantCulture), args);
                     break;
                 case TypeCode.DateTime:
-                    JsonWriterContainer.DateTimeWriter.Write(obj, args);
+                    JsonWriterContainer.DateTimeWriter.Write(value.ToDateTime(CultureInfo.InvariantCulture), args);
                     break;
                 case TypeCode.String:
-                    JsonWriterContainer.StringWriter.Write(obj, args);
+                    JsonWriterContainer.StringWriter.Write(value.ToString(CultureInfo.InvariantCulture), args);
                     break;
                 default:
                     throw new TypeLoadException($"TypeCode:{typecode} 未知");

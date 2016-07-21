@@ -25,7 +25,7 @@ namespace Demo
         static void Main(string[] args)
         {
             var a = JsonWriterContainer.Get(typeof(int));
-            a.Write(null, 1);
+            //a.Write(null, 1);
             Console.WriteLine();
             //var body = "{a:{b:1},c:'xxx',d:{e:[1]}}";
             //var json = Json.ToObject(body);
