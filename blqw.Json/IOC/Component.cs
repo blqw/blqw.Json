@@ -14,7 +14,7 @@ namespace blqw.IOC
 
         public Components()
         {
-            MEFLite.Import(typeof(Components));
+            MEF.Import(typeof(Components));
         }
 
         /// <summary> 包装反射对象

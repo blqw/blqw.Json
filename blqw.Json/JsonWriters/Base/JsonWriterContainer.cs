@@ -180,7 +180,7 @@ namespace blqw.Serializable
         /// </summary>
         public static void Reload()
         {
-            MEFLite.Import(typeof(JsonWriterContainer));
+            MEF.Import(typeof(JsonWriterContainer));
             _Items = new TypeCache<IJsonWriterWrap>();
             foreach (var w in _Writers)
             {
