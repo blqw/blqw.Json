@@ -14,13 +14,8 @@ namespace blqw.IOC
 
         public Components()
         {
-            MEFLite.Import(typeof(Components));
+            MEF.Import(typeof(Components));
         }
-
-        /// <summary> 包装反射对象
-        /// </summary>
-        [Import("MemberInfoWrapper")]
-        public static readonly Func<MemberInfo, MemberInfo> Wrapper = m => m;
         
         [Import("CreateGetter")]
         public static Func<MemberInfo, Func<object, object>> GetGeter;

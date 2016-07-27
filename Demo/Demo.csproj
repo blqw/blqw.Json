@@ -37,6 +37,14 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="blqw.Convert3, Version=2.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\blqw.Convert3.2.2.0-beta\lib\net45\blqw.Convert3.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="blqw.IOC, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\blqw.IOC.1.0.1-beta\lib\net45\blqw.IOC.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Crylw.Json, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>dll\Crylw.Json.dll</HintPath>
@@ -91,6 +99,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\blqw.Json\blqw.Json.csproj">
