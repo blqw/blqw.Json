@@ -221,9 +221,8 @@ namespace blqw.Serializable
 
                 return;
             }
-            if (type.IsPrimitive
-                || type == typeof(string)
-                || type.IsEnum
+            //过滤基本类型
+            if (type.IsPrimitive || type == typeof(string) || type.IsEnum
                 || (type.Namespace == "System" && type.Module == typeof(int).Module && type.IsValueType && typeof(IFormattable).IsAssignableFrom(type)))
             {
                 PropertyCount = 0;
@@ -233,16 +232,19 @@ namespace blqw.Serializable
             //枚举属性
             foreach (var p in Type.GetProperties(flags))
             {
-
-                var jm = JsonMember.Create(p);
-                if (jm != null)
+                //获取索引器
+                if (p.GetIndexParameters()?.Length > 0)
                 {
-                    if (_members.ContainsKey(jm.JsonName))
+                    var jm = JsonMember.Create(p);
+                    if (jm != null)
                     {
-                        throw new ArgumentException($"JsonName重复:{jm.JsonName}");
+                        if (_members.ContainsKey(jm.JsonName))
+                        {
+                            throw new ArgumentException($"JsonName重复:{jm.JsonName}");
+                        }
+                        _members[jm.JsonName] = jm;
+                        list.Add(jm);
                     }
-                    _members[jm.JsonName] = jm;
-                    list.Add(jm);
                 }
             }
             PropertyCount = list.Count;
