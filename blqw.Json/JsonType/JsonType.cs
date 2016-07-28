@@ -221,12 +221,15 @@ namespace blqw.Serializable
 
                 return;
             }
-            //过滤基本类型
-            if (type.IsPrimitive || type == typeof(string) || type.IsEnum
-                || (type.Namespace == "System" && type.Module == typeof(int).Module && type.IsValueType && typeof(IFormattable).IsAssignableFrom(type)))
+            if (IsAnonymous == false)
             {
-                PropertyCount = 0;
-                return;
+                //过滤基本类型
+                if (type.IsPrimitive || type == typeof(string) || type.IsEnum
+                    || (type.Namespace == "System" && type.Module == typeof(int).Module && type.IsValueType && typeof(IFormattable).IsAssignableFrom(type)))
+                {
+                    PropertyCount = 0;
+                    return;
+                }
             }
             var flags = BindingFlags.Instance | BindingFlags.Public;
             //枚举属性
@@ -235,16 +238,17 @@ namespace blqw.Serializable
                 //获取索引器
                 if (p.GetIndexParameters()?.Length > 0)
                 {
-                    var jm = JsonMember.Create(p);
-                    if (jm != null)
+                    continue;
+                }
+                var jm = JsonMember.Create(p);
+                if (jm != null)
+                {
+                    if (_members.ContainsKey(jm.JsonName))
                     {
-                        if (_members.ContainsKey(jm.JsonName))
-                        {
-                            throw new ArgumentException($"JsonName重复:{jm.JsonName}");
-                        }
-                        _members[jm.JsonName] = jm;
-                        list.Add(jm);
+                        throw new ArgumentException($"JsonName重复:{jm.JsonName}");
                     }
+                    _members[jm.JsonName] = jm;
+                    list.Add(jm);
                 }
             }
             PropertyCount = list.Count;
