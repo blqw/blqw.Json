@@ -50,7 +50,6 @@ namespace blqw.Serializable
                 JsonName = member.Name;
             }
 
-
             InitGetSet(out Type, out GetValue, out SetValue);
             CanWrite = SetValue != null;
             CanRead = GetValue != null;
@@ -109,6 +108,7 @@ namespace blqw.Serializable
                     var field = property.DeclaringType.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
                     set = field.SetValue;
                 }
+
             }
             else
             {

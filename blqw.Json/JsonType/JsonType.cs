@@ -221,7 +221,14 @@ namespace blqw.Serializable
 
                 return;
             }
-
+            if (type.IsPrimitive
+                || type == typeof(string)
+                || type.IsEnum
+                || (type.Namespace == "System" && type.Module == typeof(int).Module && type.IsValueType && typeof(IFormattable).IsAssignableFrom(type)))
+            {
+                PropertyCount = 0;
+                return;
+            }
             var flags = BindingFlags.Instance | BindingFlags.Public;
             //枚举属性
             foreach (var p in Type.GetProperties(flags))

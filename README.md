@@ -18,6 +18,9 @@ blqw.Json.ToDynamic(string);
 性能测试请参考:[pk.md](https://github.com/blqw/blqw.Json/blob/master/pk.md)
 
 ##更新说明
+#### 2016.07.28
+* 修复一个在某些环境下会报错的问题
+
 #### 2016.07.13
 * 修复反斜杠序列化失败的问题
 
