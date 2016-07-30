@@ -677,6 +677,7 @@ namespace blqw.Serializable
                     chars[i] = "\\u" + i.ToString("x4");
                 }
             }
+            chars['\\'] = @"\\";
             chars['\"'] = @"\""";
             chars['/'] = @"\/"; //json标准中该字符是否转换均可
             chars['\b'] = @"\b";
@@ -743,7 +744,7 @@ namespace blqw.Serializable
                             var escape = SpecialCharacters[c];
                             if (escape != null)
                             {
-                                if (FilterSpecialCharacter)
+                                if (FilterSpecialCharacter && escape[1] == 'u')
                                 {
                                     Buffer.Append(flag, 0, (int)(p - flag));
                                 }
