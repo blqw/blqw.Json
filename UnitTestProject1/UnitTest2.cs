@@ -54,8 +54,8 @@ namespace UnitTestProject1
             Assert.AreEqual("blqw", (string)obj.Name);
             Assert.AreEqual(11, (int)obj.Age);
             Assert.AreEqual(3, (int)obj.Array.Count);
-            Assert.AreEqual(1, obj.Array[2].a);
-            Assert.AreEqual(2, obj.Array[2].b);
+            Assert.AreEqual(1, (int)obj.Array[2].a);
+            Assert.AreEqual(2, (int)obj.Array[2].b);
             //Assert.AreEqual(new DateTime(2014,1,1,1,0,0), (DateTime)obj.Array[0]);
             //Assert.AreEqual(false, (bool)obj.Array[1]);
 
