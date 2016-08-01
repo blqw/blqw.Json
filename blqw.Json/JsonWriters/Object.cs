@@ -61,19 +61,19 @@ namespace blqw.Serializable.JsonWriters
                 }
                 else
                 {
-                    var obj1 = (obj as IFormatProvider)?.GetFormat(typeof(Json));
+                    var obj1 = (value as IFormatProvider)?.GetFormat(typeof(Json));
                     if (obj1 != null)
                     {
                         Write(comma, member.JsonName, obj1, args);
                         return;
                     }
 
-                    var objref = obj as IObjectReference;
+                    var objref = value as IObjectReference;
                     if (objref != null)
                     {
                         Write(comma, member.JsonName, objref.GetRealObject(new StreamingContext(StreamingContextStates.All, args)), args);
                     }
-                    Write(comma, member.JsonName, obj, args);
+                    Write(comma, member.JsonName, value, args);
                 }
 
             }

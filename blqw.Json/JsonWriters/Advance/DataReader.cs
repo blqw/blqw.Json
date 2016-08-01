@@ -10,9 +10,20 @@ namespace blqw.Serializable.JsonWriters
 {
     class DataReaderWriter : IJsonWriter
     {
-        public Type Type { get; } = typeof(IDataReader);
 
-        private IJsonWriterWrapper _wrapper = GetWrap(typeof(IDataRecord));
+        public Type Type => typeof(IDataReader);
+
+        private IJsonWriterWrapper _wrapper;
+        public IJsonWriterWrapper Wrapper
+        {
+            get
+            {
+                return _wrapper ?? (_wrapper = GetWrap(typeof(IDataRecord)));
+            }
+        }
+
+
+
 
         public void Write(object obj, JsonWriterArgs args)
         {
@@ -49,11 +60,11 @@ namespace blqw.Serializable.JsonWriters
             {
                 if (reader.Read())
                 {
-                    _wrapper.Writer.Write(reader, args);
+                    Wrapper.Writer.Write(reader, args);
                     while (reader.Read())
                     {
                         writer.Write(',');
-                        _wrapper.Writer.Write(reader, args);
+                        Wrapper.Writer.Write(reader, args);
                     }
                 }
             }

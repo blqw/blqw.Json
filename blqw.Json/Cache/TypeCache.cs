@@ -41,6 +41,10 @@ namespace blqw.Serializable
                 }
                 return;
             }
+            if (typeof(void) == key)
+            {
+                return;
+            }
             var gc = typeof(GenericCache<>).MakeGenericType(typeof(T), key);
             var fieid1 = gc.GetField("Item", BindingFlags.Public | BindingFlags.Static);
             var fieid2 = gc.GetField("IsReadied", BindingFlags.Public | BindingFlags.Static);

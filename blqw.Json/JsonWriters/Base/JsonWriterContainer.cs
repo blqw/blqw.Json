@@ -20,14 +20,12 @@ namespace blqw.Serializable
         /// </summary>
         private static readonly Type _ObjectType = typeof(Type);
 
+
         /// <summary>
         /// 通过IOC加载的所有 <see cref="IJsonWriter" /> 的集合 
         /// </summary>
         [ImportMany()]
         private static List<IJsonWriter> _Writers;
-
-        private static IJsonWriterWrapper _NullWapper;
-        private static IJsonWriterWrapper _VersionWapper;
 
         static JsonWriterContainer()
         {
@@ -35,114 +33,147 @@ namespace blqw.Serializable
         }
 
         /// <summary>
+        /// 重新加载所有 <see cref="IJsonWriter" /> 
+        /// </summary>
+        public static void Reload()
+        {
+            MEF.Import(typeof(JsonWriterContainer));
+            _Items = new TypeCache<IJsonWriterWrapper>();
+            foreach (var w in _Writers)
+            {
+                _Items.Set(w.Type, new IJsonWriterWrapper(w));
+            }
+        }
+
+        private static IJsonWriterWrapper _NullWapper;
+        private static IJsonWriterWrapper _VersionWapper;
+        private static IJsonWriterWrapper _UriWapper;
+        private static IJsonWriterWrapper _UInt64Wapper;
+        private static IJsonWriterWrapper _UInt32Wapper;
+        private static IJsonWriterWrapper _UInt16Wapper;
+        private static IJsonWriterWrapper _TypeWapper;
+        private static IJsonWriterWrapper _TimeSpanWapper;
+        private static IJsonWriterWrapper _StringWapper;
+        private static IJsonWriterWrapper _SingleWapper;
+        private static IJsonWriterWrapper _SByteWapper;
+        private static IJsonWriterWrapper _Int64Wapper;
+        private static IJsonWriterWrapper _Int32Wapper;
+        private static IJsonWriterWrapper _Int16Wapper;
+        private static IJsonWriterWrapper _ConvertibleWapper;
+        private static IJsonWriterWrapper _GuidWapper;
+        private static IJsonWriterWrapper _EnumWapper;
+        private static IJsonWriterWrapper _DoubleWapper;
+        private static IJsonWriterWrapper _DateTimeWapper;
+        private static IJsonWriterWrapper _DecimalWapper;
+        private static IJsonWriterWrapper _CharWapper;
+        private static IJsonWriterWrapper _ByteWapper;
+        private static IJsonWriterWrapper _BooleanWapper;
+
+
+        /// <summary>
         /// <see cref="bool" /> 类型的 <see cref="IJsonWriter" /> 
         /// </summary>
-        public static IJsonWriter BooleanWriter => _Items.Get<bool>().Writer;
+        public static IJsonWriter BooleanWriter => (_BooleanWapper ?? (_BooleanWapper = _Items.Get<bool>())).Writer;
 
         /// <summary>
         /// <see cref="byte" /> 类型的 <see cref="IJsonWriter" /> 
         /// </summary>
-        public static IJsonWriter ByteWriter => _Items.Get<byte>().Writer;
+        public static IJsonWriter ByteWriter => (_ByteWapper ?? (_ByteWapper = _Items.Get<byte>())).Writer;
 
         /// <summary>
         /// <see cref="char" /> 类型的 <see cref="IJsonWriter" /> 
         /// </summary>
-        public static IJsonWriter CharWriter => _Items.Get<char>().Writer;
+        public static IJsonWriter CharWriter => (_CharWapper ?? (_CharWapper = _Items.Get<char>())).Writer;
 
         /// <summary>
         /// <see cref="DateTime" /> 类型的 <see cref="IJsonWriter" /> 
         /// </summary>
-        public static IJsonWriter DateTimeWriter => _Items.Get<DateTime>().Writer;
+        public static IJsonWriter DateTimeWriter => (_DateTimeWapper ?? (_DateTimeWapper = _Items.Get<DateTime>())).Writer;
 
         /// <summary>
         /// <see cref="decimal" /> 类型的 <see cref="IJsonWriter" /> 
         /// </summary>
-        public static IJsonWriter DecimalWriter => _Items.Get<decimal>().Writer;
+        public static IJsonWriter DecimalWriter => (_DecimalWapper ?? (_DecimalWapper = _Items.Get<decimal>())).Writer;
 
         /// <summary>
         /// <see cref="double" /> 类型的 <see cref="IJsonWriter" /> 
         /// </summary>
-        public static IJsonWriter DoubleWriter => _Items.Get<double>().Writer;
+        public static IJsonWriter DoubleWriter => (_DoubleWapper ?? (_DoubleWapper = _Items.Get<double>())).Writer;
 
         /// <summary>
         /// <see cref="Enum" /> 类型的 <see cref="IJsonWriter" /> 
         /// </summary>
-        public static IJsonWriter EnumWriter => _Items.Get<Enum>().Writer;
+        public static IJsonWriter EnumWriter => (_EnumWapper ?? (_EnumWapper = _Items.Get<Enum>())).Writer;
 
         /// <summary>
         /// <see cref="Guid" /> 类型的 <see cref="IJsonWriter" /> 
         /// </summary>
-        public static IJsonWriter GuidWriter => _Items.Get<Guid>().Writer;
+        public static IJsonWriter GuidWriter => (_GuidWapper ?? (_GuidWapper = _Items.Get<Guid>())).Writer;
 
         /// <summary>
         /// <see cref="IConvertible" /> 类型的 <see cref="IJsonWriter" /> 
         /// </summary>
-        public static IJsonWriter ConvertibleWriter => _Items.Get<IConvertible>().Writer;
+        public static IJsonWriter ConvertibleWriter => (_ConvertibleWapper ?? (_ConvertibleWapper = _Items.Get<IConvertible>())).Writer;
 
         /// <summary>
         /// <see cref="short" /> 类型的 <see cref="IJsonWriter" /> 
         /// </summary>
-        public static IJsonWriter Int16Writer => _Items.Get<short>().Writer;
+        public static IJsonWriter Int16Writer => (_Int16Wapper ?? (_Int16Wapper = _Items.Get<short>())).Writer;
 
         /// <summary>
         /// <see cref="int" /> 类型的 <see cref="IJsonWriter" /> 
         /// </summary>
-        public static IJsonWriter Int32Writer => _Items.Get<int>().Writer;
+        public static IJsonWriter Int32Writer => (_Int32Wapper ?? (_Int32Wapper = _Items.Get<int>())).Writer;
 
         /// <summary>
         /// <see cref="long" /> 类型的 <see cref="IJsonWriter" /> 
         /// </summary>
-        public static IJsonWriter Int64Writer => _Items.Get<long>().Writer;
-
-        /// <summary>
-        /// <see cref="object" /> 类型的 <see cref="IJsonWriter" /> 
-        /// </summary>
-        public static IJsonWriter ObjectWriter => _Items.Get<object>().Writer;
+        public static IJsonWriter Int64Writer => (_Int64Wapper ?? (_Int64Wapper = _Items.Get<long>())).Writer;
 
         /// <summary>
         /// <see cref="sbyte" /> 类型的 <see cref="IJsonWriter" /> 
         /// </summary>
-        public static IJsonWriter SByteWriter => _Items.Get<sbyte>().Writer;
+        public static IJsonWriter SByteWriter => (_SByteWapper ?? (_SByteWapper = _Items.Get<sbyte>())).Writer;
 
         /// <summary>
         /// <see cref="float" /> 类型的 <see cref="IJsonWriter" /> 
         /// </summary>
-        public static IJsonWriter SingleWriter => _Items.Get<float>().Writer;
+        public static IJsonWriter SingleWriter => (_SingleWapper ?? (_SingleWapper = _Items.Get<float>())).Writer;
 
         /// <summary>
         /// <see cref="string" /> 类型的 <see cref="IJsonWriter" /> 
         /// </summary>
-        public static IJsonWriter StringWriter => _Items.Get<string>().Writer;
+        public static IJsonWriter StringWriter => (_StringWapper ?? (_StringWapper = _Items.Get<string>())).Writer;
 
         /// <summary>
         /// <see cref="TimeSpan" /> 类型的 <see cref="IJsonWriter" /> 
         /// </summary>
-        public static IJsonWriter TimeSpanWriter => _Items.Get<TimeSpan>().Writer;
+        public static IJsonWriter TimeSpanWriter => (_TimeSpanWapper ?? (_TimeSpanWapper = _Items.Get<TimeSpan>())).Writer;
 
         /// <summary>
         /// <see cref="Type" /> 类型的 <see cref="IJsonWriter" /> 
         /// </summary>
-        public static IJsonWriter TypeWriter => _Items.Get<Type>().Writer;
+        public static IJsonWriter TypeWriter => (_TypeWapper ?? (_TypeWapper = _Items.Get<Type>())).Writer;
 
         /// <summary>
         /// <see cref="ushort" /> 类型的 <see cref="IJsonWriter" /> 
         /// </summary>
-        public static IJsonWriter UInt16Writer => _Items.Get<ushort>().Writer;
+        public static IJsonWriter UInt16Writer => (_UInt16Wapper ?? (_UInt16Wapper = _Items.Get<ushort>())).Writer;
 
         /// <summary>
         /// <see cref="uint" /> 类型的 <see cref="IJsonWriter" /> 
         /// </summary>
-        public static IJsonWriter UInt32Writer => _Items.Get<uint>().Writer;
+        public static IJsonWriter UInt32Writer => (_UInt32Wapper ?? (_UInt32Wapper = _Items.Get<uint>())).Writer;
 
         /// <summary>
         /// <see cref="ulong" /> 类型的 <see cref="IJsonWriter" /> 
         /// </summary>
-        public static IJsonWriter UInt64Writer => _Items.Get<ulong>().Writer;
+        public static IJsonWriter UInt64Writer => (_UInt64Wapper ?? (_UInt64Wapper = _Items.Get<ulong>())).Writer;
 
         /// <summary>
         /// <see cref="Uri" /> 类型的 <see cref="IJsonWriter" /> 
         /// </summary>
-        public static IJsonWriter UriWriter => _Items.Get<Uri>().Writer;
+        public static IJsonWriter UriWriter => (_UriWapper ?? (_UriWapper = _Items.Get<Uri>())).Writer;
 
         /// <summary>
         /// <see cref="Version" /> 类型的 <see cref="IJsonWriter" /> 
@@ -188,21 +219,7 @@ namespace blqw.Serializable
         {
             return _Writers?.Count ?? 0;
         }
-
-        /// <summary>
-        /// 重新加载所有 <see cref="IJsonWriter" /> 
-        /// </summary>
-        public static void Reload()
-        {
-            MEF.Import(typeof(JsonWriterContainer));
-            _Items = new TypeCache<IJsonWriterWrapper>();
-            foreach (var w in _Writers)
-            {
-                _Items.Set(w.Type, new IJsonWriterWrapper(w));
-            }
-        }
-
-        /// <summary>
+   /// <summary>
         /// 设置 <see cref="IJsonWriter" />,如果已经存在则替换 
         /// </summary>
         /// <param name="writer"> <see cref="IJsonWriter" /> 对象 </param>
@@ -247,7 +264,7 @@ namespace blqw.Serializable
             {
                 return wrap;
             }
-            var baseType = type.BaseType;
+            var baseType = type.BaseType ?? _ObjectType;
             while (baseType != _ObjectType)
             {
                 //匹配父类 或 父类泛型定义.除了Object以外

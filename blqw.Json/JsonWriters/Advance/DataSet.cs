@@ -10,9 +10,16 @@ namespace blqw.Serializable.JsonWriters
 {
     class DataSetWrite : IJsonWriter
     {
-        public Type Type { get; } = typeof(DataSet);
-
-        private IJsonWriterWrapper _wrapper = GetWrap(typeof(DataTable));
+        public Type Type => typeof(DataSet);
+        
+        private IJsonWriterWrapper _wrapper;
+        public IJsonWriterWrapper Wrapper
+        {
+            get
+            {
+                return _wrapper ?? (_wrapper = GetWrap(Type));
+            }
+        }
 
         public void Write(object obj, JsonWriterArgs args)
         {
@@ -31,7 +38,7 @@ namespace blqw.Serializable.JsonWriters
                 var table = ds.Tables[i];
                 JsonWriterContainer.StringWriter.Write(table.TableName, args);
                 writer.Write(':');
-                _wrapper.Writer.Write(table, args);
+                Wrapper.Writer.Write(table, args);
 
             }
             writer.Write('}');

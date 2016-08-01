@@ -33,7 +33,15 @@ namespace blqw.Serializable.JsonWriters
             return false;
         }
 
-        private IJsonWriterWrapper _wrapper = GetWrap(typeof(string[]));
+        private IJsonWriterWrapper _wrapper;
+        public IJsonWriterWrapper Wrapper
+        {
+            get
+            {
+                return _wrapper ?? (_wrapper = GetWrap(typeof(string[])));
+            }
+        }
+
 
         public void Write(object obj, JsonWriterArgs args)
         {
@@ -69,7 +77,7 @@ namespace blqw.Serializable.JsonWriters
                 }
                 else
                 {
-                    _wrapper.Writer.Write(array, args);
+                    Wrapper.Writer.Write(array, args);
                 }
 
             }
