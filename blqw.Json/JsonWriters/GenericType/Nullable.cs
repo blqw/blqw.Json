@@ -46,7 +46,7 @@ namespace blqw.Serializable.JsonWriters
                     ValueWriter = GetWrap(value);
                 }
             }
-            public IJsonWriterWrap ValueWriter;
+            public IJsonWriterWrapper ValueWriter;
 
             public void Write(object obj, JsonWriterArgs args)
             {

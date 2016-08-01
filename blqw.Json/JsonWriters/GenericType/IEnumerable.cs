@@ -45,12 +45,12 @@ namespace blqw.Serializable.JsonWriters
                 }
             }
 
-            private IJsonWriterWrap GetWrap(Type value)
+            private IJsonWriterWrapper GetWrap(Type value)
             {
                 throw new NotImplementedException();
             }
 
-            public IJsonWriterWrap ValueWriter;
+            public IJsonWriterWrapper ValueWriter;
 
             public void Write(object obj, JsonWriterArgs args)
             {

@@ -7,15 +7,9 @@ using System.Threading.Tasks;
 
 namespace blqw.Serializable.JsonWriters
 {
-    sealed class StringWriter : IJsonWriter
+    internal sealed class StringWriter : IJsonWriter
     {
-        public Type Type
-        {
-            get
-            {
-                return typeof(string);
-            }
-        }
+        public Type Type => typeof(string);
 
         [ThreadStatic]
         private static char[] _CharBuffer;
@@ -66,7 +60,7 @@ namespace blqw.Serializable.JsonWriters
                     var saved = 0;
                     while (index < length)
                     {
-                        char c = p[index];
+                        var c = p[index];
                         if (c < 256)
                         {
                             var escape = CharWriter.SpecialCharacters[c];
@@ -99,6 +93,51 @@ namespace blqw.Serializable.JsonWriters
                 }
             }
             writer.Write('"');
+        }
+
+        public static void Write(TextWriter writer, string value, bool castUnicode, bool filterSpecialCharacter)
+        {
+            unsafe
+            {
+                var length = value.Length;
+                fixed (char* p = value)
+                {
+                    var index = 0;
+                    var saved = 0;
+                    while (index < length)
+                    {
+                        var c = p[index];
+                        if (c < 256)
+                        {
+                            var escape = CharWriter.SpecialCharacters[c];
+                            if (escape != null)
+                            {
+                                Write(writer, value, saved, index - saved);
+                                if (filterSpecialCharacter == false)
+                                {
+                                    writer.Write(escape);
+                                }
+                                saved = index + 1;
+                            }
+                        }
+                        else if (castUnicode)
+                        {
+                            Write(writer, value, saved, index - saved);
+                            writer.Write(CharWriter.SpecialCharacters[c]);
+                            saved = index + 1;
+                        }
+                        index++;
+                    }
+                    if (saved == 0)
+                    {
+                        writer.Write(value);
+                    }
+                    else if (index > saved)
+                    {
+                        Write(writer, value, saved, index - saved);
+                    }
+                }
+            }
         }
     }
 }

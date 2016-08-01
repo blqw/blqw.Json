@@ -12,7 +12,7 @@ namespace blqw.Serializable.JsonWriters
     {
         public Type Type { get; } = typeof(IDataReader);
 
-        private IJsonWriterWrap _wrap = GetWrap(typeof(IDataRecord));
+        private IJsonWriterWrapper _wrapper = GetWrap(typeof(IDataRecord));
 
         public void Write(object obj, JsonWriterArgs args)
         {
@@ -49,11 +49,11 @@ namespace blqw.Serializable.JsonWriters
             {
                 if (reader.Read())
                 {
-                    _wrap.Writer.Write(reader, args);
+                    _wrapper.Writer.Write(reader, args);
                     while (reader.Read())
                     {
                         writer.Write(',');
-                        _wrap.Writer.Write(reader, args);
+                        _wrapper.Writer.Write(reader, args);
                     }
                 }
             }

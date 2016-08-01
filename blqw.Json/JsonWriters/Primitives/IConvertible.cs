@@ -11,15 +11,10 @@ namespace blqw.Serializable.JsonWriters
 {
     sealed class IConvertibleWriter : IJsonWriter
     {
-        public Type Type
-        {
-            get
-            {
+        public Type Type => typeof(IConvertible);
 
-                return typeof(IConvertible);
-            }
-        }
-        
+        private JsonWriterContainer.IJsonWriterWrapper ObjectWrapper => JsonWriterContainer.GetWrap(typeof(object));
+
         public void Write(object obj, JsonWriterArgs args)
         {
             var value = (IConvertible)obj;
@@ -60,7 +55,7 @@ namespace blqw.Serializable.JsonWriters
                     JsonWriterContainer.UInt64Writer.Write(value.ToUInt64(CultureInfo.InvariantCulture), args);
                     break;
                 case TypeCode.Object:
-                    JsonWriterContainer.ObjectWriter.Write(value, args);
+                    ObjectWrapper.Writer.Write(value, args);
                     break;
                 case TypeCode.Empty:
                 case TypeCode.DBNull:

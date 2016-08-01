@@ -1,30 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace blqw.Serializable
 {
-    static class TypeName
+    internal static class TypeName
     {
-        private static readonly NameValueCollection _typeNames = new NameValueCollection();
+        private static readonly NameValueCollection _TypeNames = new NameValueCollection();
         ///<summary> 获取类型名称的友好展现形式
         /// </summary>
         public static string Get(Type t)
         {
-            var s = _typeNames[t.GetHashCode().ToString()];
+            if (_TypeNames == null) throw new ArgumentNullException(nameof(_TypeNames));
+            if (t == null) throw new ArgumentNullException(nameof(t));
+            var s = _TypeNames[t.GetHashCode().ToString()];
             if (s != null)
             {
                 return s;
             }
-            lock (_typeNames)
+            lock (_TypeNames)
             {
                 var t2 = Nullable.GetUnderlyingType(t);
                 if (t2 != null)
                 {
-                    return _typeNames[t.GetHashCode().ToString()] = Get(t2) + "?";
+                    return _TypeNames[t.GetHashCode().ToString()] = Get(t2) + "?";
 
                 }
                 if (t.IsGenericType)
@@ -39,16 +42,16 @@ namespace blqw.Serializable
                     {
                         var infos = t.GetGenericArguments();
                         generic = new string[infos.Length];
-                        for (int i = 0; i < infos.Length; i++)
+                        for (var i = 0; i < infos.Length; i++)
                         {
                             generic[i] = Get(infos[i]);
                         }
                     }
-                    return _typeNames[t.GetHashCode().ToString()] = GetSimpleName(t) + "<" + string.Join(", ", generic) + ">";
+                    return _TypeNames[t.GetHashCode().ToString()] = GetSimpleName(t) + "<" + string.Join(", ", generic) + ">";
                 }
                 else
                 {
-                    return _typeNames[t.GetHashCode().ToString()] = GetSimpleName(t);
+                    return _TypeNames[t.GetHashCode().ToString()] = GetSimpleName(t);
                 }
             }
         }

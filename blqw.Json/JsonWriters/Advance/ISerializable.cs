@@ -14,7 +14,7 @@ namespace blqw.Serializable.JsonWriters
         
         private static readonly IFormatterConverter _Converter = new FormatterConverter();
 
-        private IJsonWriterWrap _wrap = GetWrap(typeof(SerializationInfo));
+        private IJsonWriterWrapper _wrapper = GetWrap(typeof(SerializationInfo));
 
         public void Write(object obj, JsonWriterArgs args)
         {
@@ -28,7 +28,7 @@ namespace blqw.Serializable.JsonWriters
 
             var info = new SerializationInfo(obj.GetType(), _Converter);
             value.GetObjectData(info, new StreamingContext());
-            _wrap.Writer.Write(info, args);
+            _wrapper.Writer.Write(info, args);
         }
     }
 }

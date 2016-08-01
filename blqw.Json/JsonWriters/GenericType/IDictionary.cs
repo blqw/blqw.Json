@@ -45,7 +45,7 @@ namespace blqw.Serializable.JsonWriters
             }
             public Type Type { get; } = typeof(IDictionary<TKey, TValue>);
 
-            public IJsonWriterWrap ValueWriter;
+            public IJsonWriterWrapper ValueWriter;
 
             public void Write(object obj, JsonWriterArgs args)
             {

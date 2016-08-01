@@ -15,16 +15,16 @@ namespace blqw.Serializable
         /// <para>包含16:转义字符</para>
         /// <para></para>
         /// </summary>
-        private readonly static byte[] _WordChars = new byte[char.MaxValue + 1];
-        private readonly static sbyte[] _UnicodeFlags = new sbyte[123];
-        private readonly static sbyte[,,] _DateTimeWords;
+        private static readonly byte[] _WordChars = new byte[char.MaxValue + 1];
+        private static readonly sbyte[] _UnicodeFlags = new sbyte[123];
+        private static readonly sbyte[,,] _DateTimeWords;
         static UnsafeJsonReader()
         {
-            for (int i = 0; i < 123; i++)
+            for (var i = 0; i < 123; i++)
             {
                 _UnicodeFlags[i] = -1;
             }
-
+            
             _WordChars['-'] = 1 | 4;
             _WordChars['+'] = 1 | 4;
 

@@ -20,11 +20,7 @@ namespace blqw.Serializable
             var jsonIgnore = (JsonIgnoreAttribute)Attribute.GetCustomAttribute(member, typeof(JsonIgnoreAttribute));
             if (jsonIgnore != null)
             {
-                if (jsonIgnore.NonDeserialize)
-                {
-                    return null;
-                }
-                return new JsonMember(member, true);
+                return jsonIgnore.NonDeserialize ? null : new JsonMember(member, true);
             }
             var b = member.IsDefined(typeof(NonSerializedAttribute), true);
             if (b == false)
@@ -40,15 +36,7 @@ namespace blqw.Serializable
         {
             Member = member;
             DisplayText = TypeName.Get(member.ReflectedType) + "." + member.Name;
-            var name = member.GetCustomAttribute<System.ComponentModel.DisplayNameAttribute>(true)?.DisplayName;
-            if (name != null)
-            {
-                JsonName = JsonBuilder.EscapeString(name);
-            }
-            else
-            {
-                JsonName = member.Name;
-            }
+            JsonName = member.GetCustomAttribute<System.ComponentModel.DisplayNameAttribute>(true)?.DisplayName ?? member.Name;
 
 
             InitGetSet(out Type, out GetValue, out SetValue);
@@ -56,21 +44,13 @@ namespace blqw.Serializable
             CanRead = GetValue != null;
             NonSerialized = ignoreSerialized;
 
-            JsonFormatAttribute format = member.GetCustomAttribute<JsonFormatAttribute>(true);
+            var format = member.GetCustomAttribute<JsonFormatAttribute>(true);
 
-            if (format != null)
-            {
-                if (!typeof(IFormattable).IsAssignableFrom(Type))
-                {
-                    format = null;
-                }
-                else
-                {
-                    MustFormat = true;
-                    FormatString = format.Format;
-                    FormatProvider = format.Provider;
-                }
-            }
+            if (format == null || typeof(IFormattable).IsAssignableFrom(Type) == false) return;
+
+            MustFormat = true;
+            FormatString = format.Format;
+            FormatProvider = format.Provider;
         }
 
         private void InitGetSet(out Type type, out Func<object, object> get, out Action<object, object> set)

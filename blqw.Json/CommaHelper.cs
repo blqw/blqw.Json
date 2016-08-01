@@ -7,9 +7,12 @@ using System.Threading.Tasks;
 
 namespace blqw.Serializable
 {
-    struct CommaHelper
+    /// <summary>
+    /// 逗号帮助类
+    /// </summary>
+    internal struct CommaHelper
     {
-        const char COMMA = ',';
+        private const char COMMA = ',';
         private readonly TextWriter _writer;
         private bool _first;
         public CommaHelper(TextWriter writer)
@@ -18,6 +21,9 @@ namespace blqw.Serializable
             _first = true;
         }
 
+        /// <summary>
+        /// 追加一个逗号,但忽略这个方法的第一次执行
+        /// </summary>
         public void AppendCommaIgnoreFirst()
         {
             if (_first)
