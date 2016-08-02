@@ -43,12 +43,13 @@ namespace blqw.Serializable.JsonWriters
 
                 comma.AppendCommaIgnoreFirst();
                 JsonWriterContainer.StringWriter.Write(name, args);
-                JsonWriterContainer.Write(val, args);
+                args.Writer.Write(':');
+                args.WriteCheckLoop(val);
             }
             writer.Write('}');
         }
 
-        class MyGetIndexBinder : GetIndexBinder
+        private class MyGetIndexBinder : GetIndexBinder
         {
             public MyGetIndexBinder(string name)
                 : base(new CallInfo(1, name))
@@ -61,7 +62,7 @@ namespace blqw.Serializable.JsonWriters
             }
         }
 
-        class MyGetMemberBinder : GetMemberBinder
+        private class MyGetMemberBinder : GetMemberBinder
         {
             public MyGetMemberBinder(string name)
                 : base(name, false)

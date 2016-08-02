@@ -1,30 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static blqw.Serializable.JsonWriterContainer;
 
 namespace blqw.Serializable.JsonWriters
 {
-    sealed class NullableWriter : IGenericJsonWriter
+    internal sealed class NullableWriter : IGenericJsonWriter
     {
         public Type Type { get; } = typeof(Nullable<>);
-        
+
         public IJsonWriter MakeType(Type type)
         {
-            foreach (var item in type.GetInterfaces())
-            {
-                if (item.IsGenericType && item.IsGenericTypeDefinition == false)
-                {
-                    if (item.GetGenericTypeDefinition() == Type)
-                    {
-                        var t = typeof(InnerWriter<>).MakeGenericType(item.GetGenericArguments());
-                        return (IJsonWriter)Activator.CreateInstance(t);
-                    }
-                }
-            }
-            throw new NotImplementedException();
+            var t = typeof(InnerWriter<>).MakeGenericType(type.GetGenericArguments());
+            return (IJsonWriter) Activator.CreateInstance(t);
         }
 
         public void Write(object obj, JsonWriterArgs args)
@@ -33,24 +19,22 @@ namespace blqw.Serializable.JsonWriters
         }
 
 
-        class InnerWriter<T> : IJsonWriter
+        private class InnerWriter<T> : IJsonWriter
             where T : struct
         {
-            public Type Type { get; } = typeof(T);
+            private readonly JsonWriterWrapper _wrapper;
+
             public InnerWriter()
             {
                 var value = typeof(T);
-
-                if (value.IsValueType || value.IsSealed)
-                {
-                    ValueWriter = GetWrap(value);
-                }
+                _wrapper = GetWrap(value);
             }
-            public IJsonWriterWrapper ValueWriter;
+
+            public Type Type { get; } = typeof(T?);
 
             public void Write(object obj, JsonWriterArgs args)
             {
-                ValueWriter.Writer.Write(obj, args);
+                _wrapper.Writer.Write(obj, args);
             }
         }
     }

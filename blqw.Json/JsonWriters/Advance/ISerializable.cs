@@ -14,23 +14,16 @@ namespace blqw.Serializable.JsonWriters
         
         private static readonly IFormatterConverter _Converter = new FormatterConverter();
         
-        private IJsonWriterWrapper _wrapper;
-        public IJsonWriterWrapper Wrapper
-        {
-            get
-            {
-                return _wrapper ?? (_wrapper = GetWrap(typeof(SerializationInfo)));
-            }
-        }
+        private JsonWriterWrapper _wrapper;
+        public JsonWriterWrapper Wrapper => _wrapper ?? (_wrapper = GetWrap(typeof(SerializationInfo)));
 
         public void Write(object obj, JsonWriterArgs args)
         {
             if (obj == null)
             {
-                JsonWriterContainer.NullWriter.Write(null, args);
+                NullWriter.Write(null, args);
                 return;
             }
-            var writer = args.Writer;
             var value = (ISerializable)obj;
 
             var info = new SerializationInfo(obj.GetType(), _Converter);

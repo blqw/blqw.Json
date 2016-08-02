@@ -41,26 +41,21 @@ namespace blqw.Serializable.JsonWriters
 
                 if (value.IsValueType || value.IsSealed)
                 {
-                    ValueWriter = GetWrap(value);
+                    _writer = GetWrap(value);
                 }
             }
-
-            private IJsonWriterWrapper GetWrap(Type value)
-            {
-                throw new NotImplementedException();
-            }
-
-            public IJsonWriterWrapper ValueWriter;
+            
+            private readonly JsonWriterWrapper _writer;
 
             public void Write(object obj, JsonWriterArgs args)
             {
                 if (obj == null)
                 {
-                    JsonWriterContainer.NullWriter.Write(null, args);
+                    NullWriter.Write(null, args);
                     return;
                 }
                 var writer = args.Writer;
-                var writeValue = ValueWriter != null ? (Action<object, JsonWriterArgs>)ValueWriter.Writer.Write : JsonWriterContainer.Write;
+                var writeValue = _writer != null ? (Action<object, JsonWriterArgs>)_writer.Writer.Write : JsonWriterContainer.Write;
 
                 writer.Write('[');
                 var comma = new CommaHelper(writer);
@@ -69,12 +64,13 @@ namespace blqw.Serializable.JsonWriters
                     if (args.IgnoreNullMember)
                     {
                         if (value == null || value is DBNull)
+                        {
+                            NullWriter.Write(null, args);
                             continue;
+                        }
                     }
-
                     comma.AppendCommaIgnoreFirst();
-
-                    writeValue(value, args);
+                    args.WriteCheckLoop(value);
                 }
 
                 writer.Write(']');

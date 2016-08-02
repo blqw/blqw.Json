@@ -72,10 +72,11 @@
     <Compile Include="JsonWriters\Base\JsonWriterArgs.cs" />
     <Compile Include="JsonWriters\GenericType\IDictionary.cs" />
     <Compile Include="JsonWriters\GenericType\IEnumerable.cs" />
+    <Compile Include="JsonWriters\GenericType\FormatProviderWriter.cs" />
     <Compile Include="JsonWriters\GenericType\IList.cs" />
     <Compile Include="JsonWriters\GenericType\Nullable.cs" />
     <Compile Include="JsonWriters\Interfaces\IGenericJsonWriter.cs" />
-    <Compile Include="JsonWriters\Primitives\Enum.cs" />
+    <Compile Include="JsonWriters\GenericType\Enum.cs" />
     <Compile Include="JsonWriters\Primitives\Guid.cs" />
     <Compile Include="JsonWriters\Primitives\Boolean.cs" />
     <Compile Include="JsonWriters\Primitives\Byte.cs" />
@@ -97,7 +98,6 @@
     <Compile Include="JsonType\ISetAdd.cs" />
     <Compile Include="JsonType\JsonMember.cs" />
     <Compile Include="JsonType\JsonType.cs" />
-    <Compile Include="JsonWriters\Base\JsonWriterBase.cs" />
     <Compile Include="JsonWriters\Object.cs" />
     <Compile Include="JsonWriters\Primitives\Null.cs" />
     <Compile Include="JsonWriters\Primitives\SByte.cs" />

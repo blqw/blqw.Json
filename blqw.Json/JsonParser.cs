@@ -282,7 +282,7 @@ namespace blqw.Serializable
             }
             if (jsonType.AddKeyValue == null)
             {
-                throw new JsonParseException(jsonType.DisplayText + " 无法写入数据,有可能是只读的或找不到Add入口", reader.RawJson);
+                throw new JsonParseException($"{jsonType.DisplayText} 无法写入数据,有可能是只读的或找不到Add(key,value)方法", reader.RawJson);
             }
             var eleType = jsonType.ElementType;
             var keyType = jsonType.KeyType;
@@ -317,9 +317,9 @@ namespace blqw.Serializable
             {
                 do
                 {
-                    string keyStr = ReadKey(reader);            //获取Key
-                    object key = keyType.Convert(keyStr, jsonType.Type);
-                    object val = ReadValue(reader, eleType);    //得到值
+                    var keyStr = ReadKey(reader);            //获取Key
+                    var key = keyType.Convert(keyStr, jsonType.Type);
+                    var val = ReadValue(reader, eleType);    //得到值
                     jsonType.AddKeyValue(obj, key, val);
                 } while (reader.SkipChar(',', false));
             }
@@ -339,12 +339,12 @@ namespace blqw.Serializable
             }
             if (jsonType.AddValue == null)
             {
-                throw new JsonParseException(jsonType.DisplayText + " 无法写入数据,有可能是只读的或找不到Add入口", reader.RawJson);
+                throw new JsonParseException($"{jsonType.DisplayText} 无法写入数据,有可能是只读的或找不到Add(value)方法", reader.RawJson);
             }
             var eleType = jsonType.ElementType;
             do
             {
-                object val = ReadValue(reader, eleType);  //得到值
+                var val = ReadValue(reader, eleType);  //得到值
                 //((dynamic)obj).Add((dynamic)val);
                 jsonType.AddValue(obj, val);    //赋值
             } while (reader.SkipChar(',', false));

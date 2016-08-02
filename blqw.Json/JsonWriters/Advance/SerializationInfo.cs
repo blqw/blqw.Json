@@ -30,12 +30,11 @@ namespace blqw.Serializable.JsonWriters
                         continue;
                     }
                 }
-
                 comma.AppendCommaIgnoreFirst();
-
                 JsonWriterContainer.StringWriter.Write(item.Name, args);
                 writer.Write(':');
-                JsonWriterContainer.Write(item.Value, args);
+
+                args.WriteCheckLoop(item.Value);
             }
 
 

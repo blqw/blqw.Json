@@ -8,13 +8,7 @@ namespace blqw.Serializable.JsonWriters
 {
     sealed class BooleanWriter : IJsonWriter
     {
-        public Type Type
-        {
-            get
-            {
-                return typeof(bool);
-            }
-        }
+        public Type Type { get; } = typeof(bool);
 
         public void Write(object obj, JsonWriterArgs args)
         {

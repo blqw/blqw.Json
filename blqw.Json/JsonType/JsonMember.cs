@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Specialized;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Web.Script.Serialization;
@@ -10,6 +11,7 @@ namespace blqw.Serializable
 {
     /// <summary> 可以被序列化成Json成员的对象
     /// </summary>
+    [DebuggerDisplay("Name = {JsonName},Member = {Member}")]
     public sealed class JsonMember
     {
         /// <summary> 创建Json成员对象,如果成员被指定为忽略反序列化则返回null

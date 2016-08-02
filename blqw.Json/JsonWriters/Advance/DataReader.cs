@@ -8,21 +8,13 @@ using static blqw.Serializable.JsonWriterContainer;
 
 namespace blqw.Serializable.JsonWriters
 {
-    class DataReaderWriter : IJsonWriter
+    internal class DataReaderWriter : IJsonWriter
     {
 
-        public Type Type => typeof(IDataReader);
+        public Type Type { get; } = typeof(IDataReader);
 
-        private IJsonWriterWrapper _wrapper;
-        public IJsonWriterWrapper Wrapper
-        {
-            get
-            {
-                return _wrapper ?? (_wrapper = GetWrap(typeof(IDataRecord)));
-            }
-        }
-
-
+        private JsonWriterWrapper _wrapper;
+        public JsonWriterWrapper Wrapper => _wrapper ?? (_wrapper = GetWrap(typeof(IDataRecord)));
 
 
         public void Write(object obj, JsonWriterArgs args)

@@ -110,13 +110,17 @@ namespace blqw.Serializable
 
 
         //循环引用对象缓存区
-        private IList _loopObject;
+        private readonly IList _loopObject;
 
         public int Depth { get; private set; }
 
-        public bool Entry(object value)
+        private bool Entry(object value)
         {
             Depth++;
+            if (value == null || value is DBNull)
+            {
+                return true;
+            }
             if (CheckLoopRef)
             {
                 if (value is ValueType)
@@ -128,6 +132,8 @@ namespace blqw.Serializable
                     _loopObject.Add(value);
                     return true;
                 }
+                Writer?.Write("undefined");
+                Depth--;
                 return false;
             }
             else if (Depth > 64)
@@ -136,8 +142,8 @@ namespace blqw.Serializable
             }
             return true;
         }
-
-        public void Exit()
+        
+        private void Exit()
         {
             Depth--;
             if (CheckLoopRef)
@@ -146,6 +152,41 @@ namespace blqw.Serializable
             }
         }
 
-
+        public void WriteCheckLoop(object value)
+        {
+            if (value == null || value is DBNull)
+            {
+                JsonWriterContainer.NullWriter.Write(null, this);
+                return;
+            }
+            var writer = JsonWriterContainer.Get(value.GetType());
+            if (CheckLoopRef)
+            {
+                if (value is ValueType)
+                {
+                    writer.Write(value, this);
+                }
+                else if (_loopObject.Contains(value) == false)
+                {
+                    var index = _loopObject.Add(value);
+                    writer.Write(value, this);
+                    _loopObject.RemoveAt(index);
+                }
+                else
+                {
+                    Writer?.Write("undefined");
+                }
+            }
+            else if (Depth > 64)
+            {
+                throw new NotSupportedException("对象过于复杂或存在循环引用");
+            }
+            else
+            {
+                Depth++;
+                writer.Write(value, this);
+                Depth--;
+            }
+        }
     }
 }

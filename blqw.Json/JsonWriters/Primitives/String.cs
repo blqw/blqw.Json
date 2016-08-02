@@ -9,14 +9,15 @@ namespace blqw.Serializable.JsonWriters
 {
     internal sealed class StringWriter : IJsonWriter
     {
-        public Type Type => typeof(string);
+        public Type Type { get; } = typeof(string);
 
         [ThreadStatic]
         private static char[] _CharBuffer;
 
+        private const int BUFFER_SIZE = 4096;
+
         public static void Write(TextWriter writer, string source, int start, int count)
         {
-            const int BUFFER_SIZE = 4096;
             if (_CharBuffer == null)
             {
                 _CharBuffer = new char[BUFFER_SIZE];

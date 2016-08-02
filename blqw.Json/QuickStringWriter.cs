@@ -14,7 +14,7 @@ namespace blqw.Serializable
     /// 高效的字符串拼接类, 无法继承此类
     /// </summary>
     [DebuggerDisplay("长度:{Length} 内容: {DebugInfo}")]
-    public sealed unsafe class QuickStringWriter : TextWriter, IDisposable
+    public sealed unsafe class QuickStringWriter : TextWriter
     {
         /// <summary>
         /// 初始化对象,使用默认大小的缓冲区(4096字节)
@@ -31,10 +31,10 @@ namespace blqw.Serializable
         public QuickStringWriter(ushort size)
         {
             //生成字符串缓冲指针 ,一个char是2个字节,所以要乘以2
-            _intPtr = Marshal.AllocHGlobal(size * 2);
+            _intPtr = Marshal.AllocHGlobal(size*2);
 
             //前20个用来放数字,char足够放下long 和 ulong
-            _number = (char*)_intPtr.ToPointer();
+            _number = (char*) _intPtr.ToPointer();
             _current = _number + 20;
 
             //确定最后一个字符的位置  长度-1
@@ -211,18 +211,42 @@ namespace blqw.Serializable
 
         #endregion
 
-        #region Append
+        #region Write
 
         private static char HexToChar(int a)
         {
             a &= 15;
-            return a > 9 ? (char)(a - 10 + 0x61) : (char)(a + 0x30);
+            return a > 9 ? (char) (a - 10 + 0x61) : (char) (a + 0x30);
+        }
+
+        public override void Write(char[] buffer)
+        {
+            if (buffer == null)
+            {
+                return;
+            }
+            base.Write(buffer,0, buffer.Length);
+        }
+
+        public override void Write(string format, object arg0)
+        {
+            Write(string.Format(format, arg0));
+        }
+
+        public override void Write(string format, object arg0, object arg1)
+        {
+            Write(string.Format(format, arg0, arg1));
+        }
+
+        public override void Write(string format, object arg0, object arg1, object arg2)
+        {
+            Write(string.Format(format, arg0, arg1, arg2));
         }
 
         /// <summary>
         /// 将 Guid 对象转换为字符串追加到当前实例。
         /// </summary>
-        public QuickStringWriter Append(Guid val, char format = 'd')
+        public void Write(Guid val, char format = 'd')
         {
             int flag;
             switch (format)
@@ -250,8 +274,8 @@ namespace blqw.Serializable
                     flag = '}';
                     break;
                 default:
-                    Append(val.ToString(format.ToString()));
-                    return this;
+                    Write(val.ToString(format.ToString()));
+                    return;
             }
             var bs = val.ToByteArray();
             _current[_position++] = HexToChar(bs[3] >> 4);
@@ -304,15 +328,14 @@ namespace blqw.Serializable
             _current[_position++] = HexToChar(bs[15]);
             if (flag > 1)
             {
-                _current[_position++] = (char)flag;
+                _current[_position++] = (char) flag;
             }
-            return this;
         }
 
         /// <summary>
         /// 将 Boolean 对象转换为字符串追加到当前实例。
         /// </summary>
-        public QuickStringWriter Append(bool val)
+        public override void Write(bool val)
         {
             if (val)
             {
@@ -331,13 +354,12 @@ namespace blqw.Serializable
                 _current[_position++] = 's';
                 _current[_position++] = 'e';
             }
-            return this;
         }
 
         /// <summary>
         /// 将 DateTime 对象转换为字符串追加到当前实例。
         /// </summary>
-        public QuickStringWriter Append(DateTime val, bool date, bool time, bool millisecond)
+        public void Write(DateTime val, bool date, bool time, bool millisecond)
         {
             TryWrite((date ? 10 : 0) + 1 + (time ? 8 : 0) + 1 + (millisecond ? 10 : 3));
             int a;
@@ -349,27 +371,27 @@ namespace blqw.Serializable
 
                 if (a > 999)
                 {
-                    _current[_position++] = (char)(a / 1000 + '0');
-                    a = a % 1000;
-                    _current[_position++] = (char)(a / 100 + '0');
-                    a = a % 100;
-                    _current[_position++] = (char)(a / 10 + '0');
-                    a = a % 10;
+                    _current[_position++] = (char) (a/1000 + '0');
+                    a = a%1000;
+                    _current[_position++] = (char) (a/100 + '0');
+                    a = a%100;
+                    _current[_position++] = (char) (a/10 + '0');
+                    a = a%10;
                 }
                 else if (a > 99)
                 {
                     _current[_position++] = '0';
-                    _current[_position++] = (char)(a / 100 + '0');
-                    a = a % 100;
-                    _current[_position++] = (char)(a / 10 + '0');
-                    a = a % 10;
+                    _current[_position++] = (char) (a/100 + '0');
+                    a = a%100;
+                    _current[_position++] = (char) (a/10 + '0');
+                    a = a%10;
                 }
                 else if (a > 9)
                 {
                     _current[_position++] = '0';
                     _current[_position++] = '0';
-                    _current[_position++] = (char)(a / 10 + '0');
-                    a = a % 10;
+                    _current[_position++] = (char) (a/10 + '0');
+                    a = a%10;
                 }
                 else
                 {
@@ -378,7 +400,7 @@ namespace blqw.Serializable
                     _current[_position++] = '0';
                 }
 
-                _current[_position++] = (char)(a + '0');
+                _current[_position++] = (char) (a + '0');
 
                 #endregion
 
@@ -389,14 +411,14 @@ namespace blqw.Serializable
 
                 if (a > 9)
                 {
-                    _current[_position++] = (char)(a / 10 + '0');
-                    a = a % 10;
+                    _current[_position++] = (char) (a/10 + '0');
+                    a = a%10;
                 }
                 else
                 {
                     _current[_position++] = '0';
                 }
-                _current[_position++] = (char)(a + '0');
+                _current[_position++] = (char) (a + '0');
 
                 #endregion
 
@@ -407,14 +429,14 @@ namespace blqw.Serializable
 
                 if (a > 9)
                 {
-                    _current[_position++] = (char)(a / 10 + '0');
-                    a = a % 10;
+                    _current[_position++] = (char) (a/10 + '0');
+                    a = a%10;
                 }
                 else
                 {
                     _current[_position++] = '0';
                 }
-                _current[_position++] = (char)(a + '0');
+                _current[_position++] = (char) (a + '0');
 
                 #endregion
 
@@ -431,14 +453,14 @@ namespace blqw.Serializable
 
                 if (a > 9)
                 {
-                    _current[_position++] = (char)(a / 10 + '0');
-                    a = a % 10;
+                    _current[_position++] = (char) (a/10 + '0');
+                    a = a%10;
                 }
                 else
                 {
                     _current[_position++] = '0';
                 }
-                _current[_position++] = (char)(a + '0');
+                _current[_position++] = (char) (a + '0');
 
                 #endregion
 
@@ -449,14 +471,14 @@ namespace blqw.Serializable
 
                 if (a > 9)
                 {
-                    _current[_position++] = (char)(a / 10 + '0');
-                    a = a % 10;
+                    _current[_position++] = (char) (a/10 + '0');
+                    a = a%10;
                 }
                 else
                 {
                     _current[_position++] = '0';
                 }
-                _current[_position++] = (char)(a + '0');
+                _current[_position++] = (char) (a + '0');
 
                 #endregion
 
@@ -467,14 +489,14 @@ namespace blqw.Serializable
 
                 if (a > 9)
                 {
-                    _current[_position++] = (char)(a / 10 + '0');
-                    a = a % 10;
+                    _current[_position++] = (char) (a/10 + '0');
+                    a = a%10;
                 }
                 else
                 {
                     _current[_position++] = '0';
                 }
-                _current[_position++] = (char)(a + '0');
+                _current[_position++] = (char) (a + '0');
 
                 #endregion
 
@@ -492,17 +514,17 @@ namespace blqw.Serializable
                 if (a > 99)
                 {
                     _current[_position++] = '0';
-                    _current[_position++] = (char)(a / 100 + '0');
-                    a = a % 100;
-                    _current[_position++] = (char)(a / 10 + '0');
-                    a = a % 10;
+                    _current[_position++] = (char) (a/100 + '0');
+                    a = a%100;
+                    _current[_position++] = (char) (a/10 + '0');
+                    a = a%10;
                 }
                 else if (a > 9)
                 {
                     _current[_position++] = '0';
                     _current[_position++] = '0';
-                    _current[_position++] = (char)(a / 10 + '0');
-                    a = a % 10;
+                    _current[_position++] = (char) (a/10 + '0');
+                    a = a%10;
                 }
                 else
                 {
@@ -511,181 +533,174 @@ namespace blqw.Serializable
                     _current[_position++] = '0';
                 }
 
-                _current[_position++] = (char)(a + '0');
+                _current[_position++] = (char) (a + '0');
 
                 #endregion
             }
-
-            return this;
         }
 
         /// <summary>
         /// 将 DateTime 对象转换为字符串追加到当前实例。
         /// </summary>
-        public QuickStringWriter Append(DateTime val)
+        public void Write(DateTime val)
         {
-            return Append(val, true, true, false);
+            Write(val, true, true, false);
         }
 
         /// <summary>
         /// 将 Decimal 对象转换为字符串追加到当前实例。
         /// </summary>
-        public QuickStringWriter Append(decimal val)
+        public override void Write(decimal val)
         {
-            return Append(val.ToString(CultureInfo.InvariantCulture));
+            Write(val.ToString(CultureInfo.InvariantCulture));
         }
 
         /// <summary>
         /// 将 Double 对象转换为字符串追加到当前实例。
         /// </summary>
-        public QuickStringWriter Append(double val)
+        public override void Write(double val)
         {
-            return Append(val.ToString(CultureInfo.InvariantCulture));
+            Write(val.ToString(CultureInfo.InvariantCulture));
         }
 
         /// <summary>
         /// 将 Single 对象转换为字符串追加到当前实例。
         /// </summary>
-        public QuickStringWriter Append(float val)
+        public override void Write(float val)
         {
-            return Append(val.ToString(CultureInfo.InvariantCulture));
+            Write(val.ToString(CultureInfo.InvariantCulture));
         }
 
         /// <summary>
         /// 将 SByte 对象转换为字符串追加到当前实例。
         /// </summary>
-        public QuickStringWriter Append(sbyte val)
+        public void Write(sbyte val)
         {
-            return Append((long)val);
-            ;
+            Write((long) val);
         }
 
         /// <summary>
         /// 将 Int16 对象转换为字符串追加到当前实例。
         /// </summary>
-        public QuickStringWriter Append(short val)
+        public void Write(short val)
         {
-            return Append((long)val);
+            Write((long) val);
         }
 
         /// <summary>
         /// 将 Int32 对象转换为字符串追加到当前实例。
         /// </summary>
-        public QuickStringWriter Append(int val)
+        public override void Write(int val)
         {
-            return Append((long)val);
+            Write((long) val);
         }
 
         /// <summary>
         /// 将 Int64 对象转换为字符串追加到当前实例。
         /// </summary>
-        public QuickStringWriter Append(long val)
+        public override void Write(long val)
         {
             if (val == 0)
             {
                 TryWrite();
                 _current[_position++] = '0';
-                return this;
+                return;
             }
 
-            var zero = (long)'0';
+            const long zero = (long) '0';
 
             var pos = 19;
             var f = val < 0;
             if (f)
             {
-                _number[pos] = (char)(~(val % 10L) + '1');
+                _number[pos] = (char) (~(val%10L) + '1');
                 if (val < -9)
                 {
-                    val = val / -10;
-                    _number[--pos] = (char)(val % 10L + zero);
+                    val = val/-10;
+                    _number[--pos] = (char) (val%10L + zero);
                 }
             }
             else
             {
-                _number[pos] = (char)(val % 10L + zero);
+                _number[pos] = (char) (val%10L + zero);
             }
-            while ((val = val / 10L) != 0L)
+            while ((val = val/10L) != 0L)
             {
-                _number[--pos] = (char)(val % 10L + zero);
+                _number[--pos] = (char) (val%10L + zero);
             }
             if (f)
             {
                 _number[--pos] = '-';
             }
             var length = 20 - pos;
-            Append(_number, pos, length);
-            return this;
+            Write(_number, pos, length);
         }
 
         /// <summary>
         /// 将 Char 对象转换为字符串追加到当前实例。
         /// </summary>
-        public QuickStringWriter Append(char val)
+        public override void Write(char val)
         {
             TryWrite();
             _current[_position++] = val;
-            return this;
         }
 
         /// <summary>
         /// 将 Byte 对象转换为字符串追加到当前实例。
         /// </summary>
-        public QuickStringWriter Append(byte val)
+        public void Write(byte val)
         {
-            return Append((ulong)val);
+            Write((ulong) val);
         }
 
         /// <summary>
         /// 将 UInt16 对象转换为字符串追加到当前实例。
         /// </summary>
-        public QuickStringWriter Append(ushort val)
+        public void Write(ushort val)
         {
-            return Append((ulong)val);
+            Write((ulong) val);
         }
 
         /// <summary>
         /// 将 UInt32 对象转换为字符串追加到当前实例。
         /// </summary>
-        public QuickStringWriter Append(uint val)
+        public override void Write(uint val)
         {
-            return Append((ulong)val);
+            Write((ulong) val);
         }
 
         /// <summary>
         /// 将 UInt64 对象转换为字符串追加到当前实例。
         /// </summary>
-        public QuickStringWriter Append(ulong val)
+        public override void Write(ulong val)
         {
             if (val == 0)
             {
                 TryWrite();
                 _current[_position++] = '0';
-                return this;
+                return;
             }
-            var zero = (ulong)'0';
+            var zero = (ulong) '0';
 
             var pos = 19;
-            _number[pos] = (char)(val % 10 + zero);
+            _number[pos] = (char) (val%10 + zero);
 
-            while ((val = val / 10) != 0)
+            while ((val = val/10) != 0)
             {
-                _number[--pos] = (char)(val % 10 + zero);
+                _number[--pos] = (char) (val%10 + zero);
             }
             var length = 20 - pos;
-            Append(_number, pos, length);
-            return this;
+            Write(_number, pos, length);
         }
 
         /// <summary>
         /// 将字符串追加到当前实例。
         /// </summary>
-        public QuickStringWriter Append(string val)
+        public override void Write(string val)
         {
             var length = val.Length;
             if (length == 0)
             {
-                return this;
             }
             if (length <= 3)
             {
@@ -709,14 +724,14 @@ namespace blqw.Serializable
                     if ((length & 1) != 0)
                     {
                         _current[_position++] = c[0];
-                        p2 = (int*)(c + 1);
+                        p2 = (int*) (c + 1);
                         length--;
                     }
                     else
                     {
-                        p2 = (int*)c;
+                        p2 = (int*) c;
                     }
-                    var p1 = (int*)&_current[_position];
+                    var p1 = (int*) &_current[_position];
 
 
                     _position += length;
@@ -746,7 +761,6 @@ namespace blqw.Serializable
                 //_buffer[_bufferIndex++] = val;
                 _length += val.Length;
             }
-            return this;
         }
 
         /// <summary>
@@ -755,11 +769,11 @@ namespace blqw.Serializable
         /// <param name = "offset"> </param>
         /// <param name = "length"> </param>
         /// <returns> </returns>
-        public QuickStringWriter Append(char[] charArray, int offset, int length)
+        public override void Write(char[] charArray, int offset, int length)
         {
             fixed (char* p = charArray)
             {
-                return Append(p, offset, length);
+                Write(p, offset, length);
             }
         }
 
@@ -770,7 +784,7 @@ namespace blqw.Serializable
         /// <param name = "offset"> 指针偏移量 </param>
         /// <param name = "length"> 字符长度 </param>
         /// <returns> </returns>
-        public QuickStringWriter Append(char* point, int offset, int length)
+        public void Write(char* point, int offset, int length)
         {
             if (length > 0)
             {
@@ -783,8 +797,8 @@ namespace blqw.Serializable
                         c++;
                         length--;
                     }
-                    var p1 = (int*)&_current[_position];
-                    var p2 = (int*)c;
+                    var p1 = (int*) &_current[_position];
+                    var p2 = (int*) c;
                     _position += length;
                     while (length >= 8)
                     {
@@ -812,17 +826,14 @@ namespace blqw.Serializable
                     _length += length;
                 }
             }
-
-            return this;
         }
 
         /// <summary>
         /// 将可格式化对象,按指定的格式转换为字符串追加到当前实例。
         /// </summary>
-        public QuickStringWriter AppendFormat(string format, params object[] args)
+        public override void Write(string format, params object[] args)
         {
-            Append(string.Format(format, args));
-            return this;
+            Write(string.Format(format, args));
         }
 
         /// <summary>
@@ -830,13 +841,12 @@ namespace blqw.Serializable
         /// </summary>
         /// <param name = "strings"> 字符串集合 </param>
         /// <returns> </returns>
-        public QuickStringWriter Append(IEnumerable<string> strings)
+        public void Write(IEnumerable<string> strings)
         {
             foreach (var str in strings)
             {
-                Append(str);
+                Write(str);
             }
-            return this;
         }
 
         /// <summary>
@@ -844,11 +854,10 @@ namespace blqw.Serializable
         /// </summary>
         /// <param name = "str"> 追加到集合的字符串 </param>
         /// <returns> </returns>
-        public QuickStringWriter AppendLine(string str)
+        public override void WriteLine(string str)
         {
-            Append(str);
-            Append(Environment.NewLine);
-            return this;
+            Write(str);
+            Write(Environment.NewLine);
         }
 
         /// <summary>
@@ -856,11 +865,11 @@ namespace blqw.Serializable
         /// </summary>
         /// <param name = "obj"> 对象实例 </param>
         /// <returns> </returns>
-        public QuickStringWriter AppendLine(object obj)
+        public override void Write(object obj)
         {
             if (obj == null)
             {
-                return this;
+                return;
             }
             var conv = obj as IConvertible;
             if (conv != null)
@@ -868,45 +877,48 @@ namespace blqw.Serializable
                 switch (conv.GetTypeCode())
                 {
                     case TypeCode.Boolean:
-                        Append(conv.ToBoolean(CultureInfo.InvariantCulture));
+                        Write(conv.ToBoolean(CultureInfo.InvariantCulture));
                         break;
                     case TypeCode.Char:
-                        Append(conv.ToChar(CultureInfo.InvariantCulture));
+                        Write(conv.ToChar(CultureInfo.InvariantCulture));
                         break;
                     case TypeCode.DateTime:
-                        Append(conv.ToDateTime(CultureInfo.InvariantCulture));
+                        Write(conv.ToDateTime(CultureInfo.InvariantCulture));
                         break;
                     case TypeCode.SByte:
                     case TypeCode.Int16:
                     case TypeCode.Int32:
                     case TypeCode.Int64:
-                        Append(conv.ToInt64(CultureInfo.InvariantCulture));
-                        break;
-                    case TypeCode.Decimal:
-                    case TypeCode.Double:
-                    case TypeCode.Single:
-                        Append(conv.ToString(CultureInfo.InvariantCulture));
+                        Write(conv.ToInt64(CultureInfo.InvariantCulture));
                         break;
                     case TypeCode.Byte:
                     case TypeCode.UInt16:
                     case TypeCode.UInt32:
                     case TypeCode.UInt64:
-                        Append(conv.ToUInt64(CultureInfo.InvariantCulture));
+                        Write(conv.ToUInt64(CultureInfo.InvariantCulture));
                         break;
+                    case TypeCode.Empty:
+                    case TypeCode.DBNull:
+                        return;
+                    case TypeCode.Object:
+                        break;
+                    case TypeCode.Decimal:
+                    case TypeCode.Double:
+                    case TypeCode.Single:
+                    case TypeCode.String:
                     default:
-                        Append(obj.ToString());
+                        Write(conv.ToString(CultureInfo.InvariantCulture));
                         break;
                 }
             }
             else if (obj is Guid)
             {
-                Append((Guid)obj);
+                Write((Guid) obj);
             }
             else
             {
-                Append(obj.ToString());
+                Write(obj.ToString());
             }
-            return this;
         }
 
         /// <summary>
@@ -915,40 +927,40 @@ namespace blqw.Serializable
         /// <param name = "val"> 可格式化对象 </param>
         /// <param name = "format"> 格式化参数 </param>
         /// <param name = "provider"> 格式化机制 </param>
-        public QuickStringWriter Append(IFormattable val, string format, IFormatProvider provider)
+        public void Write(IFormattable val, string format, IFormatProvider provider)
         {
             if (val is DateTime)
             {
                 if (string.Equals(format, "yyyy-MM-dd HH:mm:ss", StringComparison.Ordinal))
                 {
-                    return Append((DateTime)val, true, true, false);
+                    Write((DateTime) val, true, true, false);
                 }
                 if (string.Equals(format, "yyyy-MM-dd HH:mm:ss.fff", StringComparison.Ordinal))
                 {
-                    return Append((DateTime)val, true, true, true);
+                    Write((DateTime) val, true, true, true);
                 }
                 if (string.Equals(format, "HH:mm:ss", StringComparison.Ordinal))
                 {
-                    return Append((DateTime)val, false, true, false);
+                    Write((DateTime) val, false, true, false);
                 }
                 if (string.Equals(format, "HH:mm:ss.fff", StringComparison.Ordinal))
                 {
-                    return Append((DateTime)val, false, true, true);
+                    Write((DateTime) val, false, true, true);
                 }
                 if (string.Equals(format, "yyyy-MM-dd", StringComparison.Ordinal))
                 {
-                    return Append((DateTime)val, false, false, false);
+                    Write((DateTime) val, false, false, false);
                 }
                 if (string.Equals(format, "fff", StringComparison.Ordinal))
                 {
-                    return Append((DateTime)val, false, false, true);
+                    Write((DateTime) val, false, false, true);
                 }
             }
             else if (val is Guid && format?.Length == 1)
             {
-                return Append((Guid)val, format[0]);
+                Write((Guid) val, format[0]);
             }
-            return Append(val.ToString(format, provider));
+            Write(val.ToString(format, provider));
         }
 
         #endregion
@@ -993,8 +1005,7 @@ namespace blqw.Serializable
 
     internal struct SBBuffer : ICharBuffer
     {
-        [ThreadStatic]
-        private static StringBuilder _Sb;
+        [ThreadStatic] private static StringBuilder _Sb;
 
         private unsafe delegate StringBuilder AppendHandler(StringBuilder sb, char* p, int count);
 
@@ -1003,9 +1014,9 @@ namespace blqw.Serializable
         private static AppendHandler CreateHandler()
         {
             var method = typeof(StringBuilder)
-                .GetMethod("Append", (BindingFlags)(-1), null, new[] { typeof(char*), typeof(int) }, null);
+                .GetMethod("Append", (BindingFlags) (-1), null, new[] {typeof(char*), typeof(int)}, null);
             var dm = new DynamicMethod("", typeof(StringBuilder),
-                new[] { typeof(StringBuilder), typeof(char*), typeof(int) }, method.DeclaringType, true);
+                new[] {typeof(StringBuilder), typeof(char*), typeof(int)}, method.DeclaringType, true);
 
             var il = dm.GetILGenerator();
             il.Emit(OpCodes.Ldarg_0);
@@ -1013,7 +1024,7 @@ namespace blqw.Serializable
             il.Emit(OpCodes.Ldarg_2);
             il.Emit(OpCodes.Callvirt, method);
             il.Emit(OpCodes.Ret);
-            return (AppendHandler)dm.CreateDelegate(typeof(AppendHandler));
+            return (AppendHandler) dm.CreateDelegate(typeof(AppendHandler));
         }
 
         public unsafe void Append(char* point, int start, int length)
@@ -1036,8 +1047,7 @@ namespace blqw.Serializable
 
     internal struct SWBuffer : ICharBuffer
     {
-        [ThreadStatic]
-        private static StringWriter _Sw;
+        [ThreadStatic] private static StringWriter _Sw;
 
         public unsafe void Append(char* point, int start, int length)
         {

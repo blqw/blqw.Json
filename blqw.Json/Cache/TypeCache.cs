@@ -33,16 +33,12 @@ namespace blqw.Serializable
             {
                 throw new ArgumentNullException("key");
             }
-            if (key.IsGenericTypeDefinition) //如果是泛型定义类型 就不能加入泛型缓存
+            if (key.IsGenericTypeDefinition || typeof(void) == key) //如果是泛型定义类型 就不能加入泛型缓存
             {
                 lock (_cache)
                 {
                     _cache[key] = item;
                 }
-                return;
-            }
-            if (typeof(void) == key)
-            {
                 return;
             }
             var gc = typeof(GenericCache<>).MakeGenericType(typeof(T), key);
@@ -89,7 +85,7 @@ namespace blqw.Serializable
         {
             if (key == null)
             {
-                throw new ArgumentNullException("key");
+                throw new ArgumentNullException(nameof(key));
             }
             T item;
             if (_cache.TryGetValue(key, out item))
@@ -98,7 +94,7 @@ namespace blqw.Serializable
             }
             if (create == null)
             {
-                throw new ArgumentNullException("create");
+                throw new ArgumentNullException(nameof(create));
             }
             item = create(key);
             lock (_cache)

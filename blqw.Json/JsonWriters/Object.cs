@@ -8,7 +8,7 @@ namespace blqw.Serializable.JsonWriters
 {
     internal sealed class ObjectWriter : IJsonWriter
     {
-        public Type Type => typeof(object);
+        public Type Type { get; } = typeof(object);
 
         public void Write(object obj, JsonWriterArgs args)
         {
@@ -39,6 +39,7 @@ namespace blqw.Serializable.JsonWriters
                     continue;
                 }
 
+
                 var value = member.GetValue(obj);
                 if (value == null || value is DBNull)
                 {
@@ -57,30 +58,29 @@ namespace blqw.Serializable.JsonWriters
                     JsonWriterContainer.StringWriter.Write(member.JsonName, args);
                     writer.Write(':');
                     JsonWriterContainer.StringWriter.Write(((IFormattable)value)?.ToString(member.FormatString, member.FormatProvider), args);
-
                 }
                 else
                 {
                     var obj1 = (value as IFormatProvider)?.GetFormat(typeof(Json));
                     if (obj1 != null)
                     {
-                        Write(comma, member.JsonName, obj1, args);
+                        Write(ref comma, member.JsonName, obj1, args);
                         return;
                     }
 
                     var objref = value as IObjectReference;
                     if (objref != null)
                     {
-                        Write(comma, member.JsonName, objref.GetRealObject(new StreamingContext(StreamingContextStates.All, args)), args);
+                        Write(ref comma, member.JsonName, objref.GetRealObject(new StreamingContext(StreamingContextStates.All, args)), args);
                     }
-                    Write(comma, member.JsonName, value, args);
+                    Write(ref comma, member.JsonName, value, args);
                 }
 
             }
             writer.Write('}');
         }
 
-        private void Write(CommaHelper comma, string name, object value, JsonWriterArgs args)
+        private static void Write(ref CommaHelper comma, string name, object value, JsonWriterArgs args)
         {
             if (value == null || value is DBNull)
             {
@@ -98,7 +98,7 @@ namespace blqw.Serializable.JsonWriters
                 comma.AppendCommaIgnoreFirst();
                 JsonWriterContainer.StringWriter.Write(name, args);
                 args.Writer.Write(':');
-                JsonWriterContainer.Get(value.GetType())?.Write(value, args);
+                args.WriteCheckLoop(value);
             }
         }
     }

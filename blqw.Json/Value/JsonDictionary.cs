@@ -254,7 +254,7 @@ namespace blqw.Serializable
 
         public override string ToString()
         {
-            return Json.ToJsonString(this);
+            return this.ToJsonString();
         }
     }
 }

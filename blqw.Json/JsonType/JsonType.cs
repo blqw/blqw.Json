@@ -132,7 +132,7 @@ namespace blqw.Serializable
             }
 
             Type = type;
-            DisplayText = type.FullName;
+            DisplayText = ComponentServices.Converter.ToString(type);
             _members = new Dictionary<string, JsonMember>(StringComparer.OrdinalIgnoreCase);
             var list = new List<JsonMember>();
 

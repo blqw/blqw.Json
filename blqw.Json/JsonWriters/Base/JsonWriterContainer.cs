@@ -1,7 +1,11 @@
 ﻿using blqw.IOC;
 using System;
+using System.CodeDom;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.Linq;
 
 namespace blqw.Serializable
 {
@@ -11,14 +15,14 @@ namespace blqw.Serializable
     public static class JsonWriterContainer
     {
         /// <summary>
-        /// <see cref="IJsonWriterWrapper" /> 的缓存 
+        /// <see cref="JsonWriterWrapper" /> 的缓存 
         /// </summary>
-        private static TypeCache<IJsonWriterWrapper> _Items;
+        private static TypeCache<JsonWriterWrapper> _Items;
 
         /// <summary>
         /// typeof(Type) 
         /// </summary>
-        private static readonly Type _ObjectType = typeof(Type);
+        private static readonly Type _ObjectType = typeof(object);
 
 
         /// <summary>
@@ -38,36 +42,36 @@ namespace blqw.Serializable
         public static void Reload()
         {
             MEF.Import(typeof(JsonWriterContainer));
-            _Items = new TypeCache<IJsonWriterWrapper>();
+            _Items = new TypeCache<JsonWriterWrapper>();
             foreach (var w in _Writers)
             {
-                _Items.Set(w.Type, new IJsonWriterWrapper(w));
+                _Items.Set(w.Type, new JsonWriterWrapper(w));
             }
         }
 
-        private static IJsonWriterWrapper _NullWapper;
-        private static IJsonWriterWrapper _VersionWapper;
-        private static IJsonWriterWrapper _UriWapper;
-        private static IJsonWriterWrapper _UInt64Wapper;
-        private static IJsonWriterWrapper _UInt32Wapper;
-        private static IJsonWriterWrapper _UInt16Wapper;
-        private static IJsonWriterWrapper _TypeWapper;
-        private static IJsonWriterWrapper _TimeSpanWapper;
-        private static IJsonWriterWrapper _StringWapper;
-        private static IJsonWriterWrapper _SingleWapper;
-        private static IJsonWriterWrapper _SByteWapper;
-        private static IJsonWriterWrapper _Int64Wapper;
-        private static IJsonWriterWrapper _Int32Wapper;
-        private static IJsonWriterWrapper _Int16Wapper;
-        private static IJsonWriterWrapper _ConvertibleWapper;
-        private static IJsonWriterWrapper _GuidWapper;
-        private static IJsonWriterWrapper _EnumWapper;
-        private static IJsonWriterWrapper _DoubleWapper;
-        private static IJsonWriterWrapper _DateTimeWapper;
-        private static IJsonWriterWrapper _DecimalWapper;
-        private static IJsonWriterWrapper _CharWapper;
-        private static IJsonWriterWrapper _ByteWapper;
-        private static IJsonWriterWrapper _BooleanWapper;
+        private static JsonWriterWrapper _NullWapper;
+        private static JsonWriterWrapper _VersionWapper;
+        private static JsonWriterWrapper _UriWapper;
+        private static JsonWriterWrapper _UInt64Wapper;
+        private static JsonWriterWrapper _UInt32Wapper;
+        private static JsonWriterWrapper _UInt16Wapper;
+        private static JsonWriterWrapper _TypeWapper;
+        private static JsonWriterWrapper _TimeSpanWapper;
+        private static JsonWriterWrapper _StringWapper;
+        private static JsonWriterWrapper _SingleWapper;
+        private static JsonWriterWrapper _SByteWapper;
+        private static JsonWriterWrapper _Int64Wapper;
+        private static JsonWriterWrapper _Int32Wapper;
+        private static JsonWriterWrapper _Int16Wapper;
+        private static JsonWriterWrapper _ConvertibleWapper;
+        private static JsonWriterWrapper _GuidWapper;
+        private static JsonWriterWrapper _EnumWapper;
+        private static JsonWriterWrapper _DoubleWapper;
+        private static JsonWriterWrapper _DateTimeWapper;
+        private static JsonWriterWrapper _DecimalWapper;
+        private static JsonWriterWrapper _CharWapper;
+        private static JsonWriterWrapper _ByteWapper;
+        private static JsonWriterWrapper _BooleanWapper;
 
 
         /// <summary>
@@ -219,7 +223,7 @@ namespace blqw.Serializable
         {
             return _Writers?.Count ?? 0;
         }
-   /// <summary>
+        /// <summary>
         /// 设置 <see cref="IJsonWriter" />,如果已经存在则替换 
         /// </summary>
         /// <param name="writer"> <see cref="IJsonWriter" /> 对象 </param>
@@ -227,23 +231,23 @@ namespace blqw.Serializable
         {
             if (writer == null)
                 throw new ArgumentNullException(nameof(writer));
-            var w = _Items.GetOrCreate(writer.Type, (t) => new IJsonWriterWrapper(writer));
+            var w = _Items.GetOrCreate(writer.Type, (t) => new JsonWriterWrapper(writer));
             if (w.Writer.Type == writer.Type)
             {
                 w.Writer = writer;
             }
             else
             {
-                _Items.Set(writer.Type, new IJsonWriterWrapper(writer));
+                _Items.Set(writer.Type, new JsonWriterWrapper(writer));
             }
         }
 
         /// <summary>
-        /// 获取匹配 <paramref name="type" /> 的 <see cref="IJsonWriterWrapper" /> 
+        /// 获取匹配 <paramref name="type" /> 的 <see cref="JsonWriterWrapper" /> 
         /// </summary>
         /// <param name="type"> 用于匹配的 <see cref="Type" /> </param>
         /// <returns></returns>
-        internal static IJsonWriterWrapper GetWrap(Type type)
+        internal static JsonWriterWrapper GetWrap(Type type)
         {
             if (type == null)
                 throw new ArgumentNullException(nameof(type));
@@ -252,31 +256,32 @@ namespace blqw.Serializable
 
         /// <summary>
         /// 从 <see cref="IJsonWriter" /> 集合 <seealso cref="_Items" /> 中选择一个匹配
-        /// <paramref name="type" /> 的 <see cref="IJsonWriterWrapper" />
+        /// <paramref name="type" /> 的 <see cref="JsonWriterWrapper" />
         /// </summary>
         /// <param name="type"> 用于匹配的 <see cref="Type" /> </param>
         /// <returns></returns>
-        private static IJsonWriterWrapper Select(Type type)
+        private static JsonWriterWrapper Select(Type type)
         {
             //精确匹配当前类 或 泛型定义
-            var wrap = _Items.Get(type) ?? SelectByGenericDefinition(type);
+            var wrap = _Items.Get(type) ?? SelectByGenericDefinition(type, type);
             if (wrap != null)
             {
                 return wrap;
             }
-            var baseType = type.BaseType ?? _ObjectType;
+            var baseType = type.BaseType ?? _ObjectType ?? typeof(object);
             while (baseType != _ObjectType)
             {
                 //匹配父类 或 父类泛型定义.除了Object以外
-                wrap = _Items.Get(baseType) ?? SelectByGenericDefinition(baseType);
+                wrap = _Items.Get(baseType) ?? SelectByGenericDefinition(baseType, type);
                 if (wrap != null)
                 {
-                    return wrap;
+                    return new JsonWriterWrapper(wrap, type);
                 }
-                baseType = type.BaseType;
+                baseType = baseType.BaseType ?? _ObjectType ?? typeof(object);
             }
             //匹配接口
-            var interfaces = type.GetInterfaces();
+            var interfaces = type.GetInterfaces().OrderByDescending(GetPriority);
+
             foreach (var interfaceType in interfaces)
             {
                 wrap = _Items.Get(interfaceType);
@@ -284,34 +289,55 @@ namespace blqw.Serializable
                 {
                     return wrap;
                 }
-            }
-            //匹配接口泛型定义
-            foreach (var interfaceType in interfaces)
-            {
-                wrap = SelectByGenericDefinition(interfaceType);
+                //匹配接口泛型定义
+                wrap = SelectByGenericDefinition(interfaceType, type);
                 if (wrap != null)
                 {
-                    return new IJsonWriterWrapper(wrap, type);
+                    return new JsonWriterWrapper(wrap, type);
                 }
             }
             //匹配object定义
-            return new IJsonWriterWrapper(_Items.Get(_ObjectType), type);
+            return new JsonWriterWrapper(_Items.Get(_ObjectType), type);
         }
 
         /// <summary>
-        /// 获取与 <paramref name="type" /> 的泛型定义类型匹配的 <see cref="IJsonWriterWrapper" />,如果
-        /// <paramref name="type" /> 不是泛型,返回 <seealso cref="null" />
+        /// 获取类型的优先级
         /// </summary>
-        /// <param name="type"> 用于匹配的 <see cref="Type" /> </param>
+        /// <param name="type"></param>
         /// <returns></returns>
-        private static IJsonWriterWrapper SelectByGenericDefinition(Type type)
+        private static int GetPriority(Type type)
         {
-            if (type.IsGenericType && type.IsGenericTypeDefinition == false)
+            int i;
+            if (type.IsGenericType)
             {
-                var wrap = _Items.Get(type.GetGenericTypeDefinition());
+                type = type.GetGenericTypeDefinition() ?? type;
+            }
+            return _Prioritys.TryGetValue(type, out i) ? i : 100;
+        }
+
+        private static readonly Dictionary<Type, int> _Prioritys = new Dictionary<Type, int>()
+        {
+            [typeof(IDictionary<,>)] = 200,
+            [typeof(IDictionary)] = 199,
+            [typeof(IEnumerable<>)] = 2,
+            [typeof(IEnumerable)] = 1,
+        };
+
+        /// <summary>
+        /// 获取与 <paramref name="type" /> 的泛型定义类型匹配的 <see cref="JsonWriterWrapper" />,如果
+        /// <paramref name="genericType" /> 不是泛型,返回 null
+        /// </summary>
+        /// <param name="genericType"> 用于匹配的 <see cref="Type" /> </param>
+        /// <param name="type"> 实际的 <see cref="Type" /> </param>
+        /// <returns></returns>
+        private static JsonWriterWrapper SelectByGenericDefinition(Type genericType, Type type)
+        {
+            if (genericType.IsGenericType && genericType.IsGenericTypeDefinition == false)
+            {
+                var wrap = _Items.Get(genericType.GetGenericTypeDefinition());
                 if (wrap != null)
                 {
-                    return new IJsonWriterWrapper(wrap, type);
+                    return new JsonWriterWrapper(wrap, type);
                 }
             }
             return null;
@@ -320,7 +346,8 @@ namespace blqw.Serializable
         /// <summary>
         /// <see cref="IJsonWriter" /> 的包装类型 
         /// </summary>
-        internal class IJsonWriterWrapper
+        [DebuggerDisplay("Type = {_type}")]
+        internal class JsonWriterWrapper
         {
             /// <summary>
             /// <seealso cref="_writer"/>的生成源的引用
@@ -333,7 +360,7 @@ namespace blqw.Serializable
             /// <summary>
             /// 包装对象
             /// </summary>
-            private readonly IJsonWriterWrapper _wrapper;
+            private readonly JsonWriterWrapper _wrapper;
             /// <summary>
             /// <see cref="IJsonWriter"/>对象
             /// </summary>
@@ -343,7 +370,7 @@ namespace blqw.Serializable
             /// 包装一个 <see cref="IJsonWriter"/> 
             /// </summary>
             /// <param name="writer"><see cref="IJsonWriter"/>对象 </param>
-            public IJsonWriterWrapper(IJsonWriter writer)
+            public JsonWriterWrapper(IJsonWriter writer)
             {
                 _writer = writer;
                 _type = writer.Type;
@@ -352,9 +379,9 @@ namespace blqw.Serializable
             /// <summary>
             /// 生成一个新的 <see cref="IJsonWriter"/> 并包装起来
             /// </summary>
-            /// <param name="wrapper">原始<see cref="IJsonWriterWrapper"/> </param>
+            /// <param name="wrapper">原始<see cref="JsonWriterWrapper"/> </param>
             /// <param name="type">待生成的<see cref="IJsonWriter"/>的类型 </param>
-            public IJsonWriterWrapper(IJsonWriterWrapper wrapper, Type type)
+            public JsonWriterWrapper(JsonWriterWrapper wrapper, Type type)
             {
                 _wrapper = wrapper;
                 _type = type;
@@ -388,6 +415,7 @@ namespace blqw.Serializable
             /// <summary>
             /// 生成新的 <see cref="IJsonWriter"/>
             /// </summary>
+            /// <exception cref="NotImplementedException"> </exception>
             private void Create()
             {
                 if (_wrapper == null)
@@ -398,8 +426,15 @@ namespace blqw.Serializable
                 {
                     throw new ArgumentNullException(nameof(_type));
                 }
-                _originReference = _wrapper.Writer;
-                _writer = (_wrapper.Writer as IGenericJsonWriter)?.MakeType(_type) ?? _wrapper.Writer;
+                _originReference = _writer = _wrapper.Writer;
+                var writer = _wrapper.Writer as IGenericJsonWriter;
+                if (writer == null) return;
+                _writer = writer.MakeType(_type);
+                if (_writer == null)
+                {
+                    throw new NotImplementedException(
+                        $"无法从`{_wrapper.Writer.GetType()}`类型中获取`{_type}`的{nameof(IJsonWriter)}");
+                }
             }
         }
 

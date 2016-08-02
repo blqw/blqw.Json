@@ -11,9 +11,9 @@ namespace blqw.Serializable.JsonWriters
 {
     sealed class IConvertibleWriter : IJsonWriter
     {
-        public Type Type => typeof(IConvertible);
+        public Type Type { get; } = typeof(IConvertible);
 
-        private JsonWriterContainer.IJsonWriterWrapper ObjectWrapper => JsonWriterContainer.GetWrap(typeof(object));
+        private JsonWriterContainer.JsonWriterWrapper ObjectWrapper => JsonWriterContainer.GetWrap(typeof(object));
 
         public void Write(object obj, JsonWriterArgs args)
         {

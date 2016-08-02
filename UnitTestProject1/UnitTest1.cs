@@ -10,6 +10,7 @@ using blqw.Serializable;
 namespace UnitTestProject1
 {
     #region 测试用例
+    [Serializable]
     public class User
     {
         public static User TestUser()
@@ -66,6 +67,7 @@ namespace UnitTestProject1
     }
     /// <summary> 用户性别
     /// </summary>
+    [Serializable]
     public enum UserSex
     {
         /// <summary> 男
@@ -77,6 +79,7 @@ namespace UnitTestProject1
     }
     /// <summary> 用户信息
     /// </summary>
+    [Serializable]
     public class UserInfo
     {
         /// <summary> 地址
@@ -91,6 +94,7 @@ namespace UnitTestProject1
     }
     #endregion
 
+    [Serializable]
     public class Object1
     {
         public bool Result { get; set; }
@@ -99,6 +103,7 @@ namespace UnitTestProject1
         public int total { get; set; }
     }
 
+    [Serializable]
     public class Object1Item
     {
         public long vptNum { get; set; }
@@ -107,6 +112,7 @@ namespace UnitTestProject1
         public string ntype { get; set; }
         public int abnormal { get; set; }
     }
+    [Serializable]
     public class Object2
     {
         public uint ORGCODE { get; set; }
@@ -123,7 +129,7 @@ namespace UnitTestProject1
         public void TestMethod1()
         {
             var user = User.TestUser();
-            var userJson = Json.ToJsonString(user);
+            var userJson = user.ToJsonString();
             TestNewtonsoftResult<Object1>(File.ReadAllText("json1.txt"));
             TestNewtonsoftResult<Object2[]>(File.ReadAllText("json2.txt"));
             TestNewtonsoftResult<List<Object2>>(File.ReadAllText("json2.txt"));
@@ -140,7 +146,7 @@ namespace UnitTestProject1
 
             //时间处理
             DateTime date = new DateTime(2014, 1, 2, 3, 4, 5, 6);
-            Assert.AreEqual("{\"date\":\"2014-01-02 03:04:05\"}", Json.ToJsonString(new { date = date }));
+            Assert.AreEqual("{\"date\":\"2014-01-02 03:04:05\"}", new { date }.ToJsonString());
 
             Assert.AreEqual(
                 "{\"date\":\"2014-01-02\"}",
@@ -153,7 +159,7 @@ namespace UnitTestProject1
 
             //枚举
             Assert.AreEqual("{\"key\":\"Applications\"}", Json.ToJsonString(new { key = ConsoleKey.Applications }, 0));
-            Assert.AreEqual("{\"key\":93}", Json.ToJsonString(new { key = ConsoleKey.Applications }, JsonBuilderSettings.EnumToNumber));
+            Assert.AreEqual("{\"key\":93}", new { key = ConsoleKey.Applications }.ToJsonString(JsonBuilderSettings.EnumToNumber));
 
             //数字
             Assert.AreEqual("{\"number\":1}", Json.ToJsonString(new { number = 1 }));
@@ -171,7 +177,7 @@ namespace UnitTestProject1
             try
             {
                 user.Self = user;
-                blqw.Json.ToJsonString(user);
+                user.ToJsonString();
                 Assert.Fail("循环引用测试失败1");
             }
             catch (Exception)
@@ -229,9 +235,9 @@ namespace UnitTestProject1
         public void TestSafeResult(string jsonString)
         {
             var obj1 = blqw.Json.ToObject(jsonString);
-            var jsonString1 = blqw.Json.ToJsonString(obj1, JsonBuilderSettings.Default ^ JsonBuilderSettings.IgnoreNullMember);
+            var jsonString1 = obj1.ToJsonString(JsonBuilderSettings.Default ^ JsonBuilderSettings.IgnoreNullMember);
             var obj2 = blqw.Json.ToObject(jsonString1);
-            var jsonString2 = blqw.Json.ToJsonString(obj2, JsonBuilderSettings.Default ^ JsonBuilderSettings.IgnoreNullMember);
+            var jsonString2 = obj2.ToJsonString(JsonBuilderSettings.Default ^ JsonBuilderSettings.IgnoreNullMember);
             AssertEquals(obj1, obj2);
             Assert.AreEqual(jsonString1, jsonString2);
         }

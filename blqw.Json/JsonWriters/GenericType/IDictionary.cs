@@ -40,39 +40,39 @@ namespace blqw.Serializable.JsonWriters
 
                 if (value.IsValueType || value.IsSealed)
                 {
-                    ValueWriter = GetWrap(value);
+                    _writer = GetWrap(value);
                 }
             }
             public Type Type { get; } = typeof(IDictionary<TKey, TValue>);
 
-            public IJsonWriterWrapper ValueWriter;
+            private readonly JsonWriterWrapper _writer;
 
             public void Write(object obj, JsonWriterArgs args)
             {
                 if (obj == null)
                 {
-                    JsonWriterContainer.NullWriter.Write(null, args);
+                    NullWriter.Write(null, args);
                     return;
                 }
                 var writer = args.Writer;
-                var writeValue = ValueWriter != null ? (Action<object, JsonWriterArgs>)ValueWriter.Writer.Write : JsonWriterContainer.Write;
+                var writeValue = _writer != null ? (Action<object, JsonWriterArgs>)_writer.Writer.Write : JsonWriterContainer.Write;
 
                 writer.Write('{');
                 var comma = new CommaHelper(writer);
                 foreach (var item in (IDictionary<TKey, TValue>)obj)
                 {
-                    var v = item.Value;
+                    var value = item.Value;
                     if (args.IgnoreNullMember)
                     {
-                        if (v == null || v is DBNull)
+                        if (value == null || value is DBNull)
                             continue;
                     }
-
                     comma.AppendCommaIgnoreFirst();
 
                     JsonWriterContainer.StringWriter.Write(item.Key.To<string>(), args);
                     writer.Write(':');
-                    writeValue(item.Value, args);
+
+                    args.WriteCheckLoop(value);
                 }
 
                 writer.Write('}');

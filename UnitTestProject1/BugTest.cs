@@ -51,7 +51,7 @@ namespace UnitTestProject1
         public void Test_20141128()
         {
             var a = new { a = -10 };
-            var c = Json.ToJsonString(a);
+            var c = a.ToJsonString();
             Assert.AreEqual("{\"a\":-10}", c);
         }
     }

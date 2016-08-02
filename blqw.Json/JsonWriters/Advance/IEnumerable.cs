@@ -27,12 +27,13 @@ namespace blqw.Serializable.JsonWriters
                 if (args.IgnoreNullMember)
                 {
                     if (value == null || value is DBNull)
+                    {
                         continue;
+                    }
                 }
 
                 comma.AppendCommaIgnoreFirst();
-
-                JsonWriterContainer.Write(value, args);
+                args.WriteCheckLoop(value);
             }
 
             writer.Write(']');

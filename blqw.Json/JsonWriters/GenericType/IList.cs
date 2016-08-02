@@ -46,7 +46,7 @@ namespace blqw.Serializable.JsonWriters
                 }
             }
 
-            public IJsonWriterWrapper ValueWriter;
+            public JsonWriterWrapper ValueWriter;
 
             public void Write(object obj, JsonWriterArgs args)
             {
@@ -67,12 +67,14 @@ namespace blqw.Serializable.JsonWriters
                     if (args.IgnoreNullMember)
                     {
                         if (value == null || value is DBNull)
+                        {
+                            JsonWriterContainer.NullWriter.Write(null, args);
                             continue;
+                        }
                     }
 
                     comma.AppendCommaIgnoreFirst();
-
-                    writeValue(value, args);
+                    args.WriteCheckLoop(value);
                 }
 
                 writer.Write(']');

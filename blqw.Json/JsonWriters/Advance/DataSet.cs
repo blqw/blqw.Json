@@ -10,16 +10,10 @@ namespace blqw.Serializable.JsonWriters
 {
     class DataSetWrite : IJsonWriter
     {
-        public Type Type => typeof(DataSet);
+        public Type Type { get; } = typeof(DataSet);
         
-        private IJsonWriterWrapper _wrapper;
-        public IJsonWriterWrapper Wrapper
-        {
-            get
-            {
-                return _wrapper ?? (_wrapper = GetWrap(Type));
-            }
-        }
+        private JsonWriterWrapper _wrapper;
+        public JsonWriterWrapper Wrapper => _wrapper ?? (_wrapper = GetWrap(Type));
 
         public void Write(object obj, JsonWriterArgs args)
         {

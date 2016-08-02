@@ -25,10 +25,10 @@ namespace blqw.Serializable.JsonWriters
             var ee = ((IDictionary)obj).GetEnumerator();
             while (ee.MoveNext())
             {
-                var v = ee.Value;
+                var value = ee.Value;
                 if (args.IgnoreNullMember)
                 {
-                    if (v == null || v is DBNull)
+                    if (value == null || value is DBNull)
                         continue;
                 }
 
@@ -36,7 +36,7 @@ namespace blqw.Serializable.JsonWriters
 
                 JsonWriterContainer.StringWriter.Write(ee.Key.To<string>(), args);
                 writer.Write(':');
-                JsonWriterContainer.Write(ee.Value, args);
+                args.WriteCheckLoop(value);
             }
 
             writer.Write('}');
