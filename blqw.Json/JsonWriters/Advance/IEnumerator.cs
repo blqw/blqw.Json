@@ -21,23 +21,16 @@ namespace blqw.Serializable.JsonWriters
             var writer = args.Writer;
 
             writer.Write('[');
-            var comma = new CommaHelper(writer);
-            var ee = (IEnumerator) obj;
-            while (ee.MoveNext())
+            var ee = (IEnumerator)obj;
+            if (ee.MoveNext())
             {
-                var value = ee.Current;
-                if (args.IgnoreNullMember)
+                args.WriteCheckLoop(ee.Current, null);
+                while (ee.MoveNext())
                 {
-                    if (value == null || value is DBNull)
-                    {
-                        continue;
-                    }
+                    args.Writer.Write(',');
+                    args.WriteCheckLoop(ee.Current, null);
                 }
-
-                comma.AppendCommaIgnoreFirst();
-                args.WriteCheckLoop(value);
             }
-
             writer.Write(']');
         }
 

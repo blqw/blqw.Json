@@ -34,7 +34,7 @@ namespace blqw.Serializable.JsonWriters
                 JsonWriterContainer.StringWriter.Write(item.Name, args);
                 writer.Write(':');
 
-                args.WriteCheckLoop(item.Value);
+                args.WriteCheckLoop(item.Value, null);
             }
 
 

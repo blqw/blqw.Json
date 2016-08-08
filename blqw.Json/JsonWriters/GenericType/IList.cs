@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static blqw.Serializable.JsonWriterContainer;
 
 namespace blqw.Serializable.JsonWriters
 {
-    class IListTWriter : IGenericJsonWriter
+    internal class IListTWriter : IGenericJsonWriter
     {
         public Type Type { get; } = typeof(IList<>);
 
@@ -20,7 +17,7 @@ namespace blqw.Serializable.JsonWriters
                     if (item.GetGenericTypeDefinition() == Type)
                     {
                         var t = typeof(InnerWriter<>).MakeGenericType(item.GetGenericArguments());
-                        return (IJsonWriter)Activator.CreateInstance(t);
+                        return (IJsonWriter) Activator.CreateInstance(t);
                     }
                 }
             }
@@ -32,9 +29,9 @@ namespace blqw.Serializable.JsonWriters
             throw new NotImplementedException();
         }
 
-        class InnerWriter<T> : IJsonWriter
+        private class InnerWriter<T> : IJsonWriter
         {
-            public Type Type { get; } = typeof(IList<T>);
+            private readonly JsonWriterWrapper _writer;
 
             public InnerWriter()
             {
@@ -42,39 +39,33 @@ namespace blqw.Serializable.JsonWriters
 
                 if (value.IsValueType || value.IsSealed)
                 {
-                    ValueWriter = GetWrap(value);
+                    _writer = GetWrap(value);
                 }
             }
 
-            public JsonWriterWrapper ValueWriter;
+            public Type Type { get; } = typeof(IList<T>);
 
             public void Write(object obj, JsonWriterArgs args)
             {
                 if (obj == null)
                 {
-                    JsonWriterContainer.NullWriter.Write(null, args);
+                    NullWriter.Write(null, args);
                     return;
                 }
                 var writer = args.Writer;
-                var writeValue = ValueWriter != null ? (Action<object, JsonWriterArgs>)ValueWriter.Writer.Write : JsonWriterContainer.Write;
-                var list = (IList<T>)obj;
-
-                writer.Write('[');
-                var comma = new CommaHelper(writer);
-                for (int i = 0,length = list.Count; i < length; i++)
+                var list = (IList<T>) obj;
+                if (list.Count == 0)
                 {
-                    var value = list[i];
-                    if (args.IgnoreNullMember)
-                    {
-                        if (value == null || value is DBNull)
-                        {
-                            JsonWriterContainer.NullWriter.Write(null, args);
-                            continue;
-                        }
-                    }
+                    writer.Write("[]");
+                    return;
+                }
+                writer.Write('[');
+                args.WriteCheckLoop(list[0], _writer?.Writer);
 
-                    comma.AppendCommaIgnoreFirst();
-                    args.WriteCheckLoop(value);
+                for (int i = 1, length = list.Count; i < length; i++)
+                {
+                    args.Writer.Write(',');
+                    args.WriteCheckLoop(list[i], _writer?.Writer);
                 }
 
                 writer.Write(']');

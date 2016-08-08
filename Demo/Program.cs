@@ -24,7 +24,13 @@ namespace Demo
 
         static void Main(string[] args)
         {
-            //Console.WriteLine(Json.ToJsonString(new object[]{null}));
+
+
+            var obj1 = User.TestUser();
+            TimeTest.TestCount = 10000;
+            TimeTest.TestObject = obj1;
+            TimeTest.TestQuickJsonBuilder();
+
             Test1(true);
             Test2();
             //

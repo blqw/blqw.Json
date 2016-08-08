@@ -15,7 +15,7 @@ namespace blqw.Serializable.JsonWriters
             var obj1 = (obj as IFormatProvider)?.GetFormat(typeof(Json));
             if (obj1 != null)
             {
-                args.WriteCheckLoop(obj1);
+                args.WriteCheckLoop(obj1,null);
             }
             else if (Count == 0)
             {

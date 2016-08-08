@@ -20,23 +20,18 @@ namespace blqw.Serializable.JsonWriters
             }
             var writer = args.Writer;
             var list = (IList)obj;
-
-            writer.Write('[');
-            var comma = new CommaHelper(writer);
-
-            for (int i = 0, length = list.Count; i < length; i++)
+            if (list.Count == 0)
             {
-                var value = list[i];
-                if (args.IgnoreNullMember)
-                {
-                    if (value == null || value is DBNull)
-                    {
-                        continue;
-                    }
-                }
+                writer.Write("[]");
+                return;
+            }
+            writer.Write('[');
+            args.WriteCheckLoop(list[0], null);
 
-                comma.AppendCommaIgnoreFirst();
-                args.WriteCheckLoop(value);
+            for (int i = 1, length = list.Count; i < length; i++)
+            {
+                args.Writer.Write(',');
+                args.WriteCheckLoop(list[i], null);
             }
 
             writer.Write(']');

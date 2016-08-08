@@ -64,16 +64,16 @@ namespace blqw.Serializable.JsonWriters
                     var objref = value as IObjectReference;
                     if (objref != null)
                     {
-                        Write(ref comma, member.JsonName, objref.GetRealObject(new StreamingContext(StreamingContextStates.All, args)), args);
+                        Write(ref comma, member, objref.GetRealObject(new StreamingContext(StreamingContextStates.All, args)), args);
                     }
-                    Write(ref comma, member.JsonName, value, args);
+                    Write(ref comma, member, value, args);
                 }
 
             }
             writer.Write('}');
         }
 
-        private static void Write(ref CommaHelper comma, string name, object value, JsonWriterArgs args)
+        private static void Write(ref CommaHelper comma, JsonMember member, object value, JsonWriterArgs args)
         {
             if (value == null || value is DBNull)
             {
@@ -82,16 +82,16 @@ namespace blqw.Serializable.JsonWriters
                     return;
                 }
                 comma.AppendCommaIgnoreFirst();
-                JsonWriterContainer.StringWriter.Write(name, args);
+                JsonWriterContainer.StringWriter.Write(member.JsonName, args);
                 args.Writer.Write(':');
                 JsonWriterContainer.NullWriter.Write(null, args);
             }
             else
             {
                 comma.AppendCommaIgnoreFirst();
-                JsonWriterContainer.StringWriter.Write(name, args);
+                JsonWriterContainer.StringWriter.Write(member.JsonName, args);
                 args.Writer.Write(':');
-                args.WriteCheckLoop(value);
+                args.WriteCheckLoop(value, member.JsonWriter);
             }
         }
     }

@@ -107,20 +107,23 @@ namespace blqw.Serializable
         public bool GuidHasHyphens { get; private set; }
 
         public TextWriter Writer { get; }
-        
+
         //循环引用对象缓存区
         private readonly IList _loopObject;
 
         public int Depth { get; private set; }
 
-        public void WriteCheckLoop(object value)
+        public void WriteCheckLoop(object value, IJsonWriter writer)
         {
             if (value == null || value is DBNull)
             {
                 JsonWriterContainer.NullWriter.Write(null, this);
                 return;
             }
-            var writer = JsonWriterContainer.Get(value.GetType());
+            if (writer == null)
+            {
+                writer = JsonWriterContainer.Get(value.GetType());
+            }
             if (CheckLoopRef)
             {
                 if (value is ValueType)

@@ -44,7 +44,7 @@ namespace blqw.Serializable.JsonWriters
                     _writer = GetWrap(value);
                 }
             }
-            
+
             private readonly JsonWriterWrapper _writer;
 
             public void Write(object obj, JsonWriterArgs args)
@@ -55,24 +55,18 @@ namespace blqw.Serializable.JsonWriters
                     return;
                 }
                 var writer = args.Writer;
-                var writeValue = _writer != null ? (Action<object, JsonWriterArgs>)_writer.Writer.Write : JsonWriterContainer.Write;
 
                 writer.Write('[');
-                var comma = new CommaHelper(writer);
-                foreach (var value in (IEnumerable<T>)obj)
+                var ee = ((IEnumerable<T>)obj).GetEnumerator();
+                if (ee.MoveNext())
                 {
-                    if (args.IgnoreNullMember)
+                    args.WriteCheckLoop(ee.Current, _writer?.Writer);
+                    while (ee.MoveNext())
                     {
-                        if (value == null || value is DBNull)
-                        {
-                            NullWriter.Write(null, args);
-                            continue;
-                        }
+                        args.Writer.Write(',');
+                        args.WriteCheckLoop(ee.Current, _writer?.Writer);
                     }
-                    comma.AppendCommaIgnoreFirst();
-                    args.WriteCheckLoop(value);
                 }
-
                 writer.Write(']');
             }
         }

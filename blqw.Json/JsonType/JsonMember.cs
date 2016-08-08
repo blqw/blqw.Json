@@ -39,9 +39,10 @@ namespace blqw.Serializable
             Member = member;
             DisplayText = TypeName.Get(member.ReflectedType) + "." + member.Name;
             JsonName = member.GetCustomAttribute<System.ComponentModel.DisplayNameAttribute>(true)?.DisplayName ?? member.Name;
-
+            
 
             InitGetSet(out Type, out GetValue, out SetValue);
+            JsonWriterWrapper = JsonWriterContainer.GetWrap(Type);
             CanWrite = SetValue != null;
             CanRead = GetValue != null;
             NonSerialized = ignoreSerialized;
@@ -150,6 +151,8 @@ namespace blqw.Serializable
             }
         }
 
+        public IJsonWriter JsonWriter => JsonWriterWrapper.Writer;
+
         /// <summary> 是否可读
         /// </summary>
         public readonly bool CanRead;
@@ -170,5 +173,7 @@ namespace blqw.Serializable
         /// <summary> 获取属性或字段的值
         /// </summary>
         public readonly Func<object, object> GetValue;
+
+        private readonly JsonWriterWrapper JsonWriterWrapper;
     }
 }

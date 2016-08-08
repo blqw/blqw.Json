@@ -55,7 +55,6 @@ namespace blqw.Serializable.JsonWriters
                     return;
                 }
                 var writer = args.Writer;
-                var writeValue = _writer != null ? (Action<object, JsonWriterArgs>)_writer.Writer.Write : JsonWriterContainer.Write;
 
                 writer.Write('{');
                 var comma = new CommaHelper(writer);
@@ -69,10 +68,10 @@ namespace blqw.Serializable.JsonWriters
                     }
                     comma.AppendCommaIgnoreFirst();
 
-                    JsonWriterContainer.StringWriter.Write(item.Key.To<string>(), args);
+                    JsonWriterContainer.StringWriter.Write((item.Key as string) ?? item.Key.To<string>(), args);
                     writer.Write(':');
 
-                    args.WriteCheckLoop(value);
+                    args.WriteCheckLoop(value, _writer?.Writer);
                 }
 
                 writer.Write('}');

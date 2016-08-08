@@ -50,7 +50,7 @@ namespace blqw.Serializable.JsonWriters
                 comma.AppendCommaIgnoreFirst();
                 JsonWriterContainer.StringWriter.Write(name, args);
                 args.Writer.Write(':');
-                args.WriteCheckLoop(val);
+                args.WriteCheckLoop(val, null);
             }
             writer.Write('}');
         }
