@@ -33,9 +33,9 @@ namespace Demo
             //Console.WriteLine(form["a.b"] == "1");
             //Console.WriteLine(form["d.e[0]"] == "1");
             //Console.WriteLine(form["d.e[2]"] == null);
-            
+
             //Console.WriteLine(Json.ToJsonString(new object[]{null}));
-            //Test1(true);
+            Test1(true);
             Test2();
             //
             //dynamic json = Json.ToDynamic(str);
