@@ -94,7 +94,6 @@
     <Compile Include="JsonWriters\Interfaces\IJsonWriter.cs" />
     <Compile Include="IOC\Component.cs" />
     <Compile Include="Json.cs" />
-    <Compile Include="JsonBuilder.cs" />
     <Compile Include="JsonBuilderSettings.cs" />
     <Compile Include="JsonParseException.cs" />
     <Compile Include="JsonParser.cs" />

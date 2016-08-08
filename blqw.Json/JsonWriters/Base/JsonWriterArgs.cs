@@ -107,50 +107,11 @@ namespace blqw.Serializable
         public bool GuidHasHyphens { get; private set; }
 
         public TextWriter Writer { get; }
-
-
+        
         //循环引用对象缓存区
         private readonly IList _loopObject;
 
         public int Depth { get; private set; }
-
-        private bool Entry(object value)
-        {
-            Depth++;
-            if (value == null || value is DBNull)
-            {
-                return true;
-            }
-            if (CheckLoopRef)
-            {
-                if (value is ValueType)
-                {
-                    return true;
-                }
-                else if (_loopObject.Contains(value) == false)
-                {
-                    _loopObject.Add(value);
-                    return true;
-                }
-                Writer?.Write("undefined");
-                Depth--;
-                return false;
-            }
-            else if (Depth > 64)
-            {
-                throw new NotSupportedException("对象过于复杂或存在循环引用");
-            }
-            return true;
-        }
-        
-        private void Exit()
-        {
-            Depth--;
-            if (CheckLoopRef)
-            {
-                _loopObject.RemoveAt(_loopObject.Count - 1);
-            }
-        }
 
         public void WriteCheckLoop(object value)
         {

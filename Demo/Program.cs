@@ -13,7 +13,7 @@ using System.Text;
 
 namespace Demo
 {
-    class Program
+    public class Program
     {
         class MyClass
         {
@@ -38,7 +38,7 @@ namespace Demo
 
         }
 
-        static void Test1(bool fastjson)
+        public static void Test1(bool fastjson)
         {
             var obj1 = User.TestUser();
             var obj2 = Json.ToObject<ResultDTO>(File.ReadAllText("json1.txt"));
