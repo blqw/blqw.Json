@@ -21,7 +21,13 @@ namespace blqw.Serializable.JsonWriters
             var writer = args.Writer;
             var value = (DynamicObject)obj;
 
-            var names = value.GetDynamicMemberNames();
+            var memberNames = value.GetDynamicMemberNames();
+            var names = memberNames as string[] ?? memberNames.ToArray();
+            if (names.Length == 0)
+            {
+                JsonWriterContainer.StringWriter.Write(obj, args);
+                return;
+            }
             var comma = new CommaHelper(writer);
             writer.Write('{');
             foreach (var name in names)

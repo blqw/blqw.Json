@@ -43,6 +43,7 @@ namespace blqw.Serializable.JsonWriters
             var writer = args.Writer;
             var value = (NameValueCollection)obj;
             var comma = new CommaHelper(writer);
+            writer.Write('{');
             for (int i = 0, length = value.Count; i < length; i++)
             {
                 var name = value.GetKey(i);
@@ -71,7 +72,7 @@ namespace blqw.Serializable.JsonWriters
                 }
 
             }
-
+            writer.Write('}');
         }
     }
 }

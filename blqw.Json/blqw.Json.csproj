@@ -35,12 +35,12 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="blqw.Convert3, Version=2.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\blqw.Convert3.2.2.1-beta\lib\net45\blqw.Convert3.dll</HintPath>
+    <Reference Include="blqw.Convert3, Version=2.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\blqw.Convert3.2.2.3-beta\lib\net45\blqw.Convert3.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="blqw.IOC, Version=1.0.4.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\blqw.IOC.1.0.4-beta\lib\net45\blqw.IOC.dll</HintPath>
+    <Reference Include="blqw.IOC, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\blqw.IOC.1.0.5-beta\lib\net45\blqw.IOC.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
@@ -65,18 +65,21 @@
     <Compile Include="JsonWriters\Advance\DynamicObject.cs" />
     <Compile Include="JsonWriters\Advance\IDictionary.cs" />
     <Compile Include="JsonWriters\Advance\IEnumerable.cs" />
+    <Compile Include="JsonWriters\Advance\IEnumerator.cs" />
     <Compile Include="JsonWriters\Advance\IList.cs" />
     <Compile Include="JsonWriters\Advance\ISerializable.cs" />
     <Compile Include="JsonWriters\Advance\NameValueCollection.cs" />
     <Compile Include="JsonWriters\Advance\SerializationInfo.cs" />
     <Compile Include="JsonWriters\Base\JsonWriterArgs.cs" />
+    <Compile Include="JsonWriters\Base\JsonWriterWrapper.cs" />
     <Compile Include="JsonWriters\GenericType\IDictionary.cs" />
     <Compile Include="JsonWriters\GenericType\IEnumerable.cs" />
-    <Compile Include="JsonWriters\GenericType\FormatProviderWriter.cs" />
+    <Compile Include="JsonWriters\Advance\FormatProvider.cs" />
     <Compile Include="JsonWriters\GenericType\IList.cs" />
     <Compile Include="JsonWriters\GenericType\Nullable.cs" />
     <Compile Include="JsonWriters\Interfaces\IGenericJsonWriter.cs" />
     <Compile Include="JsonWriters\GenericType\Enum.cs" />
+    <Compile Include="JsonWriters\Interfaces\IMultiJsonWirters.cs" />
     <Compile Include="JsonWriters\Primitives\Guid.cs" />
     <Compile Include="JsonWriters\Primitives\Boolean.cs" />
     <Compile Include="JsonWriters\Primitives\Byte.cs" />

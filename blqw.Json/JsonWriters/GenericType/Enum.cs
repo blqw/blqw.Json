@@ -18,7 +18,7 @@ namespace blqw.Serializable.JsonWriters
 
         public IJsonWriter MakeType(Type type)
         {
-            var t = typeof(InnerWriter<>).MakeGenericType(Enum.GetUnderlyingType(type));
+            var t = typeof(InnerWriter<>).MakeGenericType(type);
             return (IJsonWriter)Activator.CreateInstance(t);
         }
 
@@ -29,8 +29,7 @@ namespace blqw.Serializable.JsonWriters
 
             public InnerWriter()
             {
-                var value = typeof(T);
-                _wrapper = GetWrap(value);
+                _wrapper = GetWrap(Enum.GetUnderlyingType(typeof(T)));
             }
             public Type Type { get; } = typeof(T);
             public void Write(object obj, JsonWriterArgs args)

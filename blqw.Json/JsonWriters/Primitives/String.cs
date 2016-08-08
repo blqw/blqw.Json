@@ -18,13 +18,17 @@ namespace blqw.Serializable.JsonWriters
 
         public static void Write(TextWriter writer, string source, int start, int count)
         {
+            if (count == 0)
+            {
+                return;
+            }
             if (_CharBuffer == null)
             {
                 _CharBuffer = new char[BUFFER_SIZE];
             }
             if (count < BUFFER_SIZE)
             {
-                source.CopyTo(0, _CharBuffer, start, count);
+                source.CopyTo(start, _CharBuffer, 0, count);
                 writer.Write(_CharBuffer, 0, count);
             }
             else
@@ -32,12 +36,12 @@ namespace blqw.Serializable.JsonWriters
                 var index = start;
                 do
                 {
-                    source.CopyTo(0, _CharBuffer, index, BUFFER_SIZE);
+                    source.CopyTo(index, _CharBuffer, 0, BUFFER_SIZE);
                     writer.Write(_CharBuffer, 0, BUFFER_SIZE);
                     index += BUFFER_SIZE;
                     count -= BUFFER_SIZE;
                 } while (count > BUFFER_SIZE);
-                source.CopyTo(0, _CharBuffer, index, count);
+                source.CopyTo(index, _CharBuffer, 0, count);
                 writer.Write(_CharBuffer, 0, count);
             }
         }

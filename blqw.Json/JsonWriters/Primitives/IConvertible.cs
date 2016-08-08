@@ -13,7 +13,7 @@ namespace blqw.Serializable.JsonWriters
     {
         public Type Type { get; } = typeof(IConvertible);
 
-        private JsonWriterContainer.JsonWriterWrapper ObjectWrapper => JsonWriterContainer.GetWrap(typeof(object));
+        private JsonWriterWrapper ObjectWrapper => JsonWriterContainer.GetWrap(typeof(object));
 
         public void Write(object obj, JsonWriterArgs args)
         {

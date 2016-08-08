@@ -29,13 +29,16 @@ namespace blqw.Serializable.Tests
         public void 测试替换功能()
         {
             var a = JsonWriterContainer.Get(typeof(TypeCode));
-            Assert.AreEqual(typeof(Enum), a.Type);
+            Assert.AreEqual(typeof(TypeCode), a.Type);
+            Assert.IsNotInstanceOfType(a, typeof(MyTestJsonWriter));
             JsonWriterContainer.Set(new MyTestJsonWriter(null));
             a = JsonWriterContainer.Get(typeof(TypeCode));
             Assert.AreEqual(typeof(TypeCode), a.Type);
+            Assert.IsInstanceOfType(a, typeof(MyTestJsonWriter));
 
             a = JsonWriterContainer.Get(typeof(AttributeTargets));
-            Assert.AreEqual(typeof(Enum), a.Type);
+            Assert.AreEqual(typeof(AttributeTargets), a.Type);
+            Assert.IsNotInstanceOfType(a, typeof(MyTestJsonWriter));
         }
 
         class MyTest2JsonWriter : IJsonWriter

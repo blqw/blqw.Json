@@ -61,13 +61,6 @@ namespace blqw.Serializable.JsonWriters
                 }
                 else
                 {
-                    var obj1 = (value as IFormatProvider)?.GetFormat(typeof(Json));
-                    if (obj1 != null)
-                    {
-                        Write(ref comma, member.JsonName, obj1, args);
-                        return;
-                    }
-
                     var objref = value as IObjectReference;
                     if (objref != null)
                     {
