@@ -156,7 +156,7 @@ namespace blqw.Serializable
                 }
                 KeyType = JsonType.Get(args[0]);
                 ElementType = JsonType.Get(args[1]);
-                AddKeyValue = ((ISetAdd)Activator.CreateInstance(typeof(SetAdd<,>).MakeGenericType(KeyType.Type, ElementType.Type))).IDictionaryT;
+                AddKeyValue = ((IAddOrSet)Activator.CreateInstance(typeof(AddOrSet<,>).MakeGenericType(KeyType.Type, ElementType.Type))).IDictionaryT;
                 return;
             }
 
@@ -171,7 +171,7 @@ namespace blqw.Serializable
                 }
                 KeyType = JsonType.Get<object>();
                 ElementType = KeyType;
-                AddKeyValue = ((ISetAdd)Activator.CreateInstance(typeof(SetAdd<,>).MakeGenericType(KeyType.Type, ElementType.Type))).IDictionary;
+                AddKeyValue = ((IAddOrSet)Activator.CreateInstance(typeof(AddOrSet<,>).MakeGenericType(KeyType.Type, ElementType.Type))).IDictionary;
                 return;
             }
 
@@ -204,7 +204,7 @@ namespace blqw.Serializable
                     Type = typeof(List<>).MakeGenericType(args);
                 }
                 ElementType = JsonType.Get(args[0]);
-                AddValue = ((ISetAdd)Activator.CreateInstance(typeof(SetAdd<,>).MakeGenericType(typeof(object), ElementType.Type))).ICollectionT;
+                AddValue = ((IAddOrSet)Activator.CreateInstance(typeof(AddOrSet<,>).MakeGenericType(typeof(object), ElementType.Type))).ICollectionT;
                 return;
             }
 
@@ -217,7 +217,7 @@ namespace blqw.Serializable
                 }
                 IsList = true;
                 ElementType = JsonType.Get<object>();
-                AddValue = ((ISetAdd)Activator.CreateInstance(typeof(SetAdd<,>).MakeGenericType(typeof(object), ElementType.Type))).IList;
+                AddValue = ((IAddOrSet)Activator.CreateInstance(typeof(AddOrSet<,>).MakeGenericType(typeof(object), ElementType.Type))).IList;
 
                 return;
             }

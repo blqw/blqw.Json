@@ -1,38 +1,28 @@
 ﻿using System;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Reflection;
 
 namespace blqw.Serializable
 {
-    /// <summary> 用于处于Type类型为Key时的缓存
+    /// <summary>
+    /// 用于处于Type类型为Key时的缓存
     /// </summary>
-    class TypeCache<T>
+    internal class TypeCache<T>
     {
-        /// <summary> 标准的字典缓存
+        /// <summary>
+        /// 标准的字典缓存
         /// </summary>
         private readonly Dictionary<Type, T> _cache = new Dictionary<Type, T>();
 
-        /// <summary> 泛型缓存
+        /// <summary>
+        /// 设置缓存项
         /// </summary>
-        class GenericCache<Key>
-        {
-            public readonly static T Item;
-            public readonly static bool IsReadied;
-        }
-
-        /// <summary> 设置缓存项
-        /// </summary>
-        /// <param name="key">缓存键</param>
-        /// <param name="item">缓存值</param>
+        /// <param name="key"> 缓存键 </param>
+        /// <param name="item"> 缓存值 </param>
         public void Set(Type key, T item)
         {
-            if (key == null)
-            {
-                throw new ArgumentNullException("key");
-            }
+            if (key == null) throw new ArgumentNullException(nameof(key));
+
             if (key.IsGenericTypeDefinition || typeof(void) == key) //如果是泛型定义类型 就不能加入泛型缓存
             {
                 lock (_cache)
@@ -52,15 +42,14 @@ namespace blqw.Serializable
             }
         }
 
-        /// <summary> 获取缓存值
+        /// <summary>
+        /// 获取缓存值
         /// </summary>
-        /// <param name="key">缓存键</param>
+        /// <param name="key"> 缓存键 </param>
         public T Get(Type key)
         {
-            if (key == null)
-            {
-                throw new ArgumentNullException("key");
-            }
+            if (key == null) throw new ArgumentNullException(nameof(key));
+
             T item;
             if (_cache.TryGetValue(key, out item))
             {
@@ -69,18 +58,20 @@ namespace blqw.Serializable
             return default(T);
         }
 
-        /// <summary> 获取缓存值
+        /// <summary>
+        /// 获取缓存值
         /// </summary>
-        /// <typeparam name="Key">缓存键的类型</typeparam>
+        /// <typeparam name="Key"> 缓存键的类型 </typeparam>
         public T Get<Key>()
         {
             return GenericCache<Key>.Item;
         }
 
-        /// <summary> 获取缓存值,如果指定缓存不存在则使用create参数获取缓存
+        /// <summary>
+        /// 获取缓存值,如果指定缓存不存在则使用create参数获取缓存
         /// </summary>
-        /// <param name="key">缓存键</param>
-        /// <param name="create">用于创建缓存项委托</param>
+        /// <param name="key"> 缓存键 </param>
+        /// <param name="create"> 用于创建缓存项委托 </param>
         public T GetOrCreate(Type key, Func<Type, T> create)
         {
             if (key == null)
@@ -108,10 +99,11 @@ namespace blqw.Serializable
             }
         }
 
-        /// <summary> 获取缓存值,如果指定缓存不存在则使用create参数获取缓存
+        /// <summary>
+        /// 获取缓存值,如果指定缓存不存在则使用create参数获取缓存
         /// </summary>
-        /// <typeparam name="Key">缓存键的类型</typeparam>
-        /// <param name="create">用于创建缓存项委托</param>
+        /// <typeparam name="Key"> 缓存键的类型 </typeparam>
+        /// <param name="create"> 用于创建缓存项委托 </param>
         public T GetOrCreate<Key>(Func<Type, T> create)
         {
             if (GenericCache<Key>.IsReadied)
@@ -132,6 +124,15 @@ namespace blqw.Serializable
                 Set(typeof(Key), item);
                 return item;
             }
+        }
+
+        /// <summary>
+        /// 泛型缓存
+        /// </summary>
+        private static class GenericCache<Key>
+        {
+            public static readonly T Item;
+            public static readonly bool IsReadied;
         }
     }
 }

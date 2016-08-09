@@ -92,12 +92,11 @@
     <Compile Include="JsonWriters\Primitives\Int32.cs" />
     <Compile Include="JsonWriters\Primitives\Int64.cs" />
     <Compile Include="JsonWriters\Interfaces\IJsonWriter.cs" />
-    <Compile Include="IOC\Component.cs" />
     <Compile Include="Json.cs" />
     <Compile Include="JsonBuilderSettings.cs" />
     <Compile Include="JsonParseException.cs" />
     <Compile Include="JsonParser.cs" />
-    <Compile Include="JsonType\ISetAdd.cs" />
+    <Compile Include="JsonType\IAddOrSet.cs" />
     <Compile Include="JsonType\JsonMember.cs" />
     <Compile Include="JsonType\JsonType.cs" />
     <Compile Include="JsonWriters\Object.cs" />
