@@ -36,7 +36,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="blqw.Convert3, Version=2.2.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\blqw.Convert3.2.2.3-beta\lib\net45\blqw.Convert3.dll</HintPath>
+      <HintPath>..\packages\blqw.Convert3.2.2.3\lib\net45\blqw.Convert3.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="blqw.IOC, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">

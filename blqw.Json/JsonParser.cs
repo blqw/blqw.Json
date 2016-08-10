@@ -9,9 +9,9 @@ namespace blqw.Serializable
     /// </summary>
     public sealed class JsonParser
     {
-        private static readonly JsonType JsonTypeArrayList = JsonType.Get<JsonList>();
-        private static readonly JsonType JsonTypeDictionary = JsonType.Get<JsonDictionary>();
-        private static readonly JsonType JsonTypeObject = JsonType.Get<object>();
+        private static readonly JsonType _JsonTypeArrayList = JsonType.Get<JsonList>();
+        private static readonly JsonType _JsonTypeDictionary = JsonType.Get<JsonDictionary>();
+        private static readonly JsonType _JsonTypeObject = JsonType.Get<object>();
 
         private readonly JsonType _arrayType;
         private readonly Converter<IConvertible, object> _convertString;
@@ -19,14 +19,14 @@ namespace blqw.Serializable
 
         public JsonParser()
         {
-            _arrayType = JsonTypeArrayList;
-            _keyValueType = JsonTypeDictionary;
+            _arrayType = _JsonTypeArrayList;
+            _keyValueType = _JsonTypeDictionary;
         }
 
         public JsonParser(Type arrayType, Type keyValueType, Converter<IConvertible, object> convertString)
         {
-            _arrayType = arrayType == null ? JsonTypeArrayList : JsonType.Get(arrayType);
-            _keyValueType = keyValueType == null ? JsonTypeDictionary : JsonType.Get(keyValueType);
+            _arrayType = arrayType == null ? _JsonTypeArrayList : JsonType.Get(arrayType);
+            _keyValueType = keyValueType == null ? _JsonTypeDictionary : JsonType.Get(keyValueType);
             _convertString = convertString;
         }
 
@@ -132,7 +132,7 @@ namespace blqw.Serializable
                         jsonType = _arrayType;
                         break;
                     default:
-                        jsonType = JsonTypeObject;
+                        jsonType = _JsonTypeObject;
                         break;
                 }
             }
