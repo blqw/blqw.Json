@@ -26,10 +26,10 @@ namespace Demo
         {
 
 
-            var obj1 = User.TestUser();
-            TimeTest.TestCount = 10000;
-            TimeTest.TestObject = obj1;
-            TimeTest.TestQuickJsonBuilder();
+            //var obj1 = User.TestUser();
+            //TimeTest.TestCount = 10000;
+            //TimeTest.TestObject = obj1;
+            //TimeTest.TestQuickJsonBuilder();
 
             Test1(true);
             Test2();

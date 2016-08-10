@@ -27,7 +27,7 @@ namespace blqw.Serializable
         /// <summary>
         /// 初始化对象,并指定缓冲区大小
         /// </summary>
-        /// <param name = "size"> </param>
+        /// <param name="size"> </param>
         public QuickStringWriter(ushort size)
         {
             //生成字符串缓冲指针 ,一个char是2个字节,所以要乘以2
@@ -44,8 +44,8 @@ namespace blqw.Serializable
         /// <summary>
         /// 初始化对象,并指定缓冲区大小
         /// </summary>
-        /// <param name = "p"> </param>
-        /// <param name = "size"> </param>
+        /// <param name="p"> </param>
+        /// <param name="size"> </param>
         public QuickStringWriter(char* p, ushort size)
         {
             //前20个用来放数字,char足够放下long 和 ulong
@@ -126,7 +126,9 @@ namespace blqw.Serializable
         /// <summary>
         /// 二级缓冲
         /// </summary>
+#pragma warning disable 649
         private SBBuffer _buffer;
+#pragma warning restore 649
 
         /// <summary>
         /// 备用二级缓冲索引
@@ -189,7 +191,7 @@ namespace blqw.Serializable
         /// </summary>
         /// <para> 如果尝试写入的字符数大于一级缓冲区的大小,返回false </para>
         /// <para> 如果尝试写入的字符数超出一级缓冲区剩余容量,自动调用Flush方法 </para>
-        /// <param name = "count"> 尝试写入的字符数 </param>
+        /// <param name="count"> 尝试写入的字符数 </param>
         /// <returns> </returns>
         private bool TryWrite(int count)
         {
@@ -225,7 +227,7 @@ namespace blqw.Serializable
             {
                 return;
             }
-            base.Write(buffer,0, buffer.Length);
+            base.Write(buffer, 0, buffer.Length);
         }
 
         public override void Write(string format, object arg0)
@@ -765,9 +767,9 @@ namespace blqw.Serializable
 
         /// <summary>
         /// </summary>
-        /// <param name = "charArray"> </param>
-        /// <param name = "offset"> </param>
-        /// <param name = "length"> </param>
+        /// <param name="charArray"> </param>
+        /// <param name="offset"> </param>
+        /// <param name="length"> </param>
         /// <returns> </returns>
         public override void Write(char[] charArray, int offset, int length)
         {
@@ -780,9 +782,9 @@ namespace blqw.Serializable
         /// <summary>
         /// 将内存中的字符串追加到当前实例。
         /// </summary>
-        /// <param name = "point"> 内存指针 </param>
-        /// <param name = "offset"> 指针偏移量 </param>
-        /// <param name = "length"> 字符长度 </param>
+        /// <param name="point"> 内存指针 </param>
+        /// <param name="offset"> 指针偏移量 </param>
+        /// <param name="length"> 字符长度 </param>
         /// <returns> </returns>
         public void Write(char* point, int offset, int length)
         {
@@ -839,7 +841,7 @@ namespace blqw.Serializable
         /// <summary>
         /// 将字符串集合追加到当前实例。
         /// </summary>
-        /// <param name = "strings"> 字符串集合 </param>
+        /// <param name="strings"> 字符串集合 </param>
         /// <returns> </returns>
         public void Write(IEnumerable<string> strings)
         {
@@ -852,7 +854,7 @@ namespace blqw.Serializable
         /// <summary>
         /// 将字符串集合追加到当前实例并追加回车换行。
         /// </summary>
-        /// <param name = "str"> 追加到集合的字符串 </param>
+        /// <param name="str"> 追加到集合的字符串 </param>
         /// <returns> </returns>
         public override void WriteLine(string str)
         {
@@ -863,7 +865,7 @@ namespace blqw.Serializable
         /// <summary>
         /// 将任意对象追加到当前实例。
         /// </summary>
-        /// <param name = "obj"> 对象实例 </param>
+        /// <param name="obj"> 对象实例 </param>
         /// <returns> </returns>
         public override void Write(object obj)
         {
@@ -924,9 +926,9 @@ namespace blqw.Serializable
         /// <summary>
         /// 将可格式化对象,经过格式化参数处理后,追加到当前实例。
         /// </summary>
-        /// <param name = "val"> 可格式化对象 </param>
-        /// <param name = "format"> 格式化参数 </param>
-        /// <param name = "provider"> 格式化机制 </param>
+        /// <param name="val"> 可格式化对象 </param>
+        /// <param name="format"> 格式化参数 </param>
+        /// <param name="provider"> 格式化机制 </param>
         public void Write(IFormattable val, string format, IFormatProvider provider)
         {
             if (val is DateTime)
@@ -970,9 +972,9 @@ namespace blqw.Serializable
         private bool _disposed;
 
         /// <summary>
-        /// 释放由 <see cref = "T:System.IO.TextWriter" /> 占用的非托管资源，还可以释放托管资源。
+        /// 释放由 <see cref="T:System.IO.TextWriter" /> 占用的非托管资源，还可以释放托管资源。
         /// </summary>
-        /// <param name = "disposing"> 若要释放托管资源和非托管资源，则为 true；若仅释放非托管资源，则为 false。 </param>
+        /// <param name="disposing"> 若要释放托管资源和非托管资源，则为 true；若仅释放非托管资源，则为 false。 </param>
         protected override void Dispose(bool disposing)
         {
             if (_disposed)
@@ -1005,7 +1007,8 @@ namespace blqw.Serializable
 
     internal struct SBBuffer : ICharBuffer
     {
-        [ThreadStatic] private static StringBuilder _Sb;
+        [ThreadStatic]
+        private static StringBuilder _Sb;
 
         private unsafe delegate StringBuilder AppendHandler(StringBuilder sb, char* p, int count);
 
@@ -1015,6 +1018,7 @@ namespace blqw.Serializable
         {
             var method = typeof(StringBuilder)
                 .GetMethod("Append", (BindingFlags) (-1), null, new[] {typeof(char*), typeof(int)}, null);
+            Debug.Assert(method.DeclaringType != null, "method.DeclaringType != null");
             var dm = new DynamicMethod("", typeof(StringBuilder),
                 new[] {typeof(StringBuilder), typeof(char*), typeof(int)}, method.DeclaringType, true);
 
@@ -1047,7 +1051,8 @@ namespace blqw.Serializable
 
     internal struct SWBuffer : ICharBuffer
     {
-        [ThreadStatic] private static StringWriter _Sw;
+        [ThreadStatic]
+        private static StringWriter _Sw;
 
         public unsafe void Append(char* point, int start, int length)
         {

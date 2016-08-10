@@ -1,59 +1,47 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 namespace blqw.Serializable
 {
     internal static class TypeName
     {
-        private static readonly NameValueCollection _TypeNames = new NameValueCollection();
-        ///<summary> 获取类型名称的友好展现形式
+        private static readonly ConcurrentDictionary<string, string> _TypeNames =
+            new ConcurrentDictionary<string, string>();
+
+        /// <summary>
+        /// 获取类型名称的友好展现形式
         /// </summary>
         public static string Get(Type t)
         {
             if (_TypeNames == null) throw new ArgumentNullException(nameof(_TypeNames));
             if (t == null) throw new ArgumentNullException(nameof(t));
-            var s = _TypeNames[t.GetHashCode().ToString()];
-            if (s != null)
-            {
-                return s;
-            }
-            lock (_TypeNames)
+            return _TypeNames.GetOrAdd(t.GetHashCode().ToString(), k =>
             {
                 var t2 = Nullable.GetUnderlyingType(t);
                 if (t2 != null)
                 {
-                    return _TypeNames[t.GetHashCode().ToString()] = Get(t2) + "?";
-
+                    return Get(t2) + "?";
                 }
-                if (t.IsGenericType)
+                if (t.IsGenericType == false)
+                    return GetSimpleName(t);
+
+                string[] generic;
+                if (t.IsGenericTypeDefinition) //泛型定义
                 {
-                    string[] generic;
-                    if (t.IsGenericTypeDefinition) //泛型定义
-                    {
-                        var args = t.GetGenericArguments();
-                        generic = new string[args.Length];
-                    }
-                    else
-                    {
-                        var infos = t.GetGenericArguments();
-                        generic = new string[infos.Length];
-                        for (var i = 0; i < infos.Length; i++)
-                        {
-                            generic[i] = Get(infos[i]);
-                        }
-                    }
-                    return _TypeNames[t.GetHashCode().ToString()] = GetSimpleName(t) + "<" + string.Join(", ", generic) + ">";
+                    var args = t.GetGenericArguments();
+                    generic = new string[args.Length];
                 }
                 else
                 {
-                    return _TypeNames[t.GetHashCode().ToString()] = GetSimpleName(t);
+                    var infos = t.GetGenericArguments();
+                    generic = new string[infos.Length];
+                    for (var i = 0; i < infos.Length; i++)
+                    {
+                        generic[i] = Get(infos[i]);
+                    }
                 }
-            }
+                return $"{GetSimpleName(t)}<{string.Join(", ", generic)}>";
+            });
         }
 
         private static string GetSimpleName(Type t)
@@ -64,22 +52,38 @@ namespace blqw.Serializable
                 case "System":
                     switch (t.Name)
                     {
-                        case "Boolean": return "bool";
-                        case "Byte": return "byte";
-                        case "Char": return "char";
-                        case "Decimal": return "decimal";
-                        case "Double": return "double";
-                        case "Int16": return "short";
-                        case "Int32": return "int";
-                        case "Int64": return "long";
-                        case "SByte": return "sbyte";
-                        case "Single": return "float";
-                        case "String": return "string";
-                        case "Object": return "object";
-                        case "UInt16": return "ushort";
-                        case "UInt32": return "uint";
-                        case "UInt64": return "ulong";
-                        case "Guid": return "Guid";
+                        case "Boolean":
+                            return "bool";
+                        case "Byte":
+                            return "byte";
+                        case "Char":
+                            return "char";
+                        case "Decimal":
+                            return "decimal";
+                        case "Double":
+                            return "double";
+                        case "Int16":
+                            return "short";
+                        case "Int32":
+                            return "int";
+                        case "Int64":
+                            return "long";
+                        case "SByte":
+                            return "sbyte";
+                        case "Single":
+                            return "float";
+                        case "String":
+                            return "string";
+                        case "Object":
+                            return "object";
+                        case "UInt16":
+                            return "ushort";
+                        case "UInt32":
+                            return "uint";
+                        case "UInt64":
+                            return "ulong";
+                        case "Guid":
+                            return "Guid";
                         default:
                             name = t.Name;
                             break;

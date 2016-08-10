@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace blqw.Serializable.JsonWriters
 {
-    class DynamicObjectWrite : IJsonWriter
+    internal class DynamicObjectWrite : IJsonWriter
     {
-        public Type Type { get; } = typeof(DynamicObject);
+        public Type Type => typeof(DynamicObject);
 
         public void Write(object obj, JsonWriterArgs args)
         {
@@ -19,7 +16,7 @@ namespace blqw.Serializable.JsonWriters
                 return;
             }
             var writer = args.Writer;
-            var value = (DynamicObject)obj;
+            var value = (DynamicObject) obj;
 
             var memberNames = value.GetDynamicMemberNames();
             var names = memberNames as string[] ?? memberNames.ToArray();
@@ -34,7 +31,7 @@ namespace blqw.Serializable.JsonWriters
             {
                 object val;
                 if (value.TryGetMember(new MyGetMemberBinder(name), out val) == false
-                    && value.TryGetIndex(new MyGetIndexBinder(name), new object[] { name }, out val) == false)
+                    && value.TryGetIndex(new MyGetIndexBinder(name), new object[] {name}, out val) == false)
                 {
                     continue;
                 }
@@ -60,9 +57,10 @@ namespace blqw.Serializable.JsonWriters
             public MyGetIndexBinder(string name)
                 : base(new CallInfo(1, name))
             {
-
             }
-            public override DynamicMetaObject FallbackGetIndex(DynamicMetaObject target, DynamicMetaObject[] indexes, DynamicMetaObject errorSuggestion)
+
+            public override DynamicMetaObject FallbackGetIndex(DynamicMetaObject target, DynamicMetaObject[] indexes,
+                DynamicMetaObject errorSuggestion)
             {
                 return target;
             }
@@ -73,10 +71,10 @@ namespace blqw.Serializable.JsonWriters
             public MyGetMemberBinder(string name)
                 : base(name, false)
             {
-
             }
 
-            public override DynamicMetaObject FallbackGetMember(DynamicMetaObject target, DynamicMetaObject errorSuggestion)
+            public override DynamicMetaObject FallbackGetMember(DynamicMetaObject target,
+                DynamicMetaObject errorSuggestion)
             {
                 return target;
             }

@@ -1,56 +1,39 @@
-﻿using blqw.IOC;
-using System;
-using System.CodeDom;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
 using System.Runtime.Serialization;
+using blqw.IOC;
 using blqw.Serializable.JsonWriters;
 
 namespace blqw.Serializable
 {
     /// <summary>
-    /// <see cref="IJsonWriter" /> 的容器 
+    /// <see cref="IJsonWriter" /> 的容器
     /// </summary>
     public static class JsonWriterContainer
     {
         /// <summary>
-        /// <see cref="JsonWriterWrapper" /> 的缓存 
+        /// <see cref="JsonWriterWrapper" /> 的缓存
         /// </summary>
         private static TypeCache<JsonWriterWrapper> _Items;
 
         /// <summary>
-        /// typeof(Type) 
+        /// typeof(Type)
         /// </summary>
         private static readonly Type _ObjectType = typeof(object);
 
 
         /// <summary>
-        /// 通过IOC加载的所有 <see cref="IJsonWriter" /> 的集合 
+        /// 通过IOC加载的所有 <see cref="IJsonWriter" /> 的集合
         /// </summary>
-        [ImportMany()]
+        [ImportMany]
+#pragma warning disable 649
+        // ReSharper disable once CollectionNeverUpdated.Local
         private static List<IJsonWriter> _Writers;
-
-        static JsonWriterContainer()
-        {
-            Reload();
-        }
-
-        /// <summary>
-        /// 重新加载所有 <see cref="IJsonWriter" /> 
-        /// </summary>
-        public static void Reload()
-        {
-            MEF.Import(typeof(JsonWriterContainer));
-            _Items = new TypeCache<JsonWriterWrapper>();
-            foreach (var w in _Writers)
-            {
-                _Items.Set(w.Type, new JsonWriterWrapper(w));
-            }
-        }
+#pragma warning restore 649
 
         private static JsonWriterWrapper _NullWapper;
         private static JsonWriterWrapper _VersionWapper;
@@ -76,133 +59,165 @@ namespace blqw.Serializable
         private static JsonWriterWrapper _ByteWapper;
         private static JsonWriterWrapper _BooleanWapper;
 
+        private static readonly Dictionary<Type, int> _Prioritys = new Dictionary<Type, int>
+        {
+            [typeof(IObjectReference)] = 400,
+            [typeof(IFormatProvider)] = 300,
+            [typeof(IDictionary<,>)] = 200,
+            [typeof(IDictionary)] = 199,
+            [typeof(IEnumerable<>)] = 99,
+            [typeof(IEnumerable)] = 98,
+            [typeof(DynamicObject)] = 97
+        };
+
+        static JsonWriterContainer()
+        {
+            Reload();
+        }
+
 
         /// <summary>
-        /// <see cref="bool" /> 类型的 <see cref="IJsonWriter" /> 
+        /// <see cref="bool" /> 类型的 <see cref="IJsonWriter" />
         /// </summary>
         public static IJsonWriter BooleanWriter => (_BooleanWapper ?? (_BooleanWapper = _Items.Get<bool>())).Writer;
 
         /// <summary>
-        /// <see cref="byte" /> 类型的 <see cref="IJsonWriter" /> 
+        /// <see cref="byte" /> 类型的 <see cref="IJsonWriter" />
         /// </summary>
         public static IJsonWriter ByteWriter => (_ByteWapper ?? (_ByteWapper = _Items.Get<byte>())).Writer;
 
         /// <summary>
-        /// <see cref="char" /> 类型的 <see cref="IJsonWriter" /> 
+        /// <see cref="char" /> 类型的 <see cref="IJsonWriter" />
         /// </summary>
         public static IJsonWriter CharWriter => (_CharWapper ?? (_CharWapper = _Items.Get<char>())).Writer;
 
         /// <summary>
-        /// <see cref="DateTime" /> 类型的 <see cref="IJsonWriter" /> 
+        /// <see cref="DateTime" /> 类型的 <see cref="IJsonWriter" />
         /// </summary>
-        public static IJsonWriter DateTimeWriter => (_DateTimeWapper ?? (_DateTimeWapper = _Items.Get<DateTime>())).Writer;
+        public static IJsonWriter DateTimeWriter
+            => (_DateTimeWapper ?? (_DateTimeWapper = _Items.Get<DateTime>())).Writer;
 
         /// <summary>
-        /// <see cref="decimal" /> 类型的 <see cref="IJsonWriter" /> 
+        /// <see cref="decimal" /> 类型的 <see cref="IJsonWriter" />
         /// </summary>
         public static IJsonWriter DecimalWriter => (_DecimalWapper ?? (_DecimalWapper = _Items.Get<decimal>())).Writer;
 
         /// <summary>
-        /// <see cref="double" /> 类型的 <see cref="IJsonWriter" /> 
+        /// <see cref="double" /> 类型的 <see cref="IJsonWriter" />
         /// </summary>
         public static IJsonWriter DoubleWriter => (_DoubleWapper ?? (_DoubleWapper = _Items.Get<double>())).Writer;
 
         /// <summary>
-        /// <see cref="Enum" /> 类型的 <see cref="IJsonWriter" /> 
+        /// <see cref="Enum" /> 类型的 <see cref="IJsonWriter" />
         /// </summary>
         public static IJsonWriter EnumWriter => (_EnumWapper ?? (_EnumWapper = _Items.Get<Enum>())).Writer;
 
         /// <summary>
-        /// <see cref="Guid" /> 类型的 <see cref="IJsonWriter" /> 
+        /// <see cref="Guid" /> 类型的 <see cref="IJsonWriter" />
         /// </summary>
         public static IJsonWriter GuidWriter => (_GuidWapper ?? (_GuidWapper = _Items.Get<Guid>())).Writer;
 
         /// <summary>
-        /// <see cref="IConvertible" /> 类型的 <see cref="IJsonWriter" /> 
+        /// <see cref="IConvertible" /> 类型的 <see cref="IJsonWriter" />
         /// </summary>
-        public static IJsonWriter ConvertibleWriter => (_ConvertibleWapper ?? (_ConvertibleWapper = _Items.Get<IConvertible>())).Writer;
+        public static IJsonWriter ConvertibleWriter
+            => (_ConvertibleWapper ?? (_ConvertibleWapper = _Items.Get<IConvertible>())).Writer;
 
         /// <summary>
-        /// <see cref="short" /> 类型的 <see cref="IJsonWriter" /> 
+        /// <see cref="short" /> 类型的 <see cref="IJsonWriter" />
         /// </summary>
         public static IJsonWriter Int16Writer => (_Int16Wapper ?? (_Int16Wapper = _Items.Get<short>())).Writer;
 
         /// <summary>
-        /// <see cref="int" /> 类型的 <see cref="IJsonWriter" /> 
+        /// <see cref="int" /> 类型的 <see cref="IJsonWriter" />
         /// </summary>
         public static IJsonWriter Int32Writer => (_Int32Wapper ?? (_Int32Wapper = _Items.Get<int>())).Writer;
 
         /// <summary>
-        /// <see cref="long" /> 类型的 <see cref="IJsonWriter" /> 
+        /// <see cref="long" /> 类型的 <see cref="IJsonWriter" />
         /// </summary>
         public static IJsonWriter Int64Writer => (_Int64Wapper ?? (_Int64Wapper = _Items.Get<long>())).Writer;
 
         /// <summary>
-        /// <see cref="sbyte" /> 类型的 <see cref="IJsonWriter" /> 
+        /// <see cref="sbyte" /> 类型的 <see cref="IJsonWriter" />
         /// </summary>
         public static IJsonWriter SByteWriter => (_SByteWapper ?? (_SByteWapper = _Items.Get<sbyte>())).Writer;
 
         /// <summary>
-        /// <see cref="float" /> 类型的 <see cref="IJsonWriter" /> 
+        /// <see cref="float" /> 类型的 <see cref="IJsonWriter" />
         /// </summary>
         public static IJsonWriter SingleWriter => (_SingleWapper ?? (_SingleWapper = _Items.Get<float>())).Writer;
 
         /// <summary>
-        /// <see cref="string" /> 类型的 <see cref="IJsonWriter" /> 
+        /// <see cref="string" /> 类型的 <see cref="IJsonWriter" />
         /// </summary>
         public static IJsonWriter StringWriter => (_StringWapper ?? (_StringWapper = _Items.Get<string>())).Writer;
 
         /// <summary>
-        /// <see cref="TimeSpan" /> 类型的 <see cref="IJsonWriter" /> 
+        /// <see cref="TimeSpan" /> 类型的 <see cref="IJsonWriter" />
         /// </summary>
-        public static IJsonWriter TimeSpanWriter => (_TimeSpanWapper ?? (_TimeSpanWapper = _Items.Get<TimeSpan>())).Writer;
+        public static IJsonWriter TimeSpanWriter
+            => (_TimeSpanWapper ?? (_TimeSpanWapper = _Items.Get<TimeSpan>())).Writer;
 
         /// <summary>
-        /// <see cref="Type" /> 类型的 <see cref="IJsonWriter" /> 
+        /// <see cref="Type" /> 类型的 <see cref="IJsonWriter" />
         /// </summary>
         public static IJsonWriter TypeWriter => (_TypeWapper ?? (_TypeWapper = _Items.Get<Type>())).Writer;
 
         /// <summary>
-        /// <see cref="ushort" /> 类型的 <see cref="IJsonWriter" /> 
+        /// <see cref="ushort" /> 类型的 <see cref="IJsonWriter" />
         /// </summary>
         public static IJsonWriter UInt16Writer => (_UInt16Wapper ?? (_UInt16Wapper = _Items.Get<ushort>())).Writer;
 
         /// <summary>
-        /// <see cref="uint" /> 类型的 <see cref="IJsonWriter" /> 
+        /// <see cref="uint" /> 类型的 <see cref="IJsonWriter" />
         /// </summary>
         public static IJsonWriter UInt32Writer => (_UInt32Wapper ?? (_UInt32Wapper = _Items.Get<uint>())).Writer;
 
         /// <summary>
-        /// <see cref="ulong" /> 类型的 <see cref="IJsonWriter" /> 
+        /// <see cref="ulong" /> 类型的 <see cref="IJsonWriter" />
         /// </summary>
         public static IJsonWriter UInt64Writer => (_UInt64Wapper ?? (_UInt64Wapper = _Items.Get<ulong>())).Writer;
 
         /// <summary>
-        /// <see cref="Uri" /> 类型的 <see cref="IJsonWriter" /> 
+        /// <see cref="Uri" /> 类型的 <see cref="IJsonWriter" />
         /// </summary>
         public static IJsonWriter UriWriter => (_UriWapper ?? (_UriWapper = _Items.Get<Uri>())).Writer;
 
         /// <summary>
-        /// <see cref="Version" /> 类型的 <see cref="IJsonWriter" /> 
+        /// <see cref="Version" /> 类型的 <see cref="IJsonWriter" />
         /// </summary>
         public static IJsonWriter VersionWriter => (_VersionWapper ?? (_VersionWapper = _Items.Get<Version>())).Writer;
 
         /// <summary>
-        /// null 类型的 <see cref="IJsonWriter"/>
+        /// null 类型的 <see cref="IJsonWriter" />
         /// </summary>
         public static IJsonWriter NullWriter => (_NullWapper ?? (_NullWapper = _Items.Get(typeof(void)))).Writer;
 
         /// <summary>
-        /// 获取所有 <see cref="IJsonWriter" /> 
+        /// 获取所有 <see cref="IJsonWriter" />
         /// </summary>
-        /// <returns></returns>
+        /// <returns> </returns>
         public static IEnumerable<IJsonWriter> GetAll => _Writers?.AsReadOnly();
 
         /// <summary>
-        /// 获取一个匹配度最高的 <see cref="IJsonWriter" /> 
+        /// 重新加载所有 <see cref="IJsonWriter" />
+        /// </summary>
+        public static void Reload()
+        {
+            MEF.Import(typeof(JsonWriterContainer));
+            _Items = new TypeCache<JsonWriterWrapper>();
+            foreach (var w in _Writers)
+            {
+                _Items.Set(w.Type, new JsonWriterWrapper(w));
+            }
+        }
+
+        /// <summary>
+        /// 获取一个匹配度最高的 <see cref="IJsonWriter" />
         /// </summary>
         /// <param name="type"> 用于匹配的 <see cref="Type" /> </param>
-        /// <returns></returns>
+        /// <returns> </returns>
         public static IJsonWriter Get(Type type)
         {
             return GetWrap(type)?.Writer;
@@ -219,22 +234,24 @@ namespace blqw.Serializable
                 Get(value.GetType()).Write(value, args);
             }
         }
+
         /// <summary>
-        /// 获取容器中 <see cref="IJsonWriter" /> 的个数 
+        /// 获取容器中 <see cref="IJsonWriter" /> 的个数
         /// </summary>
         public static int GetWriterCount()
         {
             return _Writers?.Count ?? 0;
         }
+
         /// <summary>
-        /// 设置 <see cref="IJsonWriter" />,如果已经存在则替换 
+        /// 设置 <see cref="IJsonWriter" />,如果已经存在则替换
         /// </summary>
         /// <param name="writer"> <see cref="IJsonWriter" /> 对象 </param>
         public static void Set(IJsonWriter writer)
         {
             if (writer == null)
                 throw new ArgumentNullException(nameof(writer));
-            var w = _Items.GetOrCreate(writer.Type, (t) => new JsonWriterWrapper(writer));
+            var w = _Items.GetOrCreate(writer.Type, t => new JsonWriterWrapper(writer));
             if (w.Writer.Type == writer.Type)
             {
                 w.Writer = writer;
@@ -246,10 +263,10 @@ namespace blqw.Serializable
         }
 
         /// <summary>
-        /// 获取匹配 <paramref name="type" /> 的 <see cref="JsonWriterWrapper" /> 
+        /// 获取匹配 <paramref name="type" /> 的 <see cref="JsonWriterWrapper" />
         /// </summary>
         /// <param name="type"> 用于匹配的 <see cref="Type" /> </param>
-        /// <returns></returns>
+        /// <returns> </returns>
         internal static JsonWriterWrapper GetWrap(Type type)
         {
             if (type == null)
@@ -262,7 +279,7 @@ namespace blqw.Serializable
         /// <paramref name="type" /> 的 <see cref="JsonWriterWrapper" />
         /// </summary>
         /// <param name="type"> 用于匹配的 <see cref="Type" /> </param>
-        /// <returns></returns>
+        /// <returns> </returns>
         private static JsonWriterWrapper Select(Type type)
         {
             var ee = All(type);
@@ -328,8 +345,8 @@ namespace blqw.Serializable
         /// <summary>
         /// 枚举所有父类
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
+        /// <param name="type"> </param>
+        /// <returns> </returns>
         private static IEnumerable<Type> GetBaseType(Type type)
         {
             var baseType = type.BaseType ?? typeof(object);
@@ -343,8 +360,8 @@ namespace blqw.Serializable
         /// <summary>
         /// 获取类型的优先级
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
+        /// <param name="type"> </param>
+        /// <returns> </returns>
         private static int GetPriority(Type type)
         {
             int i;
@@ -355,24 +372,13 @@ namespace blqw.Serializable
             return _Prioritys.TryGetValue(type, out i) ? i : 100;
         }
 
-        private static readonly Dictionary<Type, int> _Prioritys = new Dictionary<Type, int>()
-        {
-            [typeof(IObjectReference)] = 400,
-            [typeof(IFormatProvider)] = 300,
-            [typeof(IDictionary<,>)] = 200,
-            [typeof(IDictionary)] = 199,
-            [typeof(IEnumerable<>)] = 99,
-            [typeof(IEnumerable)] = 98,
-            [typeof(DynamicObject)] = 97,
-        };
-
         /// <summary>
         /// 获取与 <paramref name="type" /> 的泛型定义类型匹配的 <see cref="JsonWriterWrapper" />,如果
         /// <paramref name="genericType" /> 不是泛型,返回 null
         /// </summary>
         /// <param name="genericType"> 用于匹配的 <see cref="Type" /> </param>
         /// <param name="type"> 实际的 <see cref="Type" /> </param>
-        /// <returns></returns>
+        /// <returns> </returns>
         private static JsonWriterWrapper SelectByGenericDefinition(Type genericType, Type type)
         {
             if (genericType.IsGenericType && genericType.IsGenericTypeDefinition == false)
@@ -385,7 +391,5 @@ namespace blqw.Serializable
             }
             return null;
         }
-
-
     }
 }

@@ -1,51 +1,66 @@
 ﻿using System;
-using System.Globalization;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace blqw.Serializable
 {
     [DebuggerDisplay("当前字符: {Current}")]
-    unsafe class UnsafeJsonReader : IDisposable
+    internal unsafe class UnsafeJsonReader : IDisposable
     {
         /// <summary>
-        /// <para>包含1: 可以为头的字符</para>
-        /// <para>包含2: 可以为单词的字符</para>
-        /// <para>包含4: 可以为数字的字符</para>
-        /// <para>等于8: 空白字符</para>
-        /// <para>包含16:转义字符</para>
-        /// <para></para>
+        ///     <para> 包含1: 可以为头的字符 </para>
+        ///     <para> 包含2: 可以为单词的字符 </para>
+        ///     <para> 包含4: 可以为数字的字符 </para>
+        ///     <para> 等于8: 空白字符 </para>
+        ///     <para> 包含16:转义字符 </para>
+        ///     <para> </para>
         /// </summary>
         private static readonly byte[] _WordChars = new byte[char.MaxValue + 1];
+
         private static readonly sbyte[] _UnicodeFlags = new sbyte[123];
         private static readonly sbyte[,,] _DateTimeWords;
+        private readonly int _length;
+
+        /// <summary>
+        /// 原始json
+        /// </summary>
+        public readonly string RawJson;
+
+        private int _end;
+
+        private bool _isDisposed;
+
+        private char* _p;
+        private int _position;
+
         static UnsafeJsonReader()
         {
             for (var i = 0; i < 123; i++)
             {
                 _UnicodeFlags[i] = -1;
             }
-            
+
             _WordChars['-'] = 1 | 4;
             _WordChars['+'] = 1 | 4;
 
             _WordChars['$'] = 1 | 2;
             _WordChars['_'] = 1 | 2;
-            for (char c = 'a'; c <= 'z'; c++)
+            for (var c = 'a'; c <= 'z'; c++)
             {
                 _WordChars[c] = 1 | 2;
-                _UnicodeFlags[c] = (sbyte)(c - 'a' + 10);
+                _UnicodeFlags[c] = (sbyte) (c - 'a' + 10);
             }
-            for (char c = 'A'; c <= 'Z'; c++)
+            for (var c = 'A'; c <= 'Z'; c++)
             {
                 _WordChars[c] = 1 | 2;
-                _UnicodeFlags[c] = (sbyte)(c - 'A' + 10);
+                _UnicodeFlags[c] = (sbyte) (c - 'A' + 10);
             }
 
             _WordChars['.'] = 1 | 2 | 4;
-            for (char c = '0'; c <= '9'; c++)
+            for (var c = '0'; c <= '9'; c++)
             {
                 _WordChars[c] = 4;
-                _UnicodeFlags[c] = (sbyte)(c - '0');
+                _UnicodeFlags[c] = (sbyte) (c - '0');
             }
 
             //科学计数法
@@ -57,8 +72,8 @@ namespace blqw.Serializable
             _WordChars['\r'] = 8;
             _WordChars['\n'] = 8;
 
-
             #region 标准转义符
+
             _WordChars['"'] |= 16;
             _WordChars['\\'] |= 16;
             _WordChars['/'] |= 16;
@@ -67,51 +82,46 @@ namespace blqw.Serializable
             _WordChars['n'] |= 16;
             _WordChars['r'] |= 16;
             _WordChars['t'] |= 16;
-            _WordChars['u'] |= 16; 
+            _WordChars['u'] |= 16;
+
             #endregion
 
             #region 非标准 但兼容转义符
+
             _WordChars['\''] |= 16;
             _WordChars['0'] |= 16;
             _WordChars['a'] |= 16;
             _WordChars['v'] |= 16;
+
             #endregion
 
-            string[] a = { "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec" };
-            string[] b = { "mon", "tue", "wed", "thu", "fri", "sat", "sun" };
+            string[] a = {"jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"};
+            string[] b = {"mon", "tue", "wed", "thu", "fri", "sat", "sun"};
             _DateTimeWords = new sbyte[23, 21, 25];
 
             for (sbyte i = 0; i < a.Length; i++)
             {
                 var d = a[i];
-                _DateTimeWords[d[0] - 97, d[1] - 97, d[2] - 97] = (sbyte)(i + 1);
+                _DateTimeWords[d[0] - 97, d[1] - 97, d[2] - 97] = (sbyte) (i + 1);
             }
 
             for (sbyte i = 0; i < b.Length; i++)
             {
                 var d = b[i];
-                _DateTimeWords[d[0] - 97, d[1] - 97, d[2] - 97] = (sbyte)-(i + 1);
+                _DateTimeWords[d[0] - 97, d[1] - 97, d[2] - 97] = (sbyte) -(i + 1);
             }
             _DateTimeWords['g' - 97, 'm' - 97, 't' - 97] = sbyte.MaxValue;
         }
 
-        Char* _p;
-        int _position;
-        readonly int _length;
-        int _end;
-        /// <summary>
-        /// 原始json
-        /// </summary>
-        public readonly string RawJson;
-        public UnsafeJsonReader(Char* origin, string str)
+        public UnsafeJsonReader(char* origin, string str)
         {
             if (origin == null)
             {
-                throw new ArgumentNullException("origin");
+                throw new ArgumentNullException(nameof(origin));
             }
             if (str.Length <= 0)
             {
-                throw new ArgumentOutOfRangeException("length");
+                throw new ArgumentOutOfRangeException(nameof(origin));
             }
             _p = origin;
             _length = str.Length;
@@ -123,7 +133,8 @@ namespace blqw.Serializable
 
         public char Current { get; private set; }
 
-        /// <summary> 当前位置
+        /// <summary>
+        /// 当前位置
         /// </summary>
         public int Position
         {
@@ -142,7 +153,16 @@ namespace blqw.Serializable
             }
         }
 
-        /// <summary> 是否已经到结尾,忽略空白
+        public void Dispose()
+        {
+            _p = null;
+            _end = 0;
+            _isDisposed = true;
+            Current = '\0';
+        }
+
+        /// <summary>
+        /// 是否已经到结尾,忽略空白
         /// </summary>
         public bool IsEnd()
         {
@@ -166,7 +186,8 @@ namespace blqw.Serializable
             return false;
         }
 
-        /// <summary> 检查是否已经到结尾,忽略空白和回车,如果已达结尾,则抛出异常
+        /// <summary>
+        /// 检查是否已经到结尾,忽略空白和回车,如果已达结尾,则抛出异常
         /// </summary>
         public void CheckEnd()
         {
@@ -177,7 +198,8 @@ namespace blqw.Serializable
         }
 
 
-        /// <summary> 移动到下一个字符,如果已经是结尾则抛出异常
+        /// <summary>
+        /// 移动到下一个字符,如果已经是结尾则抛出异常
         /// </summary>
         public void MoveNext()
         {
@@ -197,30 +219,32 @@ namespace blqw.Serializable
             }
         }
 
-        /// <summary> 跳过一个单词
+        /// <summary>
+        /// 跳过一个单词
         /// </summary>
         public void SkipWord()
         {
-            if (IsEnd())//已到结尾
+            if (IsEnd()) //已到结尾
             {
                 ThrowException();
             }
 
-            if (_WordChars[Current] != 3)      //只能是3 可以为开头的单词
+            if (_WordChars[Current] != 3) //只能是3 可以为开头的单词
             {
                 ThrowException();
             }
             MoveNext();
-            while ((_WordChars[Current] & 2) != 0)//读取下一个字符 可是是单词
+            while ((_WordChars[Current] & 2) != 0) //读取下一个字符 可是是单词
             {
                 MoveNext();
             }
         }
 
-        /// <summary> 跳过一个指定字符,忽略空白和回车,如果字符串意外结束抛出异常
+        /// <summary>
+        /// 跳过一个指定字符,忽略空白和回车,如果字符串意外结束抛出异常
         /// </summary>
-        /// <param name="c">需要判断和跳过的字符</param>
-        /// <param name="throwOnError">失败是否抛出异常</param>
+        /// <param name="c"> 需要判断和跳过的字符 </param>
+        /// <param name="throwOnError"> 失败是否抛出异常 </param>
         public bool SkipChar(char c, bool throwOnError)
         {
             if (IsEnd())
@@ -248,23 +272,24 @@ namespace blqw.Serializable
             return false;
         }
 
-        /// <summary> 跳过一个字符串
+        /// <summary>
+        /// 跳过一个字符串
         /// </summary>
         public void SkipString()
         {
-            if (IsEnd())//已到结尾
+            if (IsEnd()) //已到结尾
             {
                 ThrowException();
             }
-            Char quot = Current;
+            var quot = Current;
             if (quot != '"' && quot != '\'')
             {
                 ThrowException();
             }
             MoveNext();
-            while (Current != quot)//是否是结束字符
+            while (Current != quot) //是否是结束字符
             {
-                if (Current == '\\')//是否是转义符
+                if (Current == '\\') //是否是转义符
                 {
                     if ((_WordChars[Current] & 16) == 0)
                     {
@@ -276,153 +301,19 @@ namespace blqw.Serializable
             }
             MoveNext();
         }
-        //袖珍版字符串处理类
-        sealed class MiniBuffer : IDisposable
-        {
-            [ThreadStatic]
-            static MiniBuffer Instance;
 
-            public static MiniBuffer Create(char* p)
-            {
-                if (Instance == null)
-                {
-                    Instance = new MiniBuffer();
-                }
-                Instance._p = p;
-                Instance._index = 0;
-                Instance._position = 0;
-                return Instance;
-            }
-
-            char* _p;
-            string[] _str;
-            int _index;
-            int _position;
-            private MiniBuffer()
-            {
-
-            }
-
-            public void AddString(char* point, int offset, int length)
-            {
-                if (length > 0)
-                {
-                    if (_position + length > 255)
-                    {
-                        Flush();
-                        if (length > 200)
-                        {
-                            var s = new string(point, offset, length - 1);
-                            if (_index == 3)
-                            {
-                                _str[0] = string.Concat(_str[0], _str[1], _str[2], s);
-                                _index = 1;
-                            }
-                            else
-                            {
-                                _str[_index++] = s;
-                            }
-                            return;
-                        }
-                    }
-
-
-                    char* c = point + offset;
-                    if ((length & 1) != 0)
-                    {
-                        _p[_position++] = c[0];
-                        c++;
-                        length--;
-                    }
-                    int* p1 = (int*)&_p[_position];
-                    int* p2 = ((int*)c);
-                    _position += length;
-                    while (length >= 8)
-                    {
-                        (*p1++) = *(p2++);
-                        (*p1++) = *(p2++);
-                        (*p1++) = *(p2++);
-                        (*p1++) = *(p2++);
-                        length -= 8;
-                    }
-                    if ((length & 4) != 0)
-                    {
-                        (*p1++) = *(p2++);
-                        (*p1++) = *(p2++);
-                    }
-                    if ((length & 2) != 0)
-                    {
-                        (*p1) = *(p2);
-                    }
-
-                }
-            }
-
-            public void AddChar(char c)
-            {
-                if (_position == 255)
-                {
-                    Flush();
-                }
-                _p[_position++] = c;
-            }
-
-            private void Flush()
-            {
-                if (_str == null)
-                {
-                    _str = new string[3];
-                    _str[_index++] = new string(_p, 0, _position);
-                    _index = 1;
-                }
-                else if (_index < 3)
-                {
-                    _str[_index++] = new string(_p, 0, _position);
-                }
-                else
-                {
-                    _str[0] = string.Concat(_str[0], _str[1], _str[2], new string(_p, 0, _position));
-                    _index = 1;
-                }
-                _position = 0;
-            }
-
-            public override string ToString()
-            {
-                if (_str == null)
-                {
-                    return new string(_p, 0, _position);
-                }
-
-                if (_index == 1)
-                {
-                    return string.Concat(_str[0], new string(_p, 0, _position));
-                }
-                if (_index == 2)
-                {
-                    return string.Concat(_str[0], _str[1], new string(_p, 0, _position));
-                }
-                return string.Concat(_str[0], _str[1], _str[2], new string(_p, 0, _position));
-            }
-
-            public void Dispose()
-            {
-                _p = null;
-                _str = null;
-            }
-        }
-
-        /// <summary> 读取时间类型的对象
+        /// <summary>
+        /// 读取时间类型的对象
         /// </summary>
-        /// <returns></returns>
+        /// <returns> </returns>
         public object ReadDateTime()
         {
-            if (IsEnd())//已到结尾
+            if (IsEnd()) //已到结尾
             {
                 ThrowException();
             }
 
-            Char quot = Current;
+            var quot = Current;
             if (quot != '"' && quot != '\'')
             {
                 ThrowException();
@@ -436,14 +327,14 @@ namespace blqw.Serializable
             var index = _position;
 
             //0年,1月,2日,3时,4分,5秒,6毫秒,7星期,8+12,9gmt,10 月
-            int[] datetime = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
-            int numindex = 0;
-            if (IsEnd())//跳过空白
+            int[] datetime = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+            var numindex = 0;
+            if (IsEnd()) //跳过空白
             {
                 ThrowException();
             }
 
-            int number = -1;
+            var number = -1;
 
             do
             {
@@ -480,7 +371,7 @@ namespace blqw.Serializable
                 {
                     if (number >= 0)
                     {
-                        datetime[numindex++] = number;
+                        datetime[numindex] = number;
                     }
                     break;
                 }
@@ -579,7 +470,7 @@ namespace blqw.Serializable
                     number = -1;
                     MoveNext();
                 }
-            } while (Current != quot || number != -1);//是否是结束字符
+            } while (Current != quot || number != -1); //是否是结束字符
 
             if (datetime[2] == -1 && datetime[10] >= 0)
             {
@@ -609,7 +500,8 @@ namespace blqw.Serializable
             if (datetime[5] <= 0) datetime[5] = 0;
             if (datetime[6] <= 0) datetime[6] = 0;
             if (datetime[8] > 0) datetime[3] = datetime[3] + datetime[8];
-            var td = new DateTime(datetime[0], datetime[1], datetime[2], datetime[3], datetime[4], datetime[5], datetime[6]);
+            var td = new DateTime(datetime[0], datetime[1], datetime[2], datetime[3], datetime[4], datetime[5],
+                datetime[6]);
             if (datetime[9] >= 0)
             {
                 td = td.AddHours(datetime[9]);
@@ -626,21 +518,22 @@ namespace blqw.Serializable
             return DateTime.Parse(str);
         }
 
-        /// <summary> 获取时间中的英文字符,返回127 = GMT, 大于0 表示月份, 小于0 表示星期
+        /// <summary>
+        /// 获取时间中的英文字符,返回127 = GMT, 大于0 表示月份, 小于0 表示星期
         /// </summary>
-        /// <returns></returns>
+        /// <returns> </returns>
         private int GetDateTimeWord()
         {
-            char[] c = new char[3];
-            for (int i = 0; i < 3; i++)
+            var c = new char[3];
+            for (var i = 0; i < 3; i++)
             {
                 if (Current >= 'a' && Current <= 'z')
                 {
-                    c[i] = (char)(Current - 'a');
+                    c[i] = (char) (Current - 'a');
                 }
                 else if (Current >= 'A' && Current <= 'Z')
                 {
-                    c[i] = (char)(Current - 'A');
+                    c[i] = (char) (Current - 'A');
                 }
                 else
                 {
@@ -650,30 +543,33 @@ namespace blqw.Serializable
             }
             return _DateTimeWords[c[0], c[1], c[2]];
         }
-        /// <summary> 读取正整数,在ReadDateTime函数中使用
+
+        /// <summary>
+        /// 读取正整数,在ReadDateTime函数中使用
         /// </summary>
-        /// <returns></returns>
+        /// <returns> </returns>
         private int ReadPositiveInteger()
         {
             if (Current < '0' || Current > '9')
             {
                 return -1;
             }
-            int num = 0;
+            var num = 0;
             do
             {
-                num = num * 10 + (Current - '0');
+                num = num*10 + (Current - '0');
                 MoveNext();
             } while (Current >= '0' && Current <= '9');
             return num;
         }
 
-        /// <summary> 读取常量
+        /// <summary>
+        /// 读取常量
         /// </summary>
-        /// <returns></returns>
+        /// <returns> </returns>
         public object ReadConsts(bool warp)
         {
-            if (IsEnd())//已到结尾
+            if (IsEnd()) //已到结尾
             {
                 ThrowException();
             }
@@ -686,7 +582,7 @@ namespace blqw.Serializable
                         ThrowException();
                     }
                     return string.Empty;
-                case 'f'://false
+                case 'f': //false
                     MoveNext();
                     if (Current != 'a') ThrowException();
                     MoveNext();
@@ -697,7 +593,7 @@ namespace blqw.Serializable
                     if (Current != 'e') ThrowException();
                     MoveNext();
                     return false;
-                case 't'://true
+                case 't': //true
                     MoveNext();
                     if (Current != 'r') ThrowException();
                     MoveNext();
@@ -706,7 +602,7 @@ namespace blqw.Serializable
                     if (Current != 'e') ThrowException();
                     MoveNext();
                     return true;
-                case 'n'://null
+                case 'n': //null
                     if (warp)
                         ThrowException();
                     MoveNext();
@@ -717,7 +613,7 @@ namespace blqw.Serializable
                     if (Current != 'l') ThrowException();
                     MoveNext();
                     return null;
-                case 'u'://undefined
+                case 'u': //undefined
                     if (warp)
                         ThrowException();
                     MoveNext();
@@ -738,7 +634,7 @@ namespace blqw.Serializable
                     if (Current != 'd') ThrowException();
                     MoveNext();
                     return null;
-                case 'N'://NaN
+                case 'N': //NaN
                     if (warp)
                         ThrowException();
                     MoveNext();
@@ -747,7 +643,7 @@ namespace blqw.Serializable
                     if (Current != 'N') ThrowException();
                     MoveNext();
                     return double.NaN;
-                case 'I'://Infinity
+                case 'I': //Infinity
                     if (warp)
                         ThrowException();
                     MoveNext();
@@ -766,7 +662,7 @@ namespace blqw.Serializable
                     if (Current != 'y') ThrowException();
                     MoveNext();
                     return double.PositiveInfinity;
-                case '-'://-Infinity
+                case '-': //-Infinity
                     if (warp)
                         ThrowException();
                     MoveNext();
@@ -803,12 +699,13 @@ namespace blqw.Serializable
             }
         }
 
-        /// <summary> 读取单词
+        /// <summary>
+        /// 读取单词
         /// </summary>
-        /// <returns></returns>
+        /// <returns> </returns>
         public string ReadWord()
         {
-            if (IsEnd())//已到结尾
+            if (IsEnd()) //已到结尾
             {
                 ThrowException();
             }
@@ -820,25 +717,26 @@ namespace blqw.Serializable
             }
 
             var index = _position;
-            while ((_WordChars[Current] & 6) != 0)//2或者4都可以
+            while ((_WordChars[Current] & 6) != 0) //2或者4都可以
             {
-                MoveNext();//读取下一个字符
+                MoveNext(); //读取下一个字符
             }
             return new string(_p, index, _position - index);
         }
 
-        /// <summary> 读取数字
+        /// <summary>
+        /// 读取数字
         /// </summary>
-        /// <returns></returns>
+        /// <returns> </returns>
         private object ReadNumber()
         {
-            if (IsEnd())//已到结尾
+            if (IsEnd()) //已到结尾
             {
                 ThrowException();
             }
 
-            int pot = -1;
-            bool neg = false;
+            var pot = -1;
+            var neg = false;
 
             switch (Current)
             {
@@ -846,21 +744,21 @@ namespace blqw.Serializable
                     pot = 0;
                     break;
                 case '+':
-                    MoveNext();//读取下一个字符
+                    MoveNext(); //读取下一个字符
                     break;
                 case '-':
-                    MoveNext();//读取下一个字符
+                    MoveNext(); //读取下一个字符
                     neg = true;
                     break;
                 default:
                     break;
             }
-            int index = _position;
+            var index = _position;
 
 
             while (true)
             {
-                switch ((_WordChars[Current] & 6))
+                switch (_WordChars[Current] & 6)
                 {
                     case 0:
                         if (pot >= 0)
@@ -904,7 +802,7 @@ namespace blqw.Serializable
                             MoveNext();
                             while ((_WordChars[Current] & 4) != 0)
                             {
-                                MoveNext();//读取下一个字符
+                                MoveNext(); //读取下一个字符
                             }
 
                             str += new string(_p, index, _position - index);
@@ -921,37 +819,40 @@ namespace blqw.Serializable
                         ThrowException();
                         break;
                 }
-                MoveNext();//读取下一个字符
+                MoveNext(); //读取下一个字符
             }
         }
 
-        /// <summary> 读取小数
+        /// <summary>
+        /// 读取小数
         /// </summary>
-        /// <param name="index"></param>
-        /// <param name="end"></param>
-        /// <returns></returns>
+        /// <param name="index"> </param>
+        /// <param name="end"> </param>
+        /// <returns> </returns>
         private double ReadDecimal(int index, int end)
         {
-            double d1 = 0d;
+            var d1 = 0d;
             for (; _p[index] != '.'; index++)
             {
-                d1 = d1 * 10 + (_p[index] - (double)'0');
+                d1 = d1*10 + (_p[index] - (double) '0');
             }
             index++;
             end--;
-            double d2 = 0d;
+            var d2 = 0d;
             for (; index <= end; end--)
             {
-                d2 = d2 * 0.1 + (_p[end] - (long)'0');
+                d2 = d2*0.1 + (_p[end] - (long) '0');
             }
-            return d1 + d2 * 0.1;
+            return d1 + d2*0.1;
         }
 
-        /// <summary> 读取整数
+        /// <summary>
+        /// 读取整数
         /// </summary>
-        /// <param name="index"></param>
-        /// <param name="end"></param>
-        /// <returns></returns>
+        /// <param name="index"> </param>
+        /// <param name="end"> </param>
+        /// <param name="neg"> </param>
+        /// <returns> </returns>
         private IConvertible ReadInteger(int index, int end, bool neg)
         {
             var length = end - index;
@@ -963,10 +864,10 @@ namespace blqw.Serializable
                 }
                 return ReadDecimal(index, _position);
             }
-            ulong ul = 0uL;
+            var ul = 0uL;
             for (; index < end; index++)
             {
-                ul = ul * 10 + (_p[index] - (ulong)'0');
+                ul = ul*10 + (_p[index] - (ulong) '0');
             }
 
             if (!neg)
@@ -977,32 +878,33 @@ namespace blqw.Serializable
                 }
                 if (ul > int.MaxValue)
                 {
-                    return (long)ul;
+                    return (long) ul;
                 }
-                return (int)ul;
+                return (int) ul;
             }
-            else if (ul > long.MaxValue)
+            if (ul > long.MaxValue)
             {
-                return (double)ul;
+                return (double) ul;
             }
-            long l = (long)ul * (long)-1;
+            var l = (long) ul*-1;
             if (l < int.MinValue)
             {
                 return l;
             }
-            return (int)l;
+            return (int) l;
         }
 
-        /// <summary> 读取字符串
+        /// <summary>
+        /// 读取字符串
         /// </summary>
         public string ReadString()
         {
-            if (IsEnd())//已到结尾
+            if (IsEnd()) //已到结尾
             {
                 ThrowException();
             }
 
-            Char quot = Current;
+            var quot = Current;
             if (quot != '"' && quot != '\'')
             {
                 ThrowException();
@@ -1018,14 +920,14 @@ namespace blqw.Serializable
 
             do
             {
-                if (Current == '\\')//是否是转义符
+                if (Current == '\\') //是否是转义符
                 {
                     char* p = stackalloc char[255];
                     return ReadString(index, quot, MiniBuffer.Create(p));
                 }
                 MoveNext();
-            } while (Current != quot);//是否是结束字符
-            string str = new string(_p, index, _position - index);
+            } while (Current != quot); //是否是结束字符
+            var str = new string(_p, index, _position - index);
             MoveNext();
             return str;
         }
@@ -1034,7 +936,7 @@ namespace blqw.Serializable
         {
             do
             {
-                if (Current == '\\')//是否是转义符
+                if (Current == '\\') //是否是转义符
                 {
                     buff.AddString(_p, index, _position - index);
                     MoveNext();
@@ -1092,7 +994,7 @@ namespace blqw.Serializable
                     }
                 }
                 MoveNext();
-            } while (Current != quot);//是否是结束字符
+            } while (Current != quot); //是否是结束字符
             string str;
             buff.AddString(_p, index, _position - index);
             str = buff.ToString();
@@ -1152,7 +1054,7 @@ namespace blqw.Serializable
                 buff.AddChar(c4);
                 return 5;
             }
-            buff.AddChar((char)(n1 * 0x1000 + n2 * 0x100 + n3 * 0x10 + n4));
+            buff.AddChar((char) (n1*0x1000 + n2*0x100 + n3*0x10 + n4));
             return 5;
         }
 
@@ -1163,16 +1065,6 @@ namespace blqw.Serializable
                 return -1;
             }
             return _UnicodeFlags[c];
-        }
-
-        bool _isDisposed;
-
-        public void Dispose()
-        {
-            _p = null;
-            _end = 0;
-            _isDisposed = true;
-            Current = '\0';
         }
 
         private void ThrowMissCharException(char c)
@@ -1195,16 +1087,149 @@ namespace blqw.Serializable
                 Dispose();
                 throw new JsonParseException("遇到意外的字符串结尾,解析失败!", RawJson);
             }
-            int i = Math.Max(_position - 20, 0);
-            int j = Math.Min(_position + 20, _length);
-            string pos = _position.ToString(CultureInfo.InvariantCulture);
-            string ch = Current.ToString(CultureInfo.InvariantCulture);
-            string view = new string(_p, i, j - i);
+            var i = Math.Max(_position - 20, 0);
+            var j = Math.Min(_position + 20, _length);
+            var pos = _position.ToString(CultureInfo.InvariantCulture);
+            var ch = Current.ToString(CultureInfo.InvariantCulture);
+            var view = new string(_p, i, j - i);
             Dispose();
             throw new JsonParseException($"解析失败!{string.Format(title, ch)}\n截取: {view}\n位置{pos}", RawJson);
         }
-        
+
+        //袖珍版字符串处理类
+        private sealed class MiniBuffer : IDisposable
+        {
+            [ThreadStatic]
+            private static MiniBuffer _Instance;
+
+            private int _index;
+
+            private char* _p;
+            private int _position;
+            private string[] _str;
+
+            private MiniBuffer()
+            {
+            }
+
+            public void Dispose()
+            {
+                _p = null;
+                _str = null;
+            }
+
+            public static MiniBuffer Create(char* p)
+            {
+                if (_Instance == null)
+                {
+                    _Instance = new MiniBuffer();
+                }
+                _Instance._p = p;
+                _Instance._index = 0;
+                _Instance._position = 0;
+                return _Instance;
+            }
+
+            public void AddString(char* point, int offset, int length)
+            {
+                if (length > 0)
+                {
+                    if (_position + length > 255)
+                    {
+                        Flush();
+                        if (length > 200)
+                        {
+                            var s = new string(point, offset, length - 1);
+                            if (_index == 3)
+                            {
+                                _str[0] = string.Concat(_str[0], _str[1], _str[2], s);
+                                _index = 1;
+                            }
+                            else
+                            {
+                                _str[_index++] = s;
+                            }
+                            return;
+                        }
+                    }
+
+
+                    var c = point + offset;
+                    if ((length & 1) != 0)
+                    {
+                        _p[_position++] = c[0];
+                        c++;
+                        length--;
+                    }
+                    var p1 = (int*) &_p[_position];
+                    var p2 = (int*) c;
+                    _position += length;
+                    while (length >= 8)
+                    {
+                        *p1++ = *p2++;
+                        *p1++ = *p2++;
+                        *p1++ = *p2++;
+                        *p1++ = *p2++;
+                        length -= 8;
+                    }
+                    if ((length & 4) != 0)
+                    {
+                        *p1++ = *p2++;
+                        *p1++ = *p2++;
+                    }
+                    if ((length & 2) != 0)
+                    {
+                        *p1 = *p2;
+                    }
+                }
+            }
+
+            public void AddChar(char c)
+            {
+                if (_position == 255)
+                {
+                    Flush();
+                }
+                _p[_position++] = c;
+            }
+
+            private void Flush()
+            {
+                if (_str == null)
+                {
+                    _str = new string[3];
+                    _str[_index++] = new string(_p, 0, _position);
+                    _index = 1;
+                }
+                else if (_index < 3)
+                {
+                    _str[_index++] = new string(_p, 0, _position);
+                }
+                else
+                {
+                    _str[0] = string.Concat(_str[0], _str[1], _str[2], new string(_p, 0, _position));
+                    _index = 1;
+                }
+                _position = 0;
+            }
+
+            public override string ToString()
+            {
+                if (_str == null)
+                {
+                    return new string(_p, 0, _position);
+                }
+
+                if (_index == 1)
+                {
+                    return string.Concat(_str[0], new string(_p, 0, _position));
+                }
+                if (_index == 2)
+                {
+                    return string.Concat(_str[0], _str[1], new string(_p, 0, _position));
+                }
+                return string.Concat(_str[0], _str[1], _str[2], new string(_p, 0, _position));
+            }
+        }
     }
-
-
 }

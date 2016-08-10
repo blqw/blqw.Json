@@ -35,7 +35,7 @@ namespace UnitTestProject1
         public void 匿名对象的反序列化()
         {
             var a = new { id = 1, name = "blqw" };
-            var json = Json.ToJsonString(a);
+            var json = a.ToJsonString();
             dynamic b = Json.ToObject(a.GetType(), json);
             Assert.IsNotNull(b);
             Assert.IsInstanceOfType(b, a.GetType());

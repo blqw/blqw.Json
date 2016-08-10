@@ -10,6 +10,7 @@ namespace blqw.Serializable
         private const char COMMA = ',';
         private readonly TextWriter _writer;
         private bool _first;
+
         public CommaHelper(TextWriter writer)
         {
             _writer = writer;

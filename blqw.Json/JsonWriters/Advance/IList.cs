@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace blqw.Serializable.JsonWriters
 {
-    class IListWriter : IJsonWriter
+    internal class IListWriter : IJsonWriter
     {
-        public Type Type { get; } = typeof(IList);
+        public Type Type => typeof(IList);
 
         public void Write(object obj, JsonWriterArgs args)
         {
@@ -19,7 +15,7 @@ namespace blqw.Serializable.JsonWriters
                 return;
             }
             var writer = args.Writer;
-            var list = (IList)obj;
+            var list = (IList) obj;
             if (list.Count == 0)
             {
                 writer.Write("[]");

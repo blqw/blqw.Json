@@ -1,28 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static blqw.Serializable.JsonWriterContainer;
 
 namespace blqw.Serializable.JsonWriters
 {
-    class DataSetWrite : IJsonWriter
+    internal class DataSetWrite : IJsonWriter
     {
-        public Type Type { get; } = typeof(DataSet);
-        
         private JsonWriterWrapper _wrapper;
         public JsonWriterWrapper Wrapper => _wrapper ?? (_wrapper = GetWrap(Type));
+        public Type Type => typeof(DataSet);
 
         public void Write(object obj, JsonWriterArgs args)
         {
             if (obj == null)
             {
-                JsonWriterContainer.NullWriter.Write(null, args);
+                NullWriter.Write(null, args);
                 return;
             }
-            var ds = (DataSet)obj;
+            var ds = (DataSet) obj;
             var writer = args.Writer;
             var comma = new CommaHelper(writer);
             writer.Write('{');
@@ -33,7 +28,6 @@ namespace blqw.Serializable.JsonWriters
                 JsonWriterContainer.StringWriter.Write(table.TableName, args);
                 writer.Write(':');
                 Wrapper.Writer.Write(table, args);
-
             }
             writer.Write('}');
         }

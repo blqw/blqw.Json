@@ -2,14 +2,48 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace blqw.Serializable
 {
-    class JsonDictionary : NameObjectCollectionBase, IDictionary<string, object>, IDictionary
+    internal class JsonDictionary : NameObjectCollectionBase, IDictionary<string, object>, IDictionary
     {
+        #region IEnumerable<KeyValuePair<string,object>> 成员
+
+        IEnumerator<KeyValuePair<string, object>> IEnumerable<KeyValuePair<string, object>>.GetEnumerator()
+        {
+            var length = Count;
+            for (var i = 0; i < length; i++)
+            {
+                yield return new KeyValuePair<string, object>(BaseGetKey(i), BaseGet(i));
+            }
+        }
+
+        #endregion
+
+        #region ICollection<KeyValuePair<string,object>> 成员
+
+        bool ICollection<KeyValuePair<string, object>>.IsReadOnly => base.IsReadOnly;
+
+        #endregion
+
+        #region IEnumerable 成员
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            var length = Count;
+            for (var i = 0; i < length; i++)
+            {
+                yield return new KeyValuePair<string, object>(BaseGetKey(i), BaseGet(i));
+            }
+        }
+
+        #endregion
+
+        public override string ToString()
+        {
+            return this.ToJsonString();
+        }
+
         #region IDictionary<string,object> 成员
 
         public void Add(string key, object value)
@@ -19,37 +53,34 @@ namespace blqw.Serializable
 
         public bool ContainsKey(string key)
         {
-            return base.BaseGet(key) != null;
+            return BaseGet(key) != null;
         }
 
         public bool Remove(string key)
         {
-            base.BaseRemove(key);
+            BaseRemove(key);
             return true;
         }
 
         public bool TryGetValue(string key, out object value)
         {
-            value = base.BaseGet(key);
+            value = BaseGet(key);
             return value != null;
         }
 
 
         public object this[string key]
         {
-            get
-            {
-                return BaseGet(key);
-            }
+            get { return BaseGet(key); }
             set
             {
                 if (value == null)
                 {
-                    base.BaseRemove(key);
+                    BaseRemove(key);
                 }
                 else
                 {
-                    base.BaseSet(key, value);
+                    BaseSet(key, value);
                 }
             }
         }
@@ -65,7 +96,7 @@ namespace blqw.Serializable
 
         public void Clear()
         {
-            base.BaseClear();
+            BaseClear();
         }
 
         public bool Contains(KeyValuePair<string, object> item)
@@ -80,12 +111,12 @@ namespace blqw.Serializable
         {
             if (array == null)
             {
-                throw new ArgumentNullException("array");
+                throw new ArgumentNullException(nameof(array));
             }
 
             if (index < 0)
             {
-                throw new ArgumentOutOfRangeException("index", "index不能小于0");
+                throw new ArgumentOutOfRangeException(nameof(index), "index不能小于0");
             }
 
             if (array.Length - index < Count)
@@ -93,9 +124,9 @@ namespace blqw.Serializable
                 throw new ArgumentException("");
             }
             var length = Count;
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
-                array[index++] = new KeyValuePair<string, object>(base.BaseGetKey(i), base.BaseGet(i));
+                array[index++] = new KeyValuePair<string, object>(BaseGetKey(i), BaseGet(i));
             }
         }
 
@@ -108,39 +139,9 @@ namespace blqw.Serializable
 
         #region IDictionary<string,object> 成员
 
+        ICollection<string> IDictionary<string, object>.Keys => BaseGetAllKeys();
 
-        ICollection<string> IDictionary<string, object>.Keys
-        {
-            get { return BaseGetAllKeys(); }
-        }
-
-        ICollection<object> IDictionary<string, object>.Values
-        {
-            get { return BaseGetAllValues(); }
-        }
-
-        #endregion
-
-        #region IEnumerable<KeyValuePair<string,object>> 成员
-
-        IEnumerator<KeyValuePair<string, object>> IEnumerable<KeyValuePair<string, object>>.GetEnumerator()
-        {
-            var length = Count;
-            for (int i = 0; i < length; i++)
-            {
-                yield return new KeyValuePair<string, object>(base.BaseGetKey(i), base.BaseGet(i));
-            }
-        }
-
-        #endregion
-
-        #region ICollection<KeyValuePair<string,object>> 成员
-
-
-        bool ICollection<KeyValuePair<string, object>>.IsReadOnly
-        {
-            get { return base.IsReadOnly; }
-        }
+        ICollection<object> IDictionary<string, object>.Values => BaseGetAllValues();
 
         #endregion
 
@@ -158,17 +159,17 @@ namespace blqw.Serializable
 
         void IDictionary.Add(object key, object value)
         {
-            base.BaseAdd(Parse(key), value);
+            BaseAdd(Parse(key), value);
         }
 
         void IDictionary.Clear()
         {
-            base.BaseClear();
+            BaseClear();
         }
 
         bool IDictionary.Contains(object key)
         {
-            return base.BaseGet(Parse(key)) != null;
+            return BaseGet(Parse(key)) != null;
         }
 
         IDictionaryEnumerator IDictionary.GetEnumerator()
@@ -176,41 +177,23 @@ namespace blqw.Serializable
             throw new NotImplementedException();
         }
 
-        bool IDictionary.IsFixedSize
-        {
-            get { return false; }
-        }
+        bool IDictionary.IsFixedSize => false;
 
-        bool IDictionary.IsReadOnly
-        {
-            get { return true; }
-        }
+        bool IDictionary.IsReadOnly => true;
 
-        ICollection IDictionary.Keys
-        {
-            get { return base.Keys; }
-        }
+        ICollection IDictionary.Keys => base.Keys;
 
         void IDictionary.Remove(object key)
         {
-            base.BaseRemove(Parse(key));
+            BaseRemove(Parse(key));
         }
 
-        ICollection IDictionary.Values
-        {
-            get { return base.BaseGetAllValues(typeof(object)); }
-        }
+        ICollection IDictionary.Values => BaseGetAllValues(typeof(object));
 
         object IDictionary.this[object key]
         {
-            get
-            {
-                return base.BaseGet(Parse(key));
-            }
-            set
-            {
-                base.BaseSet(Parse(key), value);
-            }
+            get { return BaseGet(Parse(key)); }
+            set { BaseSet(Parse(key), value); }
         }
 
         #endregion
@@ -238,23 +221,5 @@ namespace blqw.Serializable
         }
 
         #endregion
-
-        #region IEnumerable 成员
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            var length = Count;
-            for (int i = 0; i < length; i++)
-            {
-                yield return new KeyValuePair<string, object>(base.BaseGetKey(i), base.BaseGet(i));
-            }
-        }
-
-        #endregion
-
-        public override string ToString()
-        {
-            return this.ToJsonString();
-        }
     }
 }

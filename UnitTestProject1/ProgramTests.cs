@@ -11,10 +11,10 @@ namespace Demo.Tests
     [TestClass()]
     public class ProgramTests
     {
-        [TestMethod()]
-        public void Test1Test()
-        {
-            Program.Test1(false);
-        }
+        //[TestMethod()]
+        //public void Test1Test()
+        //{
+        //    Program.Test1(false);
+        //}
     }
 }

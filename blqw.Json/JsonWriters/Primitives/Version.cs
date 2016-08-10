@@ -1,25 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace blqw.Serializable.JsonWriters
 {
-    sealed class VersionWriter : IJsonWriter
+    internal sealed class VersionWriter : IJsonWriter
     {
-        public Type Type
-        {
-            get
-            {
-                return typeof(Version);
-            }
-        }
+        public Type Type => typeof(Version);
 
         public void Write(object obj, JsonWriterArgs args)
         {
-            var value = (Version)obj;
-            var writer = args.Writer;
+            var value = (Version) obj;
             JsonWriterContainer.StringWriter.Write(value.ToString(), args);
         }
     }

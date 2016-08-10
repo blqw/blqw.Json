@@ -1,26 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static blqw.Serializable.JsonWriterContainer;
 
 namespace blqw.Serializable.JsonWriters
 {
-    class IEnumerableTWriter : IGenericJsonWriter
+    internal class IEnumerableTWriter : IGenericJsonWriter
     {
-        public Type Type { get; } = typeof(IEnumerable<>);
+        public Type Type => typeof(IEnumerable<>);
+
         public IJsonWriter MakeType(Type type)
         {
             foreach (var item in type.GetInterfaces())
             {
-                if (item.IsGenericType && item.IsGenericTypeDefinition == false)
+                if (item.IsGenericType
+                    && item.IsGenericTypeDefinition == false
+                    && item.GetGenericTypeDefinition() == Type)
                 {
-                    if (item.GetGenericTypeDefinition() == Type)
-                    {
-                        var t = typeof(InnerWriter<>).MakeGenericType(item.GetGenericArguments());
-                        return (IJsonWriter)Activator.CreateInstance(t);
-                    }
+                    var t = typeof(InnerWriter<>).MakeGenericType(item.GetGenericArguments());
+                    return (IJsonWriter) Activator.CreateInstance(t);
                 }
             }
             throw new NotImplementedException();
@@ -31,21 +28,12 @@ namespace blqw.Serializable.JsonWriters
             throw new NotImplementedException();
         }
 
-        class InnerWriter<T> : IJsonWriter
+        private class InnerWriter<T> : IJsonWriter
         {
+            // ReSharper disable once StaticMemberInGenericType
+            private static readonly JsonWriterWrapper _wrapper = GetWrapper();
+
             public Type Type { get; } = typeof(IEnumerable<T>);
-
-            public InnerWriter()
-            {
-                var value = typeof(T);
-
-                if (value.IsValueType || value.IsSealed)
-                {
-                    _writer = GetWrap(value);
-                }
-            }
-
-            private readonly JsonWriterWrapper _writer;
 
             public void Write(object obj, JsonWriterArgs args)
             {
@@ -57,17 +45,28 @@ namespace blqw.Serializable.JsonWriters
                 var writer = args.Writer;
 
                 writer.Write('[');
-                var ee = ((IEnumerable<T>)obj).GetEnumerator();
+                var ee = ((IEnumerable<T>) obj).GetEnumerator();
                 if (ee.MoveNext())
                 {
-                    args.WriteCheckLoop(ee.Current, _writer?.Writer);
+                    args.WriteCheckLoop(ee.Current, _wrapper?.Writer);
                     while (ee.MoveNext())
                     {
                         args.Writer.Write(',');
-                        args.WriteCheckLoop(ee.Current, _writer?.Writer);
+                        args.WriteCheckLoop(ee.Current, _wrapper?.Writer);
                     }
                 }
                 writer.Write(']');
+            }
+
+            private static JsonWriterWrapper GetWrapper()
+            {
+                var value = typeof(T);
+
+                if (value.IsValueType || value.IsSealed)
+                {
+                    return GetWrap(value);
+                }
+                return null;
             }
         }
     }

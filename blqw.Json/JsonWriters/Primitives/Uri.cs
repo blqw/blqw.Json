@@ -1,25 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace blqw.Serializable.JsonWriters
 {
-    sealed class UriWriter : IJsonWriter
+    internal sealed class UriWriter : IJsonWriter
     {
-        public Type Type
-        {
-            get
-            {
-                return typeof(Uri);
-            }
-        }
-
+        public Type Type => typeof(Uri);
+        
         public void Write(object obj, JsonWriterArgs args)
         {
-            var value = (Uri)obj;
-            var writer = args.Writer;
+            JsonWriterContainer.StringWriter.Write(obj.ToString(), args);
         }
     }
 }

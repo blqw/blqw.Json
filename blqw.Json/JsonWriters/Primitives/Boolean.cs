@@ -1,18 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace blqw.Serializable.JsonWriters
 {
-    sealed class BooleanWriter : IJsonWriter
+    internal sealed class BooleanWriter : IJsonWriter
     {
-        public Type Type { get; } = typeof(bool);
+        public Type Type => typeof(bool);
 
         public void Write(object obj, JsonWriterArgs args)
         {
-            var value = (bool)obj;
+            var value = (bool) obj;
             if (args.BooleanToNumber)
             {
                 JsonWriterContainer.Int32Writer.Write(value ? 1 : 0, args);

@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace blqw.Serializable.JsonWriters
 {
-    class IDictionaryWriter : IJsonWriter
+    internal class IDictionaryWriter : IJsonWriter
     {
-        public Type Type { get; } = typeof(IDictionary);
+        public Type Type => typeof(IDictionary);
 
         public void Write(object obj, JsonWriterArgs args)
         {
@@ -22,7 +18,7 @@ namespace blqw.Serializable.JsonWriters
 
             writer.Write('{');
             var comma = new CommaHelper(writer);
-            var ee = ((IDictionary)obj).GetEnumerator();
+            var ee = ((IDictionary) obj).GetEnumerator();
             while (ee.MoveNext())
             {
                 var value = ee.Value;
@@ -36,7 +32,7 @@ namespace blqw.Serializable.JsonWriters
 
                 JsonWriterContainer.StringWriter.Write(ee.Key.To<string>(), args);
                 writer.Write(':');
-                args.WriteCheckLoop(value,null);
+                args.WriteCheckLoop(value, null);
             }
 
             writer.Write('}');

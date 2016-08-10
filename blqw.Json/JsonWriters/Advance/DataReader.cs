@@ -1,31 +1,26 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static blqw.Serializable.JsonWriterContainer;
 
 namespace blqw.Serializable.JsonWriters
 {
     internal class DataReaderWriter : IJsonWriter
     {
-
-        public Type Type { get; } = typeof(IDataReader);
-
         private JsonWriterWrapper _wrapper;
         public JsonWriterWrapper Wrapper => _wrapper ?? (_wrapper = GetWrap(typeof(IDataRecord)));
+
+        public Type Type => typeof(IDataReader);
 
 
         public void Write(object obj, JsonWriterArgs args)
         {
             if (obj == null)
             {
-                JsonWriterContainer.NullWriter.Write(null, args);
+                NullWriter.Write(null, args);
                 return;
             }
             var writer = args.Writer;
-            var reader = (IDataReader)obj;
+            var reader = (IDataReader) obj;
             if (reader.IsClosed)
             {
                 throw new NotImplementedException("IDataReader已经关闭");

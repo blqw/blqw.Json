@@ -1,24 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace blqw.Serializable.JsonWriters
 {
-    sealed class UInt16Writer : IJsonWriter
+    internal sealed class UInt16Writer : IJsonWriter
     {
-        public Type Type
-        {
-            get
-            {
-                return typeof(ushort);
-            }
-        }
+        public Type Type => typeof(ushort);
 
         public void Write(object obj, JsonWriterArgs args)
         {
-            var value = (ushort)obj;
+            var value = (ushort) obj;
             var writer = args.Writer;
             if (args.QuotWrapNumber)
             {

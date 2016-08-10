@@ -1,39 +1,38 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace blqw.Serializable
 {
     /// <summary>
-    /// <see cref="IJsonWriter" /> 的包装类型 
+    /// <see cref="IJsonWriter" /> 的包装类型
     /// </summary>
     [DebuggerDisplay("Type = {_type}, Writer = {_writer}")]
     public class JsonWriterWrapper
     {
         /// <summary>
-        /// <seealso cref="_writer"/>的生成源的引用
-        /// </summary>
-        private IJsonWriter _originReference;
-        /// <summary>
-        /// <seealso cref="_writer"/>的类型
+        /// <seealso cref="_writer" />的类型
         /// </summary>
         private readonly Type _type;
+
         /// <summary>
         /// 包装对象
         /// </summary>
         private readonly JsonWriterWrapper _wrapper;
+
         /// <summary>
-        /// <see cref="IJsonWriter"/>对象
+        /// <seealso cref="_writer" />的生成源的引用
+        /// </summary>
+        private IJsonWriter _originReference;
+
+        /// <summary>
+        /// <see cref="IJsonWriter" />对象
         /// </summary>
         private IJsonWriter _writer;
 
         /// <summary>
-        /// 包装一个 <see cref="IJsonWriter"/> 
+        /// 包装一个 <see cref="IJsonWriter" />
         /// </summary>
-        /// <param name="writer"><see cref="IJsonWriter"/>对象 </param>
+        /// <param name="writer"> <see cref="IJsonWriter" />对象 </param>
         public JsonWriterWrapper(IJsonWriter writer)
         {
             _writer = writer;
@@ -41,10 +40,10 @@ namespace blqw.Serializable
         }
 
         /// <summary>
-        /// 生成一个新的 <see cref="IJsonWriter"/> 并包装起来
+        /// 生成一个新的 <see cref="IJsonWriter" /> 并包装起来
         /// </summary>
-        /// <param name="wrapper">原始<see cref="JsonWriterWrapper"/> </param>
-        /// <param name="type">待生成的<see cref="IJsonWriter"/>的类型 </param>
+        /// <param name="wrapper"> 原始<see cref="JsonWriterWrapper" /> </param>
+        /// <param name="type"> 待生成的<see cref="IJsonWriter" />的类型 </param>
         public JsonWriterWrapper(JsonWriterWrapper wrapper, Type type)
         {
             _wrapper = wrapper;
@@ -53,7 +52,7 @@ namespace blqw.Serializable
         }
 
         /// <summary>
-        /// 被包装的 <see cref="IJsonWriter"/>
+        /// 被包装的 <see cref="IJsonWriter" />
         /// </summary>
         public IJsonWriter Writer
         {
@@ -70,14 +69,11 @@ namespace blqw.Serializable
                 Create();
                 return _writer;
             }
-            set
-            {
-                _writer = value;
-            }
+            set { _writer = value; }
         }
 
         /// <summary>
-        /// 生成新的 <see cref="IJsonWriter"/>
+        /// 生成新的 <see cref="IJsonWriter" />
         /// </summary>
         /// <exception cref="NotImplementedException"> </exception>
         private void Create()
@@ -101,5 +97,4 @@ namespace blqw.Serializable
             }
         }
     }
-
 }

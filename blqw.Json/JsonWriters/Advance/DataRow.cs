@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace blqw.Serializable.JsonWriters
 {
-    class DataRowWriter : IJsonWriter
+    internal class DataRowWriter : IJsonWriter
     {
-        public Type Type { get; } = typeof(DataRow);
+        public Type Type => typeof(DataRow);
 
         public void Write(object obj, JsonWriterArgs args)
         {
@@ -18,7 +14,7 @@ namespace blqw.Serializable.JsonWriters
                 JsonWriterContainer.NullWriter.Write(null, args);
                 return;
             }
-            var row = (DataRow)obj;
+            var row = (DataRow) obj;
             var writer = args.Writer;
             var comma = new CommaHelper(writer);
             writer.Write('{');

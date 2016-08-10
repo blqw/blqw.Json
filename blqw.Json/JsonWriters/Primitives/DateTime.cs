@@ -10,7 +10,7 @@ namespace blqw.Serializable.JsonWriters
 
         public void Write(object obj, JsonWriterArgs args)
         {
-            var value = (DateTime)obj;
+            var value = (DateTime) obj;
             var mode = 0; //0:empty 1:date 2:time 3:datetime
 
             if (args.FormatDate && value > _OnlyTime)
@@ -42,7 +42,8 @@ namespace blqw.Serializable.JsonWriters
                     JsonWriterContainer.StringWriter.Write(value.ToString(args.TimeFormatString ?? "HH:mm:ss"), args);
                     break;
                 case 3:
-                    JsonWriterContainer.StringWriter.Write(value.ToString(args.DateTimeFormatString ?? "yyyy-MM-dd HH:mm:ss"), args);
+                    JsonWriterContainer.StringWriter.Write(
+                        value.ToString(args.DateTimeFormatString ?? "yyyy-MM-dd HH:mm:ss"), args);
                     break;
                 default:
                     JsonWriterContainer.StringWriter.Write("", args);

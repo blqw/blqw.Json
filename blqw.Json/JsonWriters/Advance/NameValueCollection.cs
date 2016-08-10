@@ -1,36 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static blqw.Serializable.JsonWriterContainer;
 
 namespace blqw.Serializable.JsonWriters
 {
-    class NameValueCollectionWrite : IJsonWriter
+    internal class NameValueCollectionWrite : IJsonWriter
     {
-        public Type Type { get; } = typeof(NameValueCollection);
-
-        private static bool IsNull(IList<string> str)
-        {
-            if (str == null)
-            {
-                return true;
-            }
-            if (str.Count == 0)
-            {
-                return true;
-            }
-            if (str.Count > 1)
-            {
-                return false;
-            }
-            return str[0] == null;
-        }
-
         private JsonWriterWrapper _wrapper;
         public JsonWriterWrapper Wrapper => _wrapper ?? (_wrapper = GetWrap(typeof(string[])));
+        public Type Type => typeof(NameValueCollection);
 
 
         public void Write(object obj, JsonWriterArgs args)
@@ -41,7 +20,7 @@ namespace blqw.Serializable.JsonWriters
                 return;
             }
             var writer = args.Writer;
-            var value = (NameValueCollection)obj;
+            var value = (NameValueCollection) obj;
             var comma = new CommaHelper(writer);
             writer.Write('{');
             for (int i = 0, length = value.Count; i < length; i++)
@@ -70,9 +49,25 @@ namespace blqw.Serializable.JsonWriters
                 {
                     Wrapper.Writer.Write(array, args);
                 }
-
             }
             writer.Write('}');
+        }
+
+        private static bool IsNull(IList<string> str)
+        {
+            if (str == null)
+            {
+                return true;
+            }
+            if (str.Count == 0)
+            {
+                return true;
+            }
+            if (str.Count > 1)
+            {
+                return false;
+            }
+            return str[0] == null;
         }
     }
 }

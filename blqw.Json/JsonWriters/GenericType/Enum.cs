@@ -1,16 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static blqw.Serializable.JsonWriterContainer;
 
 namespace blqw.Serializable.JsonWriters
 {
     internal sealed class EnumWriter : IGenericJsonWriter
     {
-        public Type Type { get; } = typeof(Enum);
-        
+        public Type Type => typeof(Enum);
+
         public void Write(object obj, JsonWriterArgs args)
         {
             throw new NotImplementedException();
@@ -19,22 +15,20 @@ namespace blqw.Serializable.JsonWriters
         public IJsonWriter MakeType(Type type)
         {
             var t = typeof(InnerWriter<>).MakeGenericType(type);
-            return (IJsonWriter)Activator.CreateInstance(t);
+            return (IJsonWriter) Activator.CreateInstance(t);
         }
 
 
         private class InnerWriter<T> : IJsonWriter
         {
-            private readonly JsonWriterWrapper _wrapper;
+            private static readonly JsonWriterWrapper _wrapper = GetWrap(Enum.GetUnderlyingType(typeof(T)));
 
-            public InnerWriter()
-            {
-                _wrapper = GetWrap(Enum.GetUnderlyingType(typeof(T)));
-            }
+
             public Type Type { get; } = typeof(T);
+
             public void Write(object obj, JsonWriterArgs args)
             {
-                var value = (Enum)obj;
+                var value = (Enum) obj;
                 if (args.EnumToNumber)
                 {
                     _wrapper.Writer.Write(value, args);

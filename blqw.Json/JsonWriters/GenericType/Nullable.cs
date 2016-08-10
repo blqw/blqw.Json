@@ -5,7 +5,7 @@ namespace blqw.Serializable.JsonWriters
 {
     internal sealed class NullableWriter : IGenericJsonWriter
     {
-        public Type Type { get; } = typeof(Nullable<>);
+        public Type Type => typeof(Nullable<>);
 
         public IJsonWriter MakeType(Type type)
         {
@@ -22,13 +22,7 @@ namespace blqw.Serializable.JsonWriters
         private class InnerWriter<T> : IJsonWriter
             where T : struct
         {
-            private readonly JsonWriterWrapper _wrapper;
-
-            public InnerWriter()
-            {
-                var value = typeof(T);
-                _wrapper = GetWrap(value);
-            }
+            private static readonly JsonWriterWrapper _wrapper = GetWrap(typeof(T));
 
             public Type Type { get; } = typeof(T?);
 
