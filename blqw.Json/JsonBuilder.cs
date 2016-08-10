@@ -164,7 +164,7 @@ namespace blqw.Serializable
                 else if (obj is DataTable) AppendDataTable((DataTable)obj);
                 else if (obj is DataView) AppendDataView((DataView)obj);
                 else if (obj is DataRow) AppendDataRow((DataRow)obj);
-                else if (obj is DataRowView) AppendDataRow((DataRow)obj);
+                else if (obj is DataRowView) AppendDataRow(((DataRowView)obj).Row);
                 else if (obj is NameValueCollection) AppendNameValueCollection((NameValueCollection)obj);
                 else if (obj is IDictionary) AppendJson((IDictionary)obj);
                 else if (obj is IEnumerable<KeyValuePair<string, object>>) AppendJson((IEnumerable<KeyValuePair<string, object>>)obj);
@@ -181,7 +181,7 @@ namespace blqw.Serializable
                 else if (obj is DataTable) AppendDataTable((DataTable)obj);
                 else if (obj is DataView) AppendDataView((DataView)obj);
                 else if (obj is DataRow) AppendDataRow((DataRow)obj);
-                else if (obj is DataRowView) AppendDataRow((DataRow)obj);
+                else if (obj is DataRowView) AppendDataRow(((DataRowView)obj).Row);
                 else if (obj is NameValueCollection) AppendNameValueCollection((NameValueCollection)obj);
                 else if (obj is IDictionary) AppendJson((IDictionary)obj);
                 else if (obj is IEnumerable<KeyValuePair<string, object>>) AppendJson((IEnumerable<KeyValuePair<string, object>>)obj);

@@ -3,13 +3,14 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using blqw;
 using System.Collections.Specialized;
+using System.Data;
 
 namespace UnitTestProject1
 {
     [TestClass]
     public class UnitTest2
     {
-        class MyList : List<string>,  IFormatProvider
+        class MyList : List<string>, IFormatProvider
         {
             public int TotalCount { get; set; }
 
@@ -42,7 +43,7 @@ namespace UnitTestProject1
             var json = blqw.Json.ToJsonString(list);
             Assert.AreEqual("{\"Items\":[\"a\"],\"TotalCount\":100}", json);
         }
-        
+
 
         [TestMethod]
         public void 动态类型()
@@ -58,6 +59,55 @@ namespace UnitTestProject1
             Assert.AreEqual(2, (int)obj.Array[2].b);
             //Assert.AreEqual(new DateTime(2014,1,1,1,0,0), (DateTime)obj.Array[0]);
             //Assert.AreEqual(false, (bool)obj.Array[1]);
+
+
+        }
+
+        [TestMethod]
+        public void 测试动态类型时间()
+        {
+            var str = "{\"time\":\"2016-08-09 16:50:37\",\"id\":1,\"name\":\"blqw\"}";
+            var dict = new Dictionary<string, object>()
+            {
+                ["time"] = DateTime.Parse("2016-08-09 16:50:37"),
+                ["id"] = 1,
+                ["name"] = "blqw",
+            };
+            var obj = dict.ToDynamic();
+            var json = Json.ToJsonString(obj);
+            Assert.AreEqual(str, json);
+            str = "[" + str + "]";
+            var table = new DataTable();
+            table.Columns.Add("time", typeof(DateTime));
+            table.Columns.Add("id", typeof(int));
+            table.Columns.Add("name", typeof(string));
+            table.Rows.Add(dict["time"], dict["id"], dict["name"]);
+            obj = table.ToDynamic();
+            json = Json.ToJsonString(obj);
+            Assert.AreEqual(str, json);
+
+            var reader = new DataTableReader(table);
+            var list = new List<object>();
+            while (reader.Read())
+            {
+                list.Add(reader.ToDynamic());
+            }
+            json = list.ToJsonString();
+            Assert.AreEqual(str, json);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
         }
