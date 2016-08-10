@@ -9,21 +9,62 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Runtime.InteropServices.ComTypes;
+using System.Runtime.Serialization;
 using System.Text;
+using System.Text.RegularExpressions;
+using ServiceStack.Text;
 
 namespace Demo
 {
     public class Program
     {
-        class MyClass
+        class TestClass1 : IObjectReference
         {
+            public int ID { get; set; }
             public string Name { get; set; }
-            public int Age { get; set; }
+            
+            public object GetRealObject(StreamingContext context)
+            {
+                if (context.Context is JsonWriterArgs)
+                {
+                    return new {id = this.ID, name = this.Name};
+                }
+                return this;
+            }
         }
 
+        class TestClass2
+        {
+            public Regex Regex { get; set; }
+        }
+
+        class TestClass2Writer : IJsonWriter
+        {
+            public Type Type => typeof(TestClass2);
+            public void Write(object obj, JsonWriterArgs args)
+            {
+                var o = (TestClass2)obj;
+                args.Writer.Write($"\"Regex\":/{o.Regex.ToString()}/g");
+            }
+        }
 
         static void Main(string[] args)
         {
+            var t1 = new TestClass1()
+            {
+                ID = 1,
+                Name = "blqw",
+            };
+            var t2 = new TestClass2()
+            {
+               Regex = new Regex("^[0-9]{4,6}$") 
+            };
+
+            var str1 = t1.ToJsonString(); //{ "id":1,"name":"blqw"}
+            Console.WriteLine(str1);
+            var str2 = t2.ToJsonString();  //{"Regex":/^[0-9]{4,6}$/g}
+            Console.WriteLine(str2);
 
 
             //var obj1 = User.TestUser();
@@ -31,8 +72,8 @@ namespace Demo
             //TimeTest.TestObject = obj1;
             //TimeTest.TestQuickJsonBuilder();
 
-            Test1(true);
-            Test2();
+            //Test1(true);
+            //Test2();
             //
             //dynamic json = Json.ToDynamic(str);
             //Console.WriteLine(json.Name);

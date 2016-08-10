@@ -12,7 +12,7 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes>
-      * 修复反斜杠序列化失败的问题
+      * 3.0重构,大幅度增加可拓展性,性能有所下降,后续优化
     </releaseNotes>
     <copyright>Copyright 2016</copyright>
     <tags>blqw Json</tags>

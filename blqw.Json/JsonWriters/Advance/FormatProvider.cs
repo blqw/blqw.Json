@@ -10,8 +10,9 @@ namespace blqw.Serializable.JsonWriters
 
         public void Write(object obj, JsonWriterArgs args)
         {
-            var obj1 = (obj as IFormatProvider)?.GetFormat(typeof(Json));
-            if (obj1 != null)
+            var obj1 = ((IFormatProvider)obj).GetFormat(typeof(Json));
+
+            if (obj1 != null )
             {
                 args.WriteCheckLoop(obj1, null);
             }

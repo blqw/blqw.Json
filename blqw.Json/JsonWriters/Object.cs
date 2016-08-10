@@ -58,12 +58,6 @@ namespace blqw.Serializable.JsonWriters
                 }
                 else
                 {
-                    var objref = value as IObjectReference;
-                    if (objref != null)
-                    {
-                        Write(ref comma, member,
-                            objref.GetRealObject(new StreamingContext(StreamingContextStates.All, args)), args);
-                    }
                     Write(ref comma, member, value, args);
                 }
             }

@@ -67,6 +67,7 @@
     <Compile Include="JsonWriters\Advance\IEnumerable.cs" />
     <Compile Include="JsonWriters\Advance\IEnumerator.cs" />
     <Compile Include="JsonWriters\Advance\IList.cs" />
+    <Compile Include="JsonWriters\Advance\IObjectReference.cs" />
     <Compile Include="JsonWriters\Advance\ISerializable.cs" />
     <Compile Include="JsonWriters\Advance\NameValueCollection.cs" />
     <Compile Include="JsonWriters\Advance\SerializationInfo.cs" />

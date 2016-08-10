@@ -1,7 +1,67 @@
 # blqw.Json 一个优秀的Json序列化类库
 Json序列化与反序列化  
-http://cnblogs.com/blqw/p/json.html  
-使用方便 ,性能卓越  
+**3.0重构,大幅度增加可拓展性,性能有所下降,后续优化**  
+~~http://cnblogs.com/blqw/p/json.html~~  
+使用方便 ,~~性能卓越~~  
+
+3.0可以很方便的重定义某个类的序列化行为
+```csharp
+class TestClass2
+{
+    public Regex Regex { get; set; }
+}
+
+class TestClass2Writer : IJsonWriter
+{
+    public Type Type => typeof(TestClass2);
+    public void Write(object obj, JsonWriterArgs args)
+    {
+        var o = (TestClass2)obj;
+        args.Writer.Write($"\"Regex\":/{o.Regex.ToString()}/g");
+    }
+}
+
+static void Main(string[] args)
+{
+    var t2 = new TestClass2()
+    {
+        Regex = new Regex("^[0-9]{4,6}$") 
+    };
+    var str2 = t2.ToJsonString();  //{"Regex":/^[0-9]{4,6}$/g}
+    Console.WriteLine(str2);
+}
+
+```
+输出: `{"Regex":/^[0-9]{4,6}$/g}`  
+另一种简单的方式  
+```csharp
+class TestClass1 : IObjectReference
+{
+    public int ID { get; set; }
+    public string Name { get; set; }
+            
+    public object GetRealObject(StreamingContext context)
+    {
+        if (context.Context is JsonWriterArgs)
+        {
+            return new {id = this.ID, name = this.Name};
+        }
+        return this;
+    }
+}
+static void Main(string[] args)
+{
+    var t1 = new TestClass1()
+    {
+        ID = 1,
+        Name = "blqw",
+    };
+    var str1 = t1.ToJsonString();  //{"id":1,"name":"blqw"}
+    Console.WriteLine(str1);
+}
+```
+输出: `{ "id":1,"name":"blqw"}`  
+
 ```csharp
 blqw.Json.ToJsonString(object);  
 blqw.Json.ToObject<T>(string);  
@@ -15,9 +75,12 @@ blqw.Json.ToJsonString(object,JsonBuilderSettings);
 blqw.Json.ToDynamic(string);  
 ```
 
-性能测试请参考:[pk.md](https://github.com/blqw/blqw.Json/blob/master/pk.md)
+~~性能测试请参考:[pk.md](https://github.com/blqw/blqw.Json/blob/master/pk.md)~~
 
 ##更新说明
+#### 2016.08.10
+* 3.0重构,大幅度增加可拓展性,性能有所下降,后续优化
+
 #### 2016.07.13
 * 修复反斜杠序列化失败的问题
 

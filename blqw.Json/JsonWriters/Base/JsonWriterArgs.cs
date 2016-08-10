@@ -145,7 +145,16 @@ namespace blqw.Serializable
 
         public int Depth { get; private set; }
 
-        public void WriteCheckLoop(object value, IJsonWriter writer)
+        /// <summary>
+        /// 写入一个对象
+        /// </summary>
+        /// <param name="value"></param>
+        public void WriteObject(object value)
+        {
+            WriteCheckLoop(value, null);
+        }
+
+        internal void WriteCheckLoop(object value, IJsonWriter writer)
         {
             if (value == null || value is DBNull)
             {
