@@ -16,7 +16,7 @@ namespace UnitTestProject1
             var json = File.ReadAllLines("json3.txt");
             var obj = Json.ToDynamic(json[0]);
             Assert.AreEqual("/\b\f\0\a\v/", (string)obj.a);
-            var json2 = Json.ToJsonString(obj,0);
+            var json2 = Json.ToJsonString(obj, 0);
             Assert.AreEqual(json[1], json2);
         }
 
@@ -27,7 +27,7 @@ namespace UnitTestProject1
             var json = str.ToJsonString(JsonBuilderSettings.CastUnicode);
             Assert.AreEqual(@"""a\u54c8ffff\u54c8\u770b1""", json);
 
-            var obj = new {c = '我', s = "a哈ffff哈看1"};
+            var obj = new { c = '我', s = "a哈ffff哈看1" };
             json = obj.ToJsonString(JsonBuilderSettings.CastUnicode);
             Assert.AreEqual(@"{""c"":""\u6211"",""s"":""a\u54c8ffff\u54c8\u770b1""}", json);
             var obj2 = Json.ToDynamic(json);
@@ -54,9 +54,17 @@ namespace UnitTestProject1
             var str = "\\abc";
             var json = str.ToJsonString(0);
             Assert.AreEqual("\"\\\\abc\"", json);
-            var obj = new {s = "\\abc"};
-             json = obj.ToJsonString(0);
+            var obj = new { s = "\\abc" };
+            json = obj.ToJsonString(0);
             Assert.AreEqual("{\"s\":\"\\\\abc\"}", json);
+        }
+
+        [TestMethod]
+        public void 测试数组()
+        {
+            var arr = new[] { 1, 2, 3, 4 };
+            var json = arr.ToJsonString(0);
+            Assert.AreEqual("[1,2,3,4]", json);
         }
     }
 }

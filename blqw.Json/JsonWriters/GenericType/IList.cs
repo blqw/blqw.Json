@@ -20,6 +20,16 @@ namespace blqw.Serializable.JsonWriters
                     return (IJsonWriter) Activator.CreateInstance(t);
                 }
             }
+            if (type.IsInterface)
+            {
+                if (type.IsGenericType
+                    && type.IsGenericTypeDefinition == false
+                    && type.GetGenericTypeDefinition() == Type)
+                {
+                    var t = typeof(InnerWriter<>).MakeGenericType(type.GetGenericArguments());
+                    return (IJsonWriter)Activator.CreateInstance(t);
+                }
+            }
             throw new NotImplementedException();
         }
 

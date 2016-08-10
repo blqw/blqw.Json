@@ -1,10 +1,11 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using static blqw.Serializable.JsonWriterContainer;
 
 namespace blqw.Serializable.JsonWriters
 {
-    internal class IEnumerableTWriter : IGenericJsonWriter
+    public class IEnumerableTWriter : IGenericJsonWriter
     {
         public Type Type => typeof(IEnumerable<>);
 
@@ -18,6 +19,16 @@ namespace blqw.Serializable.JsonWriters
                 {
                     var t = typeof(InnerWriter<>).MakeGenericType(item.GetGenericArguments());
                     return (IJsonWriter) Activator.CreateInstance(t);
+                }
+            }
+            if (type.IsInterface)
+            {
+                if (type.IsGenericType
+                    && type.IsGenericTypeDefinition == false
+                    && type.GetGenericTypeDefinition() == Type)
+                {
+                    var t = typeof(InnerWriter<>).MakeGenericType(type.GetGenericArguments());
+                    return (IJsonWriter)Activator.CreateInstance(t);
                 }
             }
             throw new NotImplementedException();
