@@ -99,7 +99,8 @@ namespace blqw.Serializable
             }
 
             InitGetSet(out Type, out GetValue, out SetValue);
-            _jsonWriterWrapper = JsonWriterContainer.GetWrap(Type);
+            if (Type.IsValueType || Type.IsSealed)
+                _jsonWriterWrapper = JsonWriterContainer.GetWrap(Type);
             CanWrite = SetValue != null;
             CanRead = GetValue != null;
             NonSerialized = ignoreSerialized;
@@ -115,7 +116,7 @@ namespace blqw.Serializable
 
         public JsonType JsonType => _jsonType ?? (_jsonType = JsonType.Get(Type));
 
-        public IJsonWriter JsonWriter => _jsonWriterWrapper.Writer;
+        public IJsonWriter JsonWriter => _jsonWriterWrapper?.Writer;
 
         /// <summary>
         /// 创建Json成员对象,如果成员被指定为忽略反序列化则返回null

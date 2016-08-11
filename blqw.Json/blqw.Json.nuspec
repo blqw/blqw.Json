@@ -13,6 +13,7 @@
     <description>$description$</description>
     <releaseNotes>
       * 3.0重构,大幅度增加可拓展性,性能有所下降,后续优化
+      * 2016.08.11 修复bug
     </releaseNotes>
     <copyright>Copyright 2016</copyright>
     <tags>blqw Json</tags>
