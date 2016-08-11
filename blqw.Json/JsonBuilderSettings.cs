@@ -63,7 +63,7 @@ namespace blqw
         /// <summary>
         /// 默认序列化设置 FormatDate | FormatTime | IgnoreEmptyTime | IgnoreNullMember
         /// </summary>
-        Default = FormatDate | FormatTime | IgnoreEmptyTime | IgnoreNullMember | EnumToNumber | FilterSpecialCharacter,
+        Default = FormatDate | FormatTime | IgnoreEmptyTime | IgnoreNullMember | EnumToNumber ,
 
         /// <summary>
         /// 输出类型信息
