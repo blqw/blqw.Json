@@ -67,7 +67,9 @@ namespace blqw.Serializable
             [typeof(IDictionary)] = 199,
             [typeof(IEnumerable<>)] = 99,
             [typeof(IEnumerable)] = 98,
-            [typeof(DynamicObject)] = 97
+            [typeof(IEnumerator<>)] = 97,
+            [typeof(IEnumerator)] = 96,
+            [typeof(DynamicObject)] = 95
         };
 
         static JsonWriterContainer()

@@ -22,12 +22,12 @@ namespace UnitTestProject1
         {
             var obj = new { s = "ab\acd" };
             var json = "{\"s\":\"ab\\u0007cd\"}";
-            var json1 = Json.ToJsonString(obj, JsonBuilderSettings.Default ^ JsonBuilderSettings.FilterSpecialCharacter);
+            var json1 = obj.ToJsonString();
             Assert.AreEqual(json, json1);
 
 
             json = "{\"s\":\"abcd\"}";
-            var json2 = Json.ToJsonString(obj);
+            var json2 = obj.ToJsonString(JsonBuilderSettings.Default | JsonBuilderSettings.FilterSpecialCharacter);
             Assert.AreEqual(json, json2);
         }
 
