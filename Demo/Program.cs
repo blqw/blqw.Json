@@ -51,6 +51,7 @@ namespace Demo
 
         static void Main(string[] args)
         {
+            Console.WriteLine(Guid.NewGuid().ToJsonString());
             var t1 = new TestClass1()
             {
                 ID = 1,

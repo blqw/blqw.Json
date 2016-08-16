@@ -2,6 +2,7 @@
 using System.IO;
 using blqw;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 
 namespace UnitTestProject1
 {
@@ -65,6 +66,13 @@ namespace UnitTestProject1
             var arr = new[] { 1, 2, 3, 4 };
             var json = arr.ToJsonString(0);
             Assert.AreEqual("[1,2,3,4]", json);
+        }
+
+        [TestMethod]
+        public void 默认Guid连字符()
+        {
+            var json = Guid.Empty.ToJsonString();
+            Assert.AreEqual("\"00000000-0000-0000-0000-000000000000\"", json);
         }
     }
 }
