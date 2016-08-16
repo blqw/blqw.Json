@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 namespace blqw.Serializable
 {
@@ -20,6 +21,9 @@ namespace blqw.Serializable
         /// <summary>
         /// 追加一个逗号,但忽略这个方法的第一次执行
         /// </summary>
+        /// <exception cref="ObjectDisposedException">
+        ///         <see cref="T:System.IO.TextWriter" /> 是关闭的。</exception>
+        /// <exception cref="IOException">发生 I/O 错误。</exception>
         public void AppendCommaIgnoreFirst()
         {
             if (_first)

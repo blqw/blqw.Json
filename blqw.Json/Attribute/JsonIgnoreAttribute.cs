@@ -30,12 +30,14 @@ namespace blqw
         /// </summary>
         public bool NonDeserialize { get; private set; }
 
+        /// <summary> 当在派生类中重写时，返回一个指示此实例是否等于指定对象的值。 </summary>
+        /// <returns> 如果该实例等于 <paramref name="obj" />，则为 true；否则，为 false。 </returns>
+        /// <param name="obj"> 与 <see cref="T:System.Attribute" /> 的此实例进行比较的 <see cref="T:System.Object" />。 </param>
+        /// <filterpriority> 2 </filterpriority>
         public override bool Match(object obj)
         {
             if (obj is ScriptIgnoreAttribute)
-            {
                 return true;
-            }
             return base.Match(obj);
         }
     }

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections;
+using System.ComponentModel;
+using System.Runtime.Remoting.Messaging;
 using System.Runtime.Serialization;
 
 namespace blqw.Serializable
@@ -14,20 +16,29 @@ namespace blqw.Serializable
         private static readonly JsonType _JsonTypeObject = JsonType.Get<object>();
 
         private readonly JsonType _arrayType;
-        private readonly Converter<IConvertible, object> _convertString;
+        private readonly IFormatterConverter _converter;
         private readonly JsonType _keyValueType;
 
+        /// <summary>
+        /// 初始化json解析器
+        /// </summary>
         public JsonParser()
         {
             _arrayType = _JsonTypeArrayList;
             _keyValueType = _JsonTypeDictionary;
         }
-
-        public JsonParser(Type arrayType, Type keyValueType, Converter<IConvertible, object> convertString)
+        
+        /// <summary>
+        /// 初始化json解析器
+        /// </summary>
+        /// <param name="arrayType">自定义数组类型</param>
+        /// <param name="keyValueType">自定义键值对类型</param>
+        /// <param name="converter">自定义转型方法</param>
+        public JsonParser(Type arrayType, Type keyValueType, IFormatterConverter converter)
         {
             _arrayType = arrayType == null ? _JsonTypeArrayList : JsonType.Get(arrayType);
             _keyValueType = keyValueType == null ? _JsonTypeDictionary : JsonType.Get(keyValueType);
-            _convertString = convertString;
+            _converter = converter;
         }
 
 
@@ -58,7 +69,7 @@ namespace blqw.Serializable
             {
                 obj = new ArrayList();
                 FillObject(ref obj, type, jsonString);
-                return ((ArrayList) obj).ToArray(type.GetElementType());
+                return ((ArrayList)obj).ToArray(type.GetElementType());
             }
             FillObject(ref obj, type, jsonString);
             return obj;
@@ -294,7 +305,7 @@ namespace blqw.Serializable
                 var val = ReadValue(reader, eleType); //得到值
                 if (key != null && key.Length > 0 && val is string && key[0] == '$' && key == "$Type$")
                 {
-                    var type = Type.GetType((string) val, false, false);
+                    var type = Type.GetType((string)val, false, false);
                     if (type != null)
                     {
                         jsonType = JsonType.Get(type);
@@ -463,9 +474,9 @@ namespace blqw.Serializable
                     return ParseString(reader, jsonType);
                 default:
                     var val = reader.ReadConsts(false);
-                    if (jsonType.TypeCode == TypeCode.Object && _convertString != null)
+                    if (_converter != null)
                     {
-                        return _convertString((IConvertible) val);
+                        return _converter.Convert(val, jsonType.TypeCode);
                     }
                     return jsonType.Convert(val, jsonType.Type);
             }
@@ -497,9 +508,9 @@ namespace blqw.Serializable
             {
                 return reader.ReadDateTime();
             }
-            if (jsonType.TypeCode == TypeCode.Object && _convertString != null)
+            if (_converter != null)
             {
-                return _convertString(reader.ReadString());
+                return _converter.Convert(reader.ReadString(), jsonType.TypeCode);
             }
             return jsonType.Convert(reader.ReadString(), jsonType.Type);
         }

@@ -8,6 +8,9 @@ namespace blqw
     [Flags, Serializable]
     public enum JsonBuilderSettings
     {
+        /// <summary>
+        /// 不使用任何设置
+        /// </summary>
         None = 0,
 
         /// <summary>
