@@ -74,5 +74,12 @@ namespace UnitTestProject1
             var json = Guid.Empty.ToJsonString();
             Assert.AreEqual("\"00000000-0000-0000-0000-000000000000\"", json);
         }
+
+        [TestMethod]
+        public void 测试中文转码()
+        {
+            var json = "你好".ToJsonString();
+            Assert.AreEqual("\"你好\"", json);
+        }
     }
 }

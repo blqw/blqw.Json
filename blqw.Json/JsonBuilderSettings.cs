@@ -66,7 +66,7 @@ namespace blqw
         /// <summary>
         /// 默认序列化设置 FormatDate | FormatTime | IgnoreEmptyTime | IgnoreNullMember
         /// </summary>
-        Default = FormatDate | FormatTime | IgnoreEmptyTime | IgnoreNullMember | EnumToNumber | GuidHasHyphens ,
+        Default = FormatDate | FormatTime | IgnoreEmptyTime | IgnoreNullMember | EnumToNumber | GuidHasHyphens,
 
         /// <summary>
         /// 输出类型信息
@@ -96,6 +96,6 @@ namespace blqw
         /// <summary>
         /// 是否将大于255的字符转为Unicode编码
         /// </summary>
-        CastUnicode = 1 << 14
+        CastUnicode = 1 << 16
     }
 }
