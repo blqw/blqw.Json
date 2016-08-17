@@ -161,12 +161,9 @@ namespace blqw.Serializable
             /// 初始化泛型缓存
             /// </summary>
             /// <param name="item"> </param>
-            /// <exception cref="NotSupportedException"> 重复初始化 </exception>
             // ReSharper disable once UnusedMember.Local (反射调用)
             public static void Initialize(T item)
             {
-                if (IsInitialized)
-                    throw new NotSupportedException("重复初始化");
                 IsInitialized = true;
                 Item = item;
             }
