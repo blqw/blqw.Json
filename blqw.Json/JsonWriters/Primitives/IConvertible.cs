@@ -10,7 +10,7 @@ namespace blqw.Serializable.JsonWriters
 
         public void Write(object obj, JsonWriterArgs args)
         {
-            var value = (IConvertible) obj;
+            var value = (IConvertible)obj;
             var typecode = value.GetTypeCode();
             switch (typecode)
             {
@@ -48,7 +48,8 @@ namespace blqw.Serializable.JsonWriters
                     JsonWriterContainer.UInt64Writer.Write(value.ToUInt64(CultureInfo.InvariantCulture), args);
                     break;
                 case TypeCode.Object:
-                    (_ObjectWrapper ?? (_ObjectWrapper = JsonWriterContainer.GetWrap(typeof(object)))).Writer.Write(value, args);
+                    obj = value.ToType(typeof(object), CultureInfo.InvariantCulture);
+                    (_ObjectWrapper ?? (_ObjectWrapper = JsonWriterContainer.GetWrap(typeof(object)))).Writer.Write(obj, args);
                     break;
                 case TypeCode.Empty:
                 case TypeCode.DBNull:

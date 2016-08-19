@@ -29,7 +29,7 @@ namespace blqw.Serializable.JsonWriters.Advance
             }
             else
             {
-                this[1].Writer.Write(obj, args);
+                this[0].Writer.Write(obj, args);
             }
         }
     }
