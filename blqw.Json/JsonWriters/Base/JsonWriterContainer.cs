@@ -30,10 +30,7 @@ namespace blqw.Serializable
         /// 通过IOC加载的所有 <see cref="IJsonWriter" /> 的集合
         /// </summary>
         [ImportMany]
-#pragma warning disable 649
-        // ReSharper disable once CollectionNeverUpdated.Local
         private static List<IJsonWriter> _Writers;
-#pragma warning restore 649
 
         private static JsonWriterWrapper _NullWapper;
         private static JsonWriterWrapper _VersionWapper;
@@ -59,12 +56,12 @@ namespace blqw.Serializable
         private static JsonWriterWrapper _ByteWapper;
         private static JsonWriterWrapper _BooleanWapper;
 
-        private static readonly Dictionary<Type, int> _Prioritys = new Dictionary<Type, int>
+        private static readonly Dictionary<Type, int> _Priorities = new Dictionary<Type, int>
         {
             [typeof(IObjectReference)] = 400,
             [typeof(IFormatProvider)] = 300,
             [typeof(IDictionary<,>)] = 200,
-            [typeof(IDictionary)] = 199,
+            [typeof(IDictionary)] = 199, 
             [typeof(IEnumerable<>)] = 99,
             [typeof(IEnumerable)] = 98,
             [typeof(IEnumerator<>)] = 97,
@@ -208,11 +205,12 @@ namespace blqw.Serializable
         public static void Reload()
         {
             MEF.Import(typeof(JsonWriterContainer));
-            _Items = new TypeCache<JsonWriterWrapper>();
+            var items = new TypeCache<JsonWriterWrapper>();
             foreach (var w in _Writers)
             {
-                _Items.Set(w.Type, new JsonWriterWrapper(w));
+                items.Set(w.Type, new JsonWriterWrapper(w));
             }
+            _Items = items;
         }
 
         /// <summary>
@@ -371,7 +369,7 @@ namespace blqw.Serializable
             {
                 type = type.GetGenericTypeDefinition() ?? type;
             }
-            return _Prioritys.TryGetValue(type, out i) ? i : 100;
+            return _Priorities.TryGetValue(type, out i) ? i : 100;
         }
 
         /// <summary>

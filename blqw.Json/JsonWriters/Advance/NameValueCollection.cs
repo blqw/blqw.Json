@@ -20,54 +20,26 @@ namespace blqw.Serializable.JsonWriters
                 return;
             }
             var writer = args.Writer;
-            var value = (NameValueCollection) obj;
+            var value = (NameValueCollection)obj;
             var comma = new CommaHelper(writer);
             writer.Write('{');
             for (int i = 0, length = value.Count; i < length; i++)
             {
                 var name = value.GetKey(i);
-                var array = value.GetValues(i);
+                var str = value.Get(i);
                 if (args.IgnoreNullMember)
                 {
-                    if (IsNull(array))
+                    if (str == null)
                     {
                         continue;
                     }
                 }
-                else if (IsNull(array))
-                {
-                    array = null;
-                }
                 comma.AppendCommaIgnoreFirst();
                 JsonWriterContainer.StringWriter.Write(name, args);
                 writer.Write(':');
-                if (array?.Length == 1)
-                {
-                    JsonWriterContainer.StringWriter.Write(array[0], args);
-                }
-                else
-                {
-                    Wrapper.Writer.Write(array, args);
-                }
+                JsonWriterContainer.StringWriter.Write(str, args);
             }
             writer.Write('}');
-        }
-
-        private static bool IsNull(IList<string> str)
-        {
-            if (str == null)
-            {
-                return true;
-            }
-            if (str.Count == 0)
-            {
-                return true;
-            }
-            if (str.Count > 1)
-            {
-                return false;
-            }
-            return str[0] == null;
         }
     }
 }

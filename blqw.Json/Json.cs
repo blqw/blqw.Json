@@ -29,12 +29,12 @@ namespace blqw
             {
                 return "null";
             }
-            using (var writer = new QuickStringWriter(4096))
+            using (var buffer = new QuickStringWriter(4096))
             {
-                var args = new JsonWriterArgs(writer, settings);
-                var warp = JsonWriterContainer.GetWrap(obj.GetType());
-                warp.Writer.Write(obj, args);
-                return writer.ToString();
+                var args = new JsonWriterArgs(buffer, settings);
+                var writer = JsonWriterContainer.Get(obj.GetType());
+                writer.Write(obj, args);
+                return buffer.ToString();
             }
         }
 
