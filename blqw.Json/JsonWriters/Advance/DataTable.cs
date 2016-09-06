@@ -11,7 +11,7 @@ namespace blqw.Serializable.JsonWriters
         {
             if (obj == null)
             {
-                JsonWriterContainer.NullWriter.Write(null, args);
+                args.WriterContainer.GetNullWriter().Write(null, args);
                 return;
             }
             var table = (DataTable) obj;
@@ -19,7 +19,7 @@ namespace blqw.Serializable.JsonWriters
             var comma1 = new CommaHelper(writer);
             var columns = table.Columns;
             var length = columns.Count;
-            writer.Write('[');
+            args.BeginArray();
             for (int j = 0, count = table.Rows.Count; j < count; j++)
             {
                 comma1.AppendCommaIgnoreFirst();
@@ -37,20 +37,20 @@ namespace blqw.Serializable.JsonWriters
                     }
 
                     comma.AppendCommaIgnoreFirst();
-                    JsonWriterContainer.StringWriter.Write(column.ColumnName, args);
+                    args.WriterContainer.GetWriter<string>().Write(column.ColumnName, args);
                     writer.Write(':');
                     if (row.IsNull(column))
                     {
-                        JsonWriterContainer.NullWriter.Write(null, args);
+                        args.WriterContainer.GetNullWriter().Write(null, args);
                     }
                     else
                     {
-                        JsonWriterContainer.Write(row[column], args);
+                        var value = row[column];
+                        args.WriterContainer.GetWriter(value.GetType()).Write(value, args);
                     }
                 }
             }
-
-            writer.Write(']');
+            args.EndArray();
         }
     }
 }

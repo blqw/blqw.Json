@@ -2,6 +2,7 @@
 using blqw.Serializable;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,15 +29,16 @@ namespace blqw.Serializable.Tests
         [TestMethod()]
         public void 测试替换功能()
         {
-            var a = JsonWriterContainer.Get(typeof(TypeCode));
+            var container = JsonWriterContainer2.Instance;
+            var a = container.GetWriter(typeof(TypeCode));
             Assert.AreEqual(typeof(TypeCode), a.Type);
             Assert.IsNotInstanceOfType(a, typeof(MyTestJsonWriter));
-            JsonWriterContainer.Set(new MyTestJsonWriter(null));
-            a = JsonWriterContainer.Get(typeof(TypeCode));
+            container.AddService(typeof(TypeCode), new MyTestJsonWriter(null));
+            a = container.GetWriter(typeof(TypeCode));
             Assert.AreEqual(typeof(TypeCode), a.Type);
             Assert.IsInstanceOfType(a, typeof(MyTestJsonWriter));
 
-            a = JsonWriterContainer.Get(typeof(AttributeTargets));
+            a = container.GetWriter(typeof(AttributeTargets));
             Assert.AreEqual(typeof(AttributeTargets), a.Type);
             Assert.IsNotInstanceOfType(a, typeof(MyTestJsonWriter));
         }
@@ -58,13 +60,17 @@ namespace blqw.Serializable.Tests
         [TestMethod()]
         public void 测试泛型替换功能()
         {
-            var a = JsonWriterContainer.Get(typeof(int?));
+            var container = JsonWriterContainer2.Instance;
+            var a = container.GetWriter(typeof(int?));
             Assert.AreEqual(typeof(int?), a.Type);
-            JsonWriterContainer.Set(new MyTest2JsonWriter(null));
-            a = JsonWriterContainer.Get(typeof(int?));
+            container.AddService(typeof(int?), new MyTest2JsonWriter(null));
+            a = container.GetWriter(typeof(int?));
             Assert.IsInstanceOfType(a, typeof(MyTest2JsonWriter));
-            a = JsonWriterContainer.Get(typeof(long?));
+            a = container.GetWriter(typeof(long?));
             Assert.AreEqual(typeof(long?), a.Type);
+            Assert.IsNotInstanceOfType(a, typeof(MyTest2JsonWriter));
+            container.RemoveService(typeof(int?)); a = container.GetWriter(typeof(int?));
+            Assert.AreEqual(typeof(int?), a.Type);
             Assert.IsNotInstanceOfType(a, typeof(MyTest2JsonWriter));
         }
 
@@ -74,11 +80,11 @@ namespace blqw.Serializable.Tests
             {
                 Type = type;
             }
-            public Type Type { get; } 
+            public Type Type { get; }
 
-            public IJsonWriter MakeType(Type type)
+            public object GetService(Type serviceType)
             {
-                return new MyTest3JsonWriter(type);
+                return new MyTest3JsonWriter(serviceType);
             }
 
             public void Write(object obj, JsonWriterArgs args)
@@ -90,24 +96,33 @@ namespace blqw.Serializable.Tests
         [TestMethod]
         public void 测试泛型替换功能2()
         {
-            var a = JsonWriterContainer.Get(typeof(int?));
+            var container = JsonWriterContainer2.Instance;
+            var a = container.GetWriter(typeof(int?));
             Assert.AreEqual(typeof(int?), a.Type);
             Assert.IsNotInstanceOfType(a, typeof(MyTest3JsonWriter));
 
-            a = JsonWriterContainer.Get(typeof(long?));
+            a = container.GetWriter(typeof(long?));
             Assert.AreEqual(typeof(long?), a.Type);
             Assert.IsNotInstanceOfType(a, typeof(MyTest3JsonWriter));
 
-            JsonWriterContainer.Set(new MyTest3JsonWriter(typeof(Nullable<>)));
+            container.AddService(typeof(Nullable<>), new MyTest3JsonWriter(typeof(Nullable<>)));
 
-            a = JsonWriterContainer.Get(typeof(int?));
+            a = container.GetWriter(typeof(int?));
             Assert.AreEqual(typeof(int?), a.Type);
             Assert.IsInstanceOfType(a, typeof(MyTest3JsonWriter));
 
-            a = JsonWriterContainer.Get(typeof(long?));
+            a = container.GetWriter(typeof(long?));
             Assert.AreEqual(typeof(long?), a.Type);
             Assert.IsInstanceOfType(a, typeof(MyTest3JsonWriter));
 
+            container.RemoveService(typeof(Nullable<>));
+
+            a = container.GetWriter(typeof(int?));
+            Assert.AreEqual(typeof(int?), a.Type);
+            Assert.IsNotInstanceOfType(a, typeof(MyTest3JsonWriter));
+            a = container.GetWriter(typeof(long?));
+            Assert.AreEqual(typeof(long?), a.Type);
+            Assert.IsNotInstanceOfType(a, typeof(MyTest3JsonWriter));
         }
 
     }

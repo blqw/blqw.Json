@@ -1,62 +1,70 @@
 ﻿using System;
 using System.Data;
-using static blqw.Serializable.JsonWriterContainer;
 
 namespace blqw.Serializable.JsonWriters
 {
     internal class DataReaderWriter : IJsonWriter
     {
-        private JsonWriterWrapper _wrapper;
-        public JsonWriterWrapper Wrapper => _wrapper ?? (_wrapper = GetWrap(typeof(IDataRecord)));
-
         public Type Type => typeof(IDataReader);
 
-
+        /// <summary>
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="args"></param>
+        /// <exception cref="InvalidOperationException">IDataReader已经关闭</exception>
         public void Write(object obj, JsonWriterArgs args)
         {
             if (obj == null)
             {
-                NullWriter.Write(null, args);
+                args.WriterContainer.GetNullWriter().Write(null, args);
                 return;
             }
-            var writer = args.Writer;
             var reader = (IDataReader) obj;
             if (reader.IsClosed)
             {
-                throw new NotImplementedException("IDataReader已经关闭");
+                throw new InvalidOperationException("IDataReader已经关闭");
             }
-            writer.Write('[');
+            args.BeginArray();
 
             if (reader.FieldCount == 1)
             {
-                var comma = new CommaHelper(writer);
+                var comma = new CommaHelper(args.Writer);
                 while (reader.Read())
                 {
                     var value = reader.GetValue(0);
                     if (args.IgnoreNullMember)
                     {
-                        if (value == null || value is DBNull)
                             continue;
                     }
-
+                    if (value == null || value is DBNull)
+                    {
+                        if (args.IgnoreNullMember)
+                        {
+                            continue;
+                        }
+                        args.WriterContainer.GetNullWriter().Write(null,args);
+                    }
+                    else
+                    {
+                        args.WriterContainer.GetWriter(value.GetType()).Write(value,args);
+                    }
                     comma.AppendCommaIgnoreFirst();
-                    JsonWriterContainer.Write(value, args);
                 }
             }
             else
             {
+                var writer = args.WriterContainer.GetWriter(Type);
                 if (reader.Read())
                 {
-                    Wrapper.Writer.Write(reader, args);
+                    writer.Write(reader, args);
                     while (reader.Read())
                     {
-                        writer.Write(',');
-                        Wrapper.Writer.Write(reader, args);
+                        args.Common();
+                        writer.Write(reader, args);
                     }
                 }
             }
-
-            writer.Write(']');
+            args.EndArray();
         }
     }
 }

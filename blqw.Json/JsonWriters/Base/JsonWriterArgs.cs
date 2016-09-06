@@ -1,17 +1,26 @@
 ﻿using System;
 using System.Collections;
 using System.IO;
+using blqw.IOC;
 
 namespace blqw.Serializable
 {
-    public class JsonWriterArgs
+    /// <summary>
+    /// Json写入器执行参数
+    /// </summary>
+    public sealed class JsonWriterArgs
     {
+        /// <summary>
+        /// 容器
+        /// </summary>
+        public ServiceContainer WriterContainer { get; }
         //循环引用对象缓存区
         private readonly IList _loopObject;
         private string _dateTimeFormatString;
-
-        public JsonWriterArgs(TextWriter writer, JsonBuilderSettings settings)
+        
+        public JsonWriterArgs(ServiceContainer provider, TextWriter writer, JsonBuilderSettings settings)
         {
+            WriterContainer = provider;
             FormatDate = (settings & JsonBuilderSettings.FormatDate) != 0;
             FormatTime = (settings & JsonBuilderSettings.FormatTime) != 0;
             SerializableField = (settings & JsonBuilderSettings.SerializableField) != 0;
@@ -153,17 +162,17 @@ namespace blqw.Serializable
         {
             WriteCheckLoop(value, null);
         }
-
+        
         internal void WriteCheckLoop(object value, IJsonWriter writer)
         {
             if (value == null || value is DBNull)
             {
-                JsonWriterContainer.NullWriter.Write(null, this);
+                WriterContainer.GetNullWriter().Write(null, this);
                 return;
             }
             if (writer == null)
             {
-                writer = JsonWriterContainer.Get(value.GetType());
+                writer = WriterContainer.GetWriter(value.GetType());
             }
             if (CheckLoopRef)
             {
@@ -192,6 +201,53 @@ namespace blqw.Serializable
                 writer.Write(value, this);
                 Depth--;
             }
+        }
+
+        /// <summary>
+        /// [
+        /// </summary>
+        public void BeginArray()
+        {
+            Writer.Write('[');
+        }
+
+        /// <summary>
+        /// ]
+        /// </summary>
+        public void EndArray()
+        {
+            Writer.Write(']');
+        }
+
+        /// <summary>
+        /// ,
+        /// </summary>
+        public void Common()
+        {
+            Writer.Write(',');
+        }
+
+        /// <summary>
+        /// {
+        /// </summary>
+        public void BeginObject()
+        {
+            Writer.Write('{');
+        }
+        /// <summary>
+        /// }
+        /// </summary>
+        public void EndObject()
+        {
+            Writer.Write('}');
+        }
+
+        /// <summary>
+        /// :
+        /// </summary>
+        public void Colon()
+        {
+            Writer.Write(':');
         }
     }
 }

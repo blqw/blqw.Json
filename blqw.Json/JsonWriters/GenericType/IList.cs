@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using static blqw.Serializable.JsonWriterContainer;
+
 
 namespace blqw.Serializable.JsonWriters
 {
@@ -8,25 +8,25 @@ namespace blqw.Serializable.JsonWriters
     {
         public Type Type => typeof(IList<>);
 
-        public IJsonWriter MakeType(Type type)
+        public object GetService(Type serviceType)
         {
-            foreach (var item in type.GetInterfaces())
+            foreach (var item in serviceType.GetInterfaces())
             {
                 if (item.IsGenericType
                     && item.IsGenericTypeDefinition == false
                     && item.GetGenericTypeDefinition() == Type)
                 {
                     var t = typeof(InnerWriter<>).MakeGenericType(item.GetGenericArguments());
-                    return (IJsonWriter) Activator.CreateInstance(t);
+                    return (IJsonWriter)Activator.CreateInstance(t);
                 }
             }
-            if (type.IsInterface)
+            if (serviceType.IsInterface)
             {
-                if (type.IsGenericType
-                    && type.IsGenericTypeDefinition == false
-                    && type.GetGenericTypeDefinition() == Type)
+                if (serviceType.IsGenericType
+                    && serviceType.IsGenericTypeDefinition == false
+                    && serviceType.GetGenericTypeDefinition() == Type)
                 {
-                    var t = typeof(InnerWriter<>).MakeGenericType(type.GetGenericArguments());
+                    var t = typeof(InnerWriter<>).MakeGenericType(serviceType.GetGenericArguments());
                     return (IJsonWriter)Activator.CreateInstance(t);
                 }
             }
@@ -40,47 +40,35 @@ namespace blqw.Serializable.JsonWriters
 
         private class InnerWriter<T> : IJsonWriter
         {
-            // ReSharper disable once StaticMemberInGenericType
-            private static readonly JsonWriterWrapper _wrapper = GetWrapper();
-
             public Type Type { get; } = typeof(IList<T>);
 
             public void Write(object obj, JsonWriterArgs args)
             {
                 if (obj == null)
                 {
-                    NullWriter.Write(null, args);
+                    args.WriterContainer.GetNullWriter().Write(null, args);
                     return;
                 }
-                var writer = args.Writer;
-                var list = (IList<T>) obj;
+                var writer = TypeService.IsImmutable<T>() ? args.WriterContainer.GetWriter<T>() : null;
+                var list = (IList<T>)obj;
                 if (list.Count == 0)
                 {
-                    writer.Write("[]");
+                    args.BeginArray();
+                    args.EndArray();
                     return;
                 }
-                writer.Write('[');
-                args.WriteCheckLoop(list[0], _wrapper?.Writer);
+                args.BeginArray();
+                args.WriteCheckLoop(list[0], writer);
 
                 for (int i = 1, length = list.Count; i < length; i++)
                 {
-                    args.Writer.Write(',');
-                    args.WriteCheckLoop(list[i], _wrapper?.Writer);
+                    args.Common();
+                    args.WriteCheckLoop(list[i], writer);
                 }
 
-                writer.Write(']');
+                args.EndArray();
             }
 
-            private static JsonWriterWrapper GetWrapper()
-            {
-                var value = typeof(T);
-
-                if (value.IsValueType || value.IsSealed)
-                {
-                    return GetWrap(value);
-                }
-                return null;
-            }
         }
     }
 }

@@ -10,7 +10,7 @@ namespace blqw.Serializable.JsonWriters
         public void Write(object obj, JsonWriterArgs args)
         {
             var writer = args.Writer;
-            writer.Write('{');
+            args.BeginObject();
 
             var jtype = JsonType.Get(obj.GetType());
             var ms = jtype.Members;
@@ -19,7 +19,7 @@ namespace blqw.Serializable.JsonWriters
             if (args.SerializableType)
             {
                 writer.Write("\"$Type$\":");
-                JsonWriterContainer.StringWriter.Write(jtype.Type.AssemblyQualifiedName, args);
+                args.WriterContainer.GetWriter<string>().Write(jtype.Type.AssemblyQualifiedName, args);
                 comma.AppendCommaIgnoreFirst();
             }
 
@@ -47,21 +47,21 @@ namespace blqw.Serializable.JsonWriters
                     comma.AppendCommaIgnoreFirst();
                     writer.Write(member.EncodedJsonName);
                     writer.Write(':');
-                    JsonWriterContainer.NullWriter.Write(null, args);
+                    args.WriterContainer.GetNullWriter().Write(null, args);
                 }
                 else if (member.MustFormat)
                 {
                     comma.AppendCommaIgnoreFirst();
                     writer.Write(member.EncodedJsonName);
                     writer.Write(':');
-                    JsonWriterContainer.StringWriter.Write(((IFormattable) value).ToString(member.FormatString, member.FormatProvider), args);
+                    args.WriterContainer.GetWriter<string>().Write(((IFormattable) value).ToString(member.FormatString, member.FormatProvider), args);
                 }
                 else
                 {
                     Write(ref comma, member, value, args);
                 }
             }
-            writer.Write('}');
+            args.EndObject();
         }
 
         private static void Write(ref CommaHelper comma, JsonMember member, object value, JsonWriterArgs args)
@@ -74,15 +74,15 @@ namespace blqw.Serializable.JsonWriters
                 }
                 comma.AppendCommaIgnoreFirst();
                 args.Writer.Write(member.EncodedJsonName);
-                args.Writer.Write(':');
-                JsonWriterContainer.NullWriter.Write(null, args);
+                args.Colon();
+                args.WriterContainer.GetNullWriter().Write(null, args);
             }
             else
             {
                 comma.AppendCommaIgnoreFirst();
                 args.Writer.Write(member.EncodedJsonName);
-                args.Writer.Write(':');
-                args.WriteCheckLoop(value, member.JsonWriter);
+                args.Colon();
+                args.WriteCheckLoop(value, null);
             }
         }
     }

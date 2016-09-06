@@ -40,8 +40,8 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="blqw.IOC, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\blqw.IOC.1.1.0\lib\net45\blqw.IOC.dll</HintPath>
-      <Private>True</Private>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\blqw.IOC\blqw.IOC\bin\Debug\blqw.IOC.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
@@ -55,6 +55,7 @@
     <Compile Include="Attribute\JsonFormatAttribute.cs" />
     <Compile Include="Attribute\JsonIgnoreAttribute.cs" />
     <Compile Include="Attribute\JsonNameAttribute.cs" />
+    <Compile Include="Builder\IJsonBuilder.cs" />
     <Compile Include="Cache\TypeCache.cs" />
     <Compile Include="CommaHelper.cs" />
     <Compile Include="JsonWriters\Advance\DataReader.cs" />
@@ -67,18 +68,20 @@
     <Compile Include="JsonWriters\Advance\IEnumerable.cs" />
     <Compile Include="JsonWriters\Advance\IEnumerator.cs" />
     <Compile Include="JsonWriters\Advance\IList.cs" />
-    <Compile Include="JsonWriters\Advance\IObjectReference.cs" />
+    <Compile Include="JsonWriters\Advance\ObjectReference.cs" />
     <Compile Include="JsonWriters\Advance\ISerializable.cs" />
     <Compile Include="JsonWriters\Advance\NameValueCollection.cs" />
     <Compile Include="JsonWriters\Advance\SerializationInfo.cs" />
+    <Compile Include="JsonWriters\Base\IGenericJsonWriter.cs" />
     <Compile Include="JsonWriters\Base\JsonWriterArgs.cs" />
+    <Compile Include="JsonWriters\Base\JsonWriterContainer2.cs" />
+    <Compile Include="JsonWriters\Base\JsonWriterContainerExtensions.cs" />
     <Compile Include="JsonWriters\Base\JsonWriterWrapper.cs" />
     <Compile Include="JsonWriters\GenericType\IDictionary.cs" />
     <Compile Include="JsonWriters\GenericType\IEnumerable.cs" />
     <Compile Include="JsonWriters\Advance\FormatProvider.cs" />
     <Compile Include="JsonWriters\GenericType\IList.cs" />
     <Compile Include="JsonWriters\GenericType\Nullable.cs" />
-    <Compile Include="JsonWriters\Interfaces\IGenericJsonWriter.cs" />
     <Compile Include="JsonWriters\GenericType\Enum.cs" />
     <Compile Include="JsonWriters\Interfaces\IMultiJsonWirters.cs" />
     <Compile Include="JsonWriters\Primitives\Guid.cs" />
@@ -94,7 +97,7 @@
     <Compile Include="JsonWriters\Primitives\Int64.cs" />
     <Compile Include="JsonWriters\Interfaces\IJsonWriter.cs" />
     <Compile Include="Json.cs" />
-    <Compile Include="JsonBuilderSettings.cs" />
+    <Compile Include="Builder\JsonBuilderSettings.cs" />
     <Compile Include="JsonParseException.cs" />
     <Compile Include="JsonParser.cs" />
     <Compile Include="JsonType\IAddOrSet.cs" />
@@ -113,7 +116,8 @@
     <Compile Include="JsonWriters\Primitives\Version.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QuickStringWriter.cs" />
-    <Compile Include="TypeName.cs" />
+    <Compile Include="TypeComparer.cs" />
+    <Compile Include="TypeService.cs" />
     <Compile Include="UnsafeJsonReader.cs" />
     <Compile Include="Value\JsonDictionary.cs" />
     <Compile Include="Value\JsonList.cs" />

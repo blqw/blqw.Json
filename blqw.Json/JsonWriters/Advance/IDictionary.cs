@@ -11,12 +11,12 @@ namespace blqw.Serializable.JsonWriters
         {
             if (obj == null)
             {
-                JsonWriterContainer.NullWriter.Write(null, args);
+                args.WriterContainer.GetNullWriter().Write(null, args);
                 return;
             }
             var writer = args.Writer;
 
-            writer.Write('{');
+            args.BeginObject();
             var comma = new CommaHelper(writer);
             var ee = ((IDictionary) obj).GetEnumerator();
             while (ee.MoveNext())
@@ -30,12 +30,12 @@ namespace blqw.Serializable.JsonWriters
 
                 comma.AppendCommaIgnoreFirst();
 
-                JsonWriterContainer.StringWriter.Write(ee.Key.To<string>(), args);
+                args.WriterContainer.GetWriter<string>().Write(ee.Key.To<string>(), args);
                 writer.Write(':');
                 args.WriteCheckLoop(value, null);
             }
 
-            writer.Write('}');
+            args.EndObject();
         }
     }
 }

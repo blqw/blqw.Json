@@ -11,7 +11,7 @@ namespace blqw.Serializable.JsonWriters
         {
             if (obj == null)
             {
-                JsonWriterContainer.NullWriter.Write(null, args);
+                args.WriterContainer.GetNullWriter().Write(null, args);
                 return;
             }
             var view = (DataView) obj;
@@ -19,7 +19,7 @@ namespace blqw.Serializable.JsonWriters
             var comma1 = new CommaHelper(writer);
             var columns = (view.Table ?? view.ToTable()).Columns;
             var length = columns.Count;
-            writer.Write('[');
+            args.BeginArray();
             for (int j = 0, count = view.Count; j < count; j++)
             {
                 comma1.AppendCommaIgnoreFirst();
@@ -38,13 +38,19 @@ namespace blqw.Serializable.JsonWriters
                     }
 
                     comma.AppendCommaIgnoreFirst();
-                    JsonWriterContainer.StringWriter.Write(column.ColumnName, args);
+                    args.WriterContainer.GetWriter<string>().Write(column.ColumnName, args);
                     writer.Write(':');
-                    JsonWriterContainer.Write(value, args);
+                    if (value == null || value is DBNull)
+                    {
+                        args.WriterContainer.GetNullWriter().Write(null, args);
+                    }
+                    else
+                    {
+                        args.WriterContainer.GetWriter(value.GetType()).Write(value,args);
+                    }
                 }
             }
-
-            writer.Write(']');
+            args.EndArray();
         }
     }
 }

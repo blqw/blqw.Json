@@ -8,7 +8,7 @@ namespace blqw.Serializable.JsonWriters
         
         public void Write(object obj, JsonWriterArgs args)
         {
-            JsonWriterContainer.StringWriter.Write(obj.ToString(), args);
+            args.WriterContainer.GetWriter<string>().Write(obj.ToString(), args);
         }
     }
 }

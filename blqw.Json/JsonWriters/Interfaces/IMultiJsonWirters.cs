@@ -1,6 +1,6 @@
 ﻿namespace blqw.Serializable.JsonWriters
 {
-    internal interface IMultiJsonWirters
+    internal interface IMultiJsonWriters
     {
         void Add(JsonWriterWrapper writer);
     }

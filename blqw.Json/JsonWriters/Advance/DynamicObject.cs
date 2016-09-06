@@ -12,7 +12,7 @@ namespace blqw.Serializable.JsonWriters
         {
             if (obj == null)
             {
-                JsonWriterContainer.NullWriter.Write(null, args);
+                args.WriterContainer.GetNullWriter().Write(null, args);
                 return;
             }
             var writer = args.Writer;
@@ -22,11 +22,11 @@ namespace blqw.Serializable.JsonWriters
             var names = memberNames as string[] ?? memberNames.ToArray();
             if (names.Length == 0)
             {
-                JsonWriterContainer.StringWriter.Write(obj, args);
+                args.WriterContainer.GetWriter<string>().Write(obj, args);
                 return;
             }
             var comma = new CommaHelper(writer);
-            writer.Write('{');
+            args.BeginObject();
             foreach (var name in names)
             {
                 object val;
@@ -45,11 +45,11 @@ namespace blqw.Serializable.JsonWriters
                 }
 
                 comma.AppendCommaIgnoreFirst();
-                JsonWriterContainer.StringWriter.Write(name, args);
-                args.Writer.Write(':');
+                args.WriterContainer.GetWriter<string>().Write(name, args);
+                args.Colon();
                 args.WriteCheckLoop(val, null);
             }
-            writer.Write('}');
+            args.EndObject();
         }
 
         private class MyGetIndexBinder : GetIndexBinder

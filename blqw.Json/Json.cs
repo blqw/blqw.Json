@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.Composition;
+using blqw.IOC;
 using blqw.Serializable;
 
 namespace blqw
@@ -9,6 +10,8 @@ namespace blqw
     /// </summary>
     public static class Json
     {
+
+        public static ServiceContainer WriterContainer { get; set; } = JsonWriterContainer2.Instance;
         /// <summary>
         /// 将对象转换为Json字符串
         /// </summary>
@@ -25,14 +28,15 @@ namespace blqw
         /// <param name="settings"> 序列化Json字符串时使用的设置参数 </param>
         public static string ToJsonString(this object obj, JsonBuilderSettings settings)
         {
-            if (obj == null || obj is DBNull)
-            {
-                return "null";
-            }
             using (var buffer = new QuickStringWriter(4096))
             {
-                var args = new JsonWriterArgs(buffer, settings);
-                var writer = JsonWriterContainer.Get(obj.GetType());
+                var args = new JsonWriterArgs(WriterContainer, buffer, settings);
+                if (obj == null || obj is DBNull)
+                {
+                    WriterContainer.GetNullWriter().Write(null, args);
+                    return buffer.ToString();
+                }
+                var writer = WriterContainer.GetWriter(obj.GetType());
                 writer.Write(obj, args);
                 return buffer.ToString();
             }
@@ -41,7 +45,7 @@ namespace blqw
         /// <summary>
         /// 将json字符串转换为指定对象
         /// </summary>
-        public static T ToObject<T>(string json) => string.IsNullOrEmpty(json) ? default(T) : (T) ToObject(typeof(T), json);
+        public static T ToObject<T>(string json) => string.IsNullOrEmpty(json) ? default(T) : (T)ToObject(typeof(T), json);
 
         /// <summary>
         /// 将json字符串转换IDictionary或者IList

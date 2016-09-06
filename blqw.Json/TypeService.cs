@@ -1,17 +1,22 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace blqw.Serializable
 {
-    internal static class TypeName
+    public static class TypeService
     {
+
         private static readonly ConcurrentDictionary<string, string> _TypeNames =
             new ConcurrentDictionary<string, string>();
 
         /// <summary>
         /// 获取类型名称的友好展现形式
         /// </summary>
-        public static string Get(Type t)
+        public static string TypeName(this Type t)
         {
             if (_TypeNames == null) throw new ArgumentNullException(nameof(_TypeNames));
             if (t == null) throw new ArgumentNullException(nameof(t));
@@ -20,7 +25,7 @@ namespace blqw.Serializable
                 var t2 = Nullable.GetUnderlyingType(t);
                 if (t2 != null)
                 {
-                    return Get(t2) + "?";
+                    return TypeName(t2) + "?";
                 }
                 if (t.IsGenericType == false)
                     return GetSimpleName(t);
@@ -37,7 +42,7 @@ namespace blqw.Serializable
                     generic = new string[infos.Length];
                     for (var i = 0; i < infos.Length; i++)
                     {
-                        generic[i] = Get(infos[i]);
+                        generic[i] = TypeName(infos[i]);
                     }
                 }
                 return $"{GetSimpleName(t)}<{string.Join(", ", generic)}>";
@@ -109,5 +114,17 @@ namespace blqw.Serializable
             }
             return name;
         }
+
+        private static class Cache<T>
+        {
+            public static readonly bool Immutable = typeof(T).IsGenericTypeDefinition == false && (typeof(T).IsValueType || typeof(T).IsSealed);
+        }
+
+        /// <summary>
+        /// 类型不可变(不会有子类)
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static bool IsImmutable<T>() => Cache<T>.Immutable;
     }
 }

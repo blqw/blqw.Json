@@ -11,23 +11,23 @@ namespace blqw.Serializable.JsonWriters
         {
             if (obj == null)
             {
-                JsonWriterContainer.NullWriter.Write(null, args);
+                args.WriterContainer.GetNullWriter().Write(null, args);
                 return;
             }
             var writer = args.Writer;
 
-            writer.Write('[');
+            args.BeginArray();
             var ee = ((IEnumerable) obj).GetEnumerator();
             if (ee.MoveNext())
             {
                 args.WriteCheckLoop(ee.Current, null);
                 while (ee.MoveNext())
                 {
-                    args.Writer.Write(',');
+                    args.Common();
                     args.WriteCheckLoop(ee.Current, null);
                 }
             }
-            writer.Write(']');
+            args.EndArray();
         }
     }
 }

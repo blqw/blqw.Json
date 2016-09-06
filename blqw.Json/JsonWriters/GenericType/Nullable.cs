@@ -1,5 +1,4 @@
 ﻿using System;
-using static blqw.Serializable.JsonWriterContainer;
 
 namespace blqw.Serializable.JsonWriters
 {
@@ -7,9 +6,9 @@ namespace blqw.Serializable.JsonWriters
     {
         public Type Type => typeof(Nullable<>);
 
-        public IJsonWriter MakeType(Type type)
+        public object GetService(Type serviceType)
         {
-            var t = typeof(InnerWriter<>).MakeGenericType(type.GetGenericArguments());
+            var t = typeof(InnerWriter<>).MakeGenericType(serviceType.GetGenericArguments());
             return (IJsonWriter) Activator.CreateInstance(t);
         }
 
@@ -22,14 +21,9 @@ namespace blqw.Serializable.JsonWriters
         private class InnerWriter<T> : IJsonWriter
             where T : struct
         {
-            private static readonly JsonWriterWrapper _wrapper = GetWrap(typeof(T));
-
             public Type Type { get; } = typeof(T?);
 
-            public void Write(object obj, JsonWriterArgs args)
-            {
-                _wrapper.Writer.Write(obj, args);
-            }
+            public void Write(object obj, JsonWriterArgs args) => args.WriterContainer.GetWriter<T>().Write(obj, args);
         }
     }
 }

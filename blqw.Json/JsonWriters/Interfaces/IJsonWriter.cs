@@ -1,5 +1,7 @@
 ﻿using System;
 using System.ComponentModel.Composition;
+using System.ComponentModel.Design;
+using System.Reflection;
 
 namespace blqw.Serializable
 {

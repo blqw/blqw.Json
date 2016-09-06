@@ -89,7 +89,7 @@ namespace blqw.Serializable
             _originReference = _writer = _wrapper.Writer;
             var writer = _wrapper.Writer as IGenericJsonWriter;
             if (writer == null) return;
-            _writer = writer.MakeType(_type);
+            _writer = (IJsonWriter)writer.GetService(_type);
             if (_writer == null)
             {
                 throw new NotImplementedException(

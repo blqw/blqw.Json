@@ -1,5 +1,5 @@
 ﻿using System;
-using static blqw.Serializable.JsonWriterContainer;
+
 
 namespace blqw.Serializable.JsonWriters
 {
@@ -12,16 +12,16 @@ namespace blqw.Serializable.JsonWriters
             throw new NotImplementedException();
         }
 
-        public IJsonWriter MakeType(Type type)
+        public object GetService(Type serviceType)
         {
-            var t = typeof(InnerWriter<>).MakeGenericType(type);
+            var t = typeof(InnerWriter<>).MakeGenericType(serviceType);
             return (IJsonWriter) Activator.CreateInstance(t);
         }
 
 
         private class InnerWriter<T> : IJsonWriter
         {
-            private static readonly JsonWriterWrapper _wrapper = GetWrap(Enum.GetUnderlyingType(typeof(T)));
+            private static readonly Type _UnderlyingType = Enum.GetUnderlyingType(typeof(T));
 
 
             public Type Type { get; } = typeof(T);
@@ -31,11 +31,11 @@ namespace blqw.Serializable.JsonWriters
                 var value = (Enum) obj;
                 if (args.EnumToNumber)
                 {
-                    _wrapper.Writer.Write(value, args);
+                    args.WriterContainer.GetWriter(_UnderlyingType).Write(value, args);
                 }
                 else
                 {
-                    JsonWriterContainer.StringWriter.Write(value.ToString("g"), args);
+                    args.WriterContainer.GetWriter<string>().Write(value.ToString("g"), args);
                 }
             }
         }

@@ -36,17 +36,17 @@ namespace blqw.Serializable.JsonWriters
             switch (mode)
             {
                 case 1:
-                    JsonWriterContainer.StringWriter.Write(value.ToString(args.DateFormatString ?? "yyyy-MM-dd"), args);
+                    args.WriterContainer.GetWriter<string>().Write(value.ToString(args.DateFormatString ?? "yyyy-MM-dd"), args);
                     break;
                 case 2:
-                    JsonWriterContainer.StringWriter.Write(value.ToString(args.TimeFormatString ?? "HH:mm:ss"), args);
+                    args.WriterContainer.GetWriter<string>().Write(value.ToString(args.TimeFormatString ?? "HH:mm:ss"), args);
                     break;
                 case 3:
-                    JsonWriterContainer.StringWriter.Write(
+                    args.WriterContainer.GetWriter<string>().Write(
                         value.ToString(args.DateTimeFormatString ?? "yyyy-MM-dd HH:mm:ss"), args);
                     break;
                 default:
-                    JsonWriterContainer.StringWriter.Write("", args);
+                    args.WriterContainer.GetWriter<string>().Write("", args);
                     break;
             }
         }

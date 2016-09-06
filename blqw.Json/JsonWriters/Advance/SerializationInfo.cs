@@ -11,7 +11,7 @@ namespace blqw.Serializable.JsonWriters
         {
             if (obj == null)
             {
-                JsonWriterContainer.NullWriter.Write(null, args);
+                args.WriterContainer.GetNullWriter().Write(null, args);
                 return;
             }
             var writer = args.Writer;
@@ -27,14 +27,11 @@ namespace blqw.Serializable.JsonWriters
                     }
                 }
                 comma.AppendCommaIgnoreFirst();
-                JsonWriterContainer.StringWriter.Write(item.Name, args);
+                args.WriterContainer.GetWriter<string>().Write(item.Name, args);
                 writer.Write(':');
 
                 args.WriteCheckLoop(item.Value, null);
             }
-
-
-            throw new NotImplementedException();
         }
     }
 }

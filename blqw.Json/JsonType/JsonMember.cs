@@ -54,7 +54,6 @@ namespace blqw.Serializable
         /// </summary>
         internal readonly string EncodedJsonName;
 
-        private readonly JsonWriterWrapper _jsonWriterWrapper;
 
         /// <summary>
         /// Literacy组件的成员访问对象
@@ -89,18 +88,16 @@ namespace blqw.Serializable
         private JsonMember(MemberInfo member, bool ignoreSerialized)
         {
             Member = member;
-            DisplayText = TypeName.Get(member.ReflectedType) + "." + member.Name;
+            DisplayText = member.ReflectedType.TypeName() + "." + member.Name;
             JsonName = member.GetCustomAttribute<DisplayNameAttribute>(true)?.DisplayName ?? member.Name;
             using (var sw = new StringWriter())
             {
-                var args = new JsonWriterArgs(sw, 0);
-                JsonWriterContainer.StringWriter.Write(JsonName, args);
+                var args = new JsonWriterArgs(Json.WriterContainer, sw, 0);
+                args.WriterContainer.GetWriter<string>().Write(JsonName, args);
                 EncodedJsonName = sw.ToString();
             }
 
             InitGetSet(out Type, out GetValue, out SetValue);
-            if (Type.IsValueType || Type.IsSealed)
-                _jsonWriterWrapper = JsonWriterContainer.GetWrap(Type);
             CanWrite = SetValue != null;
             CanRead = GetValue != null;
             NonSerialized = ignoreSerialized;
@@ -115,8 +112,6 @@ namespace blqw.Serializable
         }
 
         public JsonType JsonType => _jsonType ?? (_jsonType = JsonType.Get(Type));
-
-        public IJsonWriter JsonWriter => _jsonWriterWrapper?.Writer;
 
         /// <summary>
         /// 创建Json成员对象,如果成员被指定为忽略反序列化则返回null

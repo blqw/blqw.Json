@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using static blqw.Serializable.JsonWriterContainer;
+using System.IO;
+
 
 namespace blqw.Serializable.JsonWriters
 {
@@ -8,25 +9,25 @@ namespace blqw.Serializable.JsonWriters
     {
         public Type Type => typeof(IDictionary<,>);
 
-        public IJsonWriter MakeType(Type type)
+        public object GetService(Type serviceType)
         {
-            foreach (var item in type.GetInterfaces())
+            foreach (var item in serviceType.GetInterfaces())
             {
-                if (item.IsGenericType 
+                if (item.IsGenericType
                     && item.IsGenericTypeDefinition == false
                     && item.GetGenericTypeDefinition() == Type)
                 {
                     var t = typeof(InnerWriter<,>).MakeGenericType(item.GetGenericArguments());
-                    return (IJsonWriter) Activator.CreateInstance(t);
+                    return (IJsonWriter)Activator.CreateInstance(t);
                 }
             }
-            if (type.IsInterface)
+            if (serviceType.IsInterface)
             {
-                if (type.IsGenericType
-                    && type.IsGenericTypeDefinition == false
-                    && type.GetGenericTypeDefinition() == Type)
+                if (serviceType.IsGenericType
+                    && serviceType.IsGenericTypeDefinition == false
+                    && serviceType.GetGenericTypeDefinition() == Type)
                 {
-                    var t = typeof(InnerWriter<,>).MakeGenericType(type.GetGenericArguments());
+                    var t = typeof(InnerWriter<,>).MakeGenericType(serviceType.GetGenericArguments());
                     return (IJsonWriter)Activator.CreateInstance(t);
                 }
             }
@@ -40,33 +41,24 @@ namespace blqw.Serializable.JsonWriters
 
         private class InnerWriter<TKey, TValue> : IJsonWriter
         {
-            // ReSharper disable once StaticMemberInGenericType
-            private static readonly JsonWriterWrapper _wrapper = GetWrapper();
-            private static JsonWriterWrapper GetWrapper()
-            {
-                var value = typeof(TValue);
-
-                if (value.IsValueType || value.IsSealed)
-                {
-                    return GetWrap(value);
-                }
-                return null;
-            }
-
             public Type Type { get; } = typeof(IDictionary<TKey, TValue>);
 
+            public readonly bool Sealed = (typeof(TValue).IsValueType || typeof(TValue).IsSealed) && typeof(TValue).IsGenericTypeDefinition;
+
+            /// <exception cref="IOException"> 发生 I/O 错误。</exception>
+            /// <exception cref="ObjectDisposedException"> <see cref="T:System.IO.TextWriter" /> 是关闭的。</exception>
             public void Write(object obj, JsonWriterArgs args)
             {
                 if (obj == null)
                 {
-                    NullWriter.Write(null, args);
+                    args.WriterContainer.GetNullWriter().Write(null, args);
                     return;
                 }
-                var writer = args.Writer;
+                var writer = TypeService.IsImmutable<TValue>() ? args.WriterContainer.GetWriter<TValue>() : null;
 
-                writer.Write('{');
-                var comma = new CommaHelper(writer);
-                foreach (var item in (IDictionary<TKey, TValue>) obj)
+                args.BeginObject();
+                var comma = new CommaHelper(args.Writer);
+                foreach (var item in (IDictionary<TKey, TValue>)obj)
                 {
                     var value = item.Value;
                     if (args.IgnoreNullMember)
@@ -76,13 +68,12 @@ namespace blqw.Serializable.JsonWriters
                     }
                     comma.AppendCommaIgnoreFirst();
 
-                    JsonWriterContainer.StringWriter.Write(item.Key as string ?? item.Key.To<string>(), args);
-                    writer.Write(':');
-
-                    args.WriteCheckLoop(value, _wrapper?.Writer);
+                    args.WriterContainer.GetWriter<string>().Write(item.Key as string ?? item.Key.To<string>(), args);
+                    args.Colon();
+                    args.WriteCheckLoop(value, writer);
                 }
 
-                writer.Write('}');
+                args.EndObject();
             }
         }
     }

@@ -14,7 +14,7 @@ namespace blqw.Serializable.JsonWriters
             {
                 str = str.ToUpperInvariant();
             }
-            JsonWriterContainer.StringWriter.Write(str, args);
+            args.WriterContainer.GetWriter<string>().Write(str, args);
         }
     }
 }

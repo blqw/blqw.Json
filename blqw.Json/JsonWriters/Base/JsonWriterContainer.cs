@@ -13,6 +13,7 @@ namespace blqw.Serializable
     /// <summary>
     /// <see cref="IJsonWriter" /> 的容器
     /// </summary>
+    [Obsolete("~~~",true)]
     public static class JsonWriterContainer
     {
         /// <summary>
@@ -286,7 +287,7 @@ namespace blqw.Serializable
             if (ee.MoveNext())
             {
                 var wrapper = ee.Current;
-                var wirters = wrapper.Writer as IMultiJsonWirters;
+                var wirters = wrapper.Writer as IMultiJsonWriters;
                 if (wirters == null)
                 {
                     return wrapper;

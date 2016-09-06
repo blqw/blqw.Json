@@ -11,13 +11,13 @@ namespace blqw.Serializable.JsonWriters
         {
             if (obj == null)
             {
-                JsonWriterContainer.NullWriter.Write(null, args);
+                args.WriterContainer.GetNullWriter().Write(null, args);
                 return;
             }
             var row = (DataRow) obj;
             var writer = args.Writer;
             var comma = new CommaHelper(writer);
-            writer.Write('{');
+            args.BeginObject();
             var columns = row.Table.Columns;
             for (int i = 0, length = columns.Count; i < length; i++)
             {
@@ -31,18 +31,19 @@ namespace blqw.Serializable.JsonWriters
                 }
 
                 comma.AppendCommaIgnoreFirst();
-                JsonWriterContainer.StringWriter.Write(column.ColumnName, args);
+                args.WriterContainer.GetWriter<string>().Write(column.ColumnName, args);
                 writer.Write(':');
                 if (row.IsNull(column))
                 {
-                    JsonWriterContainer.NullWriter.Write(null, args);
+                    args.WriterContainer.GetNullWriter().Write(null, args);
                 }
                 else
                 {
-                    JsonWriterContainer.Write(row[column], args);
+                    var value = row[column];
+                    args.WriterContainer.GetWriter(value.GetType()).Write(value,args);
                 }
             }
-            writer.Write('}');
+            args.EndObject();
         }
     }
 }

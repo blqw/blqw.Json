@@ -9,7 +9,7 @@ namespace blqw.Serializable.JsonWriters
         public void Write(object obj, JsonWriterArgs args)
         {
             var value = (TimeSpan)obj;
-            JsonWriterContainer.StringWriter.Write(value.ToString("g"), args);
+            args.WriterContainer.GetWriter<string>().Write(value.ToString("g"), args);
         }
     }
 }

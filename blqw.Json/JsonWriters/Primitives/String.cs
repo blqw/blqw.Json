@@ -17,7 +17,7 @@ namespace blqw.Serializable.JsonWriters
             var writer = args.Writer;
             if (obj == null)
             {
-                JsonWriterContainer.NullWriter.Write(null, args);
+                args.WriterContainer.GetNullWriter().Write(null, args);
                 return;
             }
             var value = (string) obj;

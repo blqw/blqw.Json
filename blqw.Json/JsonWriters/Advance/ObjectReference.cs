@@ -4,14 +4,12 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
-using static blqw.Serializable.JsonWriterContainer;
+
 
 namespace blqw.Serializable.JsonWriters.Advance
 {
-    internal class ObjectReferenceWriter : List<JsonWriterWrapper>, IMultiJsonWirters, IJsonWriter
+    internal class ObjectReferenceWriter : List<JsonWriterWrapper>, IMultiJsonWriters, IJsonWriter
     {
-        private JsonWriterWrapper _wrapper;
-        public JsonWriterWrapper Wrapper => _wrapper ?? (_wrapper = GetWrap(typeof(SerializationInfo)));
         public Type Type => typeof(IObjectReference);
 
         public void Write(object obj, JsonWriterArgs args)
@@ -25,7 +23,7 @@ namespace blqw.Serializable.JsonWriters.Advance
             }
             else if (Count == 0)
             {
-                NullWriter.Write(null, args);
+                args.WriterContainer.GetNullWriter().Write(null, args);
             }
             else
             {

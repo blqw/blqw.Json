@@ -11,7 +11,7 @@ namespace blqw.Serializable.JsonWriters
             var value = (bool) obj;
             if (args.BooleanToNumber)
             {
-                JsonWriterContainer.Int32Writer.Write(value ? 1 : 0, args);
+                args.WriterContainer.GetWriter<int>().Write(value ? 1 : 0, args);
             }
             else if (args.QuotWrapBoolean)
             {
