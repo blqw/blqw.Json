@@ -132,7 +132,7 @@ namespace blqw.Serializable
         {
             reader.CheckEnd();
             JsonType jsonType;
-            if (type == null)
+            if (type == null || type == typeof(object))
             {
                 switch (reader.Current)
                 {
