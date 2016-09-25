@@ -27,7 +27,7 @@ namespace blqw.Serializable
         /// <returns></returns>
         public static IJsonWriter GetWriter<T>(this ServiceContainer container)
         {
-            if (object.ReferenceEquals(JsonWriterContainer2.Instance, container))
+            if (object.ReferenceEquals(JsonWriterContainer.Instance, container))
             {
                 return (IJsonWriter)(Cache<T>.Wapper ?? (Cache<T>.Wapper = container.GetServiceItem(typeof(T))))?.Value;
             }
@@ -49,7 +49,7 @@ namespace blqw.Serializable
         /// <returns></returns>
         public static IJsonWriter GetNullWriter(this ServiceContainer container)
         {
-            if (object.ReferenceEquals(JsonWriterContainer2.Instance, container))
+            if (object.ReferenceEquals(JsonWriterContainer.Instance, container))
             {
                 return (IJsonWriter)(_NullWapper ?? (_NullWapper = container.GetServiceItem(typeof(void))))?.Value;
             }

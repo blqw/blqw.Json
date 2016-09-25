@@ -29,7 +29,7 @@ namespace blqw.Serializable.Tests
         [TestMethod()]
         public void 测试替换功能()
         {
-            var container = JsonWriterContainer2.Instance;
+            var container = JsonWriterContainer.Instance;
             var a = container.GetWriter(typeof(TypeCode));
             Assert.AreEqual(typeof(TypeCode), a.Type);
             Assert.IsNotInstanceOfType(a, typeof(MyTestJsonWriter));
@@ -60,7 +60,7 @@ namespace blqw.Serializable.Tests
         [TestMethod()]
         public void 测试泛型替换功能()
         {
-            var container = JsonWriterContainer2.Instance;
+            var container = JsonWriterContainer.Instance;
             var a = container.GetWriter(typeof(int?));
             Assert.AreEqual(typeof(int?), a.Type);
             container.AddService(typeof(int?), new MyTest2JsonWriter(null));
@@ -96,7 +96,7 @@ namespace blqw.Serializable.Tests
         [TestMethod]
         public void 测试泛型替换功能2()
         {
-            var container = JsonWriterContainer2.Instance;
+            var container = JsonWriterContainer.Instance;
             var a = container.GetWriter(typeof(int?));
             Assert.AreEqual(typeof(int?), a.Type);
             Assert.IsNotInstanceOfType(a, typeof(MyTest3JsonWriter));

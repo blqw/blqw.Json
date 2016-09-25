@@ -51,30 +51,30 @@ namespace Demo
 
         static void Main(string[] args)
         {
-            Console.WriteLine(Guid.NewGuid().ToJsonString());
-            var t1 = new TestClass1()
-            {
-                ID = 1,
-                Name = "blqw",
-            };
-            var t2 = new TestClass2()
-            {
-               Regex = new Regex("^[0-9]{4,6}$") 
-            };
+            //Console.WriteLine(Guid.NewGuid().ToJsonString());
+            //var t1 = new TestClass1()
+            //{
+            //    ID = 1,
+            //    Name = "blqw",
+            //};
+            //var t2 = new TestClass2()
+            //{
+            //   Regex = new Regex("^[0-9]{4,6}$") 
+            //};
 
-            var str1 = t1.ToJsonString(); //{ "id":1,"name":"blqw"}
-            Console.WriteLine(str1);
-            var str2 = t2.ToJsonString();  //{"Regex":/^[0-9]{4,6}$/g}
-            Console.WriteLine(str2);
+            //var str1 = t1.ToJsonString(); //{ "id":1,"name":"blqw"}
+            //Console.WriteLine(str1);
+            //var str2 = t2.ToJsonString();  //{"Regex":/^[0-9]{4,6}$/g}
+            //Console.WriteLine(str2);
 
 
             //var obj1 = User.TestUser();
-            //TimeTest.TestCount = 10000;
+            //TimeTest.TestCount = 500000;
             //TimeTest.TestObject = obj1;
             //TimeTest.TestQuickJsonBuilder();
 
-            //Test1(true);
-            //Test2();
+            Test1(true);
+            Test2();
             //
             //dynamic json = Json.ToDynamic(str);
             //Console.WriteLine(json.Name);

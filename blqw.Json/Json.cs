@@ -11,7 +11,7 @@ namespace blqw
     public static class Json
     {
 
-        public static ServiceContainer WriterContainer { get; set; } = JsonWriterContainer2.Instance;
+        public static ServiceContainer WriterContainer { get; set; } = JsonWriterContainer.Instance;
         /// <summary>
         /// 将对象转换为Json字符串
         /// </summary>
