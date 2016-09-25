@@ -1,4 +1,5 @@
 ﻿using blqw;
+using blqw.Serializable;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -8,33 +9,70 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Runtime.InteropServices.ComTypes;
+using System.Runtime.Serialization;
 using System.Text;
+using System.Text.RegularExpressions;
+using ServiceStack.Text;
 
 namespace Demo
 {
-    class Program
+    public class Program
     {
-        class MyClass
+        class TestClass1 : IObjectReference
         {
+            public int ID { get; set; }
             public string Name { get; set; }
-            public int Age { get; set; }
+            
+            public object GetRealObject(StreamingContext context)
+            {
+                if (context.Context is JsonWriterArgs)
+                {
+                    return new {id = this.ID, name = this.Name};
+                }
+                return this;
+            }
         }
 
+        class TestClass2
+        {
+            public Regex Regex { get; set; }
+        }
+
+        class TestClass2Writer : IJsonWriter
+        {
+            public Type Type => typeof(TestClass2);
+            public void Write(object obj, JsonWriterArgs args)
+            {
+                var o = (TestClass2)obj;
+                args.Writer.Write($"\"Regex\":/{o.Regex.ToString()}/g");
+            }
+        }
 
         static void Main(string[] args)
-            {
-            //var body = "{a:{b:1},c:'xxx',d:{e:[1]}}";
-            //var json = Json.ToObject(body);
-            //var form = new JsonObject(json);
+        {
+            //Console.WriteLine(Guid.NewGuid().ToJsonString());
+            //var t1 = new TestClass1()
+            //{
+            //    ID = 1,
+            //    Name = "blqw",
+            //};
+            //var t2 = new TestClass2()
+            //{
+            //   Regex = new Regex("^[0-9]{4,6}$") 
+            //};
 
-            //Console.WriteLine(form["a"] == "{\"b\":1}");
-            //Console.WriteLine(form["b"] == null);
-            //Console.WriteLine(form["c"] == "xxx");
-            //Console.WriteLine(form["a.b"] == "1");
-            //Console.WriteLine(form["d.e[0]"] == "1");
-            //Console.WriteLine(form["d.e[2]"] == null);
+            //var str1 = t1.ToJsonString(); //{ "id":1,"name":"blqw"}
+            //Console.WriteLine(str1);
+            //var str2 = t2.ToJsonString();  //{"Regex":/^[0-9]{4,6}$/g}
+            //Console.WriteLine(str2);
 
-            //Console.WriteLine(Json.ToJsonString(new object[]{null}));
+
+            //var obj1 = User.TestUser();
+            //TimeTest.TestCount = 500000;
+            //TimeTest.TestObject = obj1;
+            //TimeTest.TestQuickJsonBuilder();
+
             Test1(true);
             Test2();
             //
@@ -48,7 +86,7 @@ namespace Demo
 
         }
 
-        static void Test1(bool fastjson)
+        public static void Test1(bool fastjson)
         {
             var obj1 = User.TestUser();
             var obj2 = Json.ToObject<ResultDTO>(File.ReadAllText("json1.txt"));

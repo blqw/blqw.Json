@@ -22,12 +22,12 @@ namespace UnitTestProject1
         {
             var obj = new { s = "ab\acd" };
             var json = "{\"s\":\"ab\\u0007cd\"}";
-            var json1 = Json.ToJsonString(obj, JsonBuilderSettings.Default ^ JsonBuilderSettings.FilterSpecialCharacter);
+            var json1 = obj.ToJsonString();
             Assert.AreEqual(json, json1);
 
 
             json = "{\"s\":\"abcd\"}";
-            var json2 = Json.ToJsonString(obj);
+            var json2 = obj.ToJsonString(JsonBuilderSettings.Default | JsonBuilderSettings.FilterSpecialCharacter);
             Assert.AreEqual(json, json2);
         }
 
@@ -35,7 +35,7 @@ namespace UnitTestProject1
         public void 匿名对象的反序列化()
         {
             var a = new { id = 1, name = "blqw" };
-            var json = Json.ToJsonString(a);
+            var json = a.ToJsonString();
             dynamic b = Json.ToObject(a.GetType(), json);
             Assert.IsNotNull(b);
             Assert.IsInstanceOfType(b, a.GetType());

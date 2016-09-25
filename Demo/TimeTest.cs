@@ -26,9 +26,9 @@ namespace Demo
         {
             CodeTimer.Initialize();
             object obj = TestObject;
-            new JsonBuilder().ToJsonString(obj);
+            obj.ToJsonString();
             CodeTimer.Time(N("QuickJsonBuilder序列化"), TestCount, () => {
-                new JsonBuilder().ToJsonString(obj);
+                obj.ToJsonString();
             });
 
         }

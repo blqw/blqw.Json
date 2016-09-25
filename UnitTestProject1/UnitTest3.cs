@@ -21,7 +21,7 @@ namespace UnitTestProject1
         public void 自定义序列化测试2()
         {
             var m = new MyClass2(1, "zzj");
-            var str = Json.ToJsonString(m);
+            var str = m.ToJsonString();
             //"x":{"ID":0},"y":100
             Assert.AreEqual("[1,\"zzj\"]", str);
         }

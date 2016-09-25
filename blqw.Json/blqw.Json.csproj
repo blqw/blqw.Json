@@ -18,29 +18,31 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;NF2</DefineConstants>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Prefer32Bit>false</Prefer32Bit>
+    <DocumentationFile>bin\Debug\blqw.Json.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;NF2</DefineConstants>
+    <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>none</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Prefer32Bit>false</Prefer32Bit>
+    <DocumentationFile>bin\Release\blqw.Json.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="blqw.Convert3, Version=2.2.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\blqw.Convert3.2.2.3\lib\net45\blqw.Convert3.dll</HintPath>
+    <Reference Include="blqw.Convert3, Version=2.2.4.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\blqw.Convert3.2.2.4\lib\net45\blqw.Convert3.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="blqw.IOC, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\blqw.IOC.1.1.0\lib\net45\blqw.IOC.dll</HintPath>
+    <Reference Include="blqw.IOC, Version=1.3.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\blqw.IOC.1.3.1\lib\net45\blqw.IOC.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
@@ -55,19 +57,69 @@
     <Compile Include="Attribute\JsonFormatAttribute.cs" />
     <Compile Include="Attribute\JsonIgnoreAttribute.cs" />
     <Compile Include="Attribute\JsonNameAttribute.cs" />
+    <Compile Include="Builder\IJsonBuilder.cs" />
     <Compile Include="Cache\TypeCache.cs" />
-    <Compile Include="IOC\Component.cs" />
+    <Compile Include="CommaHelper.cs" />
+    <Compile Include="JsonWriters\Advance\DataReader.cs" />
+    <Compile Include="JsonWriters\Advance\DataRow.cs" />
+    <Compile Include="JsonWriters\Advance\DataSet.cs" />
+    <Compile Include="JsonWriters\Advance\DataTable.cs" />
+    <Compile Include="JsonWriters\Advance\DataView.cs" />
+    <Compile Include="JsonWriters\Advance\DynamicObject.cs" />
+    <Compile Include="JsonWriters\Advance\IDictionary.cs" />
+    <Compile Include="JsonWriters\Advance\IEnumerable.cs" />
+    <Compile Include="JsonWriters\Advance\IEnumerator.cs" />
+    <Compile Include="JsonWriters\Advance\IList.cs" />
+    <Compile Include="JsonWriters\Advance\ObjectReference.cs" />
+    <Compile Include="JsonWriters\Advance\ISerializable.cs" />
+    <Compile Include="JsonWriters\Advance\NameValueCollection.cs" />
+    <Compile Include="JsonWriters\Advance\SerializationInfo.cs" />
+    <Compile Include="JsonWriters\Base\IGenericJsonWriter.cs" />
+    <Compile Include="JsonWriters\Base\JsonWriterArgs.cs" />
+    <Compile Include="JsonWriters\Base\JsonWriterContainer.cs" />
+    <Compile Include="JsonWriters\Base\JsonWriterContainerExtensions.cs" />
+    <Compile Include="JsonWriters\Base\JsonWriterWrapper.cs" />
+    <Compile Include="JsonWriters\GenericType\IDictionary.cs" />
+    <Compile Include="JsonWriters\GenericType\IEnumerable.cs" />
+    <Compile Include="JsonWriters\Advance\FormatProvider.cs" />
+    <Compile Include="JsonWriters\GenericType\IList.cs" />
+    <Compile Include="JsonWriters\GenericType\Nullable.cs" />
+    <Compile Include="JsonWriters\GenericType\Enum.cs" />
+    <Compile Include="JsonWriters\Interfaces\IMultiJsonWirters.cs" />
+    <Compile Include="JsonWriters\Primitives\Guid.cs" />
+    <Compile Include="JsonWriters\Primitives\Boolean.cs" />
+    <Compile Include="JsonWriters\Primitives\Byte.cs" />
+    <Compile Include="JsonWriters\Primitives\Char.cs" />
+    <Compile Include="JsonWriters\Primitives\DateTime.cs" />
+    <Compile Include="JsonWriters\Primitives\Decimal.cs" />
+    <Compile Include="JsonWriters\Primitives\Double.cs" />
+    <Compile Include="JsonWriters\Primitives\IConvertible.cs" />
+    <Compile Include="JsonWriters\Primitives\Int16.cs" />
+    <Compile Include="JsonWriters\Primitives\Int32.cs" />
+    <Compile Include="JsonWriters\Primitives\Int64.cs" />
+    <Compile Include="JsonWriters\Interfaces\IJsonWriter.cs" />
     <Compile Include="Json.cs" />
-    <Compile Include="JsonBuilder.cs" />
-    <Compile Include="JsonBuilderSettings.cs" />
+    <Compile Include="Builder\JsonBuilderSettings.cs" />
     <Compile Include="JsonParseException.cs" />
     <Compile Include="JsonParser.cs" />
-    <Compile Include="JsonType\ISetAdd.cs" />
+    <Compile Include="JsonType\IAddOrSet.cs" />
     <Compile Include="JsonType\JsonMember.cs" />
     <Compile Include="JsonType\JsonType.cs" />
+    <Compile Include="JsonWriters\Object.cs" />
+    <Compile Include="JsonWriters\Primitives\Null.cs" />
+    <Compile Include="JsonWriters\Primitives\SByte.cs" />
+    <Compile Include="JsonWriters\Primitives\Single.cs" />
+    <Compile Include="JsonWriters\Primitives\String.cs" />
+    <Compile Include="JsonWriters\Primitives\UInt16.cs" />
+    <Compile Include="JsonWriters\Primitives\UInt32.cs" />
+    <Compile Include="JsonWriters\Primitives\UInt64.cs" />
+    <Compile Include="JsonWriters\Primitives\TimeSpan.cs" />
+    <Compile Include="JsonWriters\Primitives\Uri.cs" />
+    <Compile Include="JsonWriters\Primitives\Version.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QuickStringWriter.cs" />
-    <Compile Include="TypeName.cs" />
+    <Compile Include="TypeComparer.cs" />
+    <Compile Include="TypeService.cs" />
     <Compile Include="UnsafeJsonReader.cs" />
     <Compile Include="Value\JsonDictionary.cs" />
     <Compile Include="Value\JsonList.cs" />
@@ -76,6 +128,7 @@
     <None Include="packages.config" />
     <None Include="update-ioc.ps1" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>

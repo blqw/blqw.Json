@@ -40,7 +40,7 @@ namespace UnitTestProject1
             var list = new MyList();
             list.Add("a");
             list.TotalCount = 100;
-            var json = blqw.Json.ToJsonString(list);
+            var json = list.ToJsonString();
             Assert.AreEqual("{\"Items\":[\"a\"],\"TotalCount\":100}", json);
         }
 

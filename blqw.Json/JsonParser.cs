@@ -1,37 +1,45 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections;
-using System.Dynamic;
+using System.ComponentModel;
+using System.Runtime.Remoting.Messaging;
 using System.Runtime.Serialization;
-using System.Collections.Specialized;
-
 
 namespace blqw.Serializable
 {
-    /// <summary> 用于将Json字符串转换为C#对象
+    /// <summary>
+    /// 用于将Json字符串转换为C#对象
     /// </summary>
     public sealed class JsonParser
     {
-        private readonly static JsonType JsonTypeArrayList = JsonType.Get<JsonList>();
-        private readonly static JsonType JsonTypeDictionary = JsonType.Get<JsonDictionary>();
-        private readonly static JsonType JsonTypeObject = JsonType.Get<object>();
+        private static readonly JsonType _JsonTypeArrayList = JsonType.Get<JsonList>();
+        private static readonly JsonType _JsonTypeDictionary = JsonType.Get<JsonDictionary>();
+        private static readonly JsonType _JsonTypeObject = JsonType.Get<object>();
 
+        private readonly JsonType _arrayType;
+        private readonly IFormatterConverter _converter;
+        private readonly JsonType _keyValueType;
+
+        /// <summary>
+        /// 初始化json解析器
+        /// </summary>
         public JsonParser()
         {
-            _arrayType = JsonTypeArrayList;
-            _keyValueType = JsonTypeDictionary;
+            _arrayType = _JsonTypeArrayList;
+            _keyValueType = _JsonTypeDictionary;
         }
-
-        public JsonParser(Type arrayType, Type keyValueType, Converter<IConvertible, object> convertString)
+        
+        /// <summary>
+        /// 初始化json解析器
+        /// </summary>
+        /// <param name="arrayType">自定义数组类型</param>
+        /// <param name="keyValueType">自定义键值对类型</param>
+        /// <param name="converter">自定义转型方法</param>
+        public JsonParser(Type arrayType, Type keyValueType, IFormatterConverter converter)
         {
-            _arrayType = (arrayType == null) ? JsonTypeArrayList : JsonType.Get(arrayType);
-            _keyValueType = (keyValueType == null) ? JsonTypeDictionary : JsonType.Get(keyValueType);
-            _convertString = convertString;
+            _arrayType = arrayType == null ? _JsonTypeArrayList : JsonType.Get(arrayType);
+            _keyValueType = keyValueType == null ? _JsonTypeDictionary : JsonType.Get(keyValueType);
+            _converter = converter;
         }
-
-        private JsonType _arrayType;
-        private JsonType _keyValueType;
-        private Converter<IConvertible, object> _convertString;
 
 
         private static void AreNull(object value, string argName)
@@ -42,40 +50,38 @@ namespace blqw.Serializable
             }
         }
 
-        /// <summary> 将json字符串转换为指定对象
+        /// <summary>
+        /// 将json字符串转换为指定对象
         /// </summary>
-        public Object ToObject(Type type, string jsonString)
+        public object ToObject(Type type, string jsonString)
         {
-            if (jsonString == null || jsonString.Length == 0)
+            if (string.IsNullOrEmpty(jsonString))
             {
                 return null;
             }
+            object obj = null;
             if (type == null)
             {
-                object obj = null;
                 FillObject(ref obj, null, jsonString);
                 return obj;
             }
-            else if (type.IsArray)
+            if (type.IsArray)
             {
-                object arr = new ArrayList();
-                FillObject(ref arr, type, jsonString);
-                return ((ArrayList)arr).ToArray(type.GetElementType());
-            }
-            else
-            {
-                object obj = null;
+                obj = new ArrayList();
                 FillObject(ref obj, type, jsonString);
-                return obj;
+                return ((ArrayList)obj).ToArray(type.GetElementType());
             }
+            FillObject(ref obj, type, jsonString);
+            return obj;
         }
 
-        /// <summary> 将json字符串中的数据填充到指定对象,obj为null抛出异常
+        /// <summary>
+        /// 将json字符串中的数据填充到指定对象,obj为null抛出异常
         /// </summary>
         public void FillObject(object obj, string jsonString)
         {
             AreNull(obj, "obj");
-            if (jsonString != null && jsonString.Length > 0)
+            if (!string.IsNullOrEmpty(jsonString))
             {
                 FillObject(ref obj, obj.GetType(), jsonString);
             }
@@ -84,11 +90,12 @@ namespace blqw.Serializable
 
         /* 以下方法私有 */
 
-        /// <summary> 将json字符串中的数据填充到指定对象
+        /// <summary>
+        /// 将json字符串中的数据填充到指定对象
         /// </summary>
-        /// <param name="obj">将数据填充到对象,如果对象为null且json不是空字符串则创建对象并返回</param>
-        /// <param name="type">obj的对象类型,该参数不能为null,且必须obj的类型或父类或接口</param>
-        /// <param name="jsonString">json字符串</param>
+        /// <param name="obj"> 将数据填充到对象,如果对象为null且json不是空字符串则创建对象并返回 </param>
+        /// <param name="type"> obj的对象类型,该参数不能为null,且必须obj的类型或父类或接口 </param>
+        /// <param name="jsonString"> json字符串 </param>
         private void FillObject(ref object obj, Type type, string jsonString)
         {
             unsafe
@@ -118,13 +125,14 @@ namespace blqw.Serializable
             }
         }
 
-        /// <summary>  解释 json 字符串,并填充到obj对象中,如果obj为null则新建对象
+        /// <summary>
+        /// 解释 json 字符串,并填充到obj对象中,如果obj为null则新建对象
         /// </summary>
         private void FillObject(ref object obj, Type type, UnsafeJsonReader reader)
         {
             reader.CheckEnd();
-            JsonType jsonType = null;
-            if (type == null)
+            JsonType jsonType;
+            if (type == null || type == typeof(object))
             {
                 switch (reader.Current)
                 {
@@ -135,7 +143,7 @@ namespace blqw.Serializable
                         jsonType = _arrayType;
                         break;
                     default:
-                        jsonType = JsonTypeObject;
+                        jsonType = _JsonTypeObject;
                         break;
                 }
             }
@@ -208,11 +216,12 @@ namespace blqw.Serializable
             }
         }
 
-        /// <summary> 填充一般对象的属性
+        /// <summary>
+        /// 填充一般对象的属性
         /// </summary>
-        /// <param name="obj"></param>
-        /// <param name="jsonType"></param>
-        /// <param name="reader"></param>
+        /// <param name="obj"> </param>
+        /// <param name="jsonType"> </param>
+        /// <param name="reader"> </param>
         private void FillProperty(object obj, JsonType jsonType, UnsafeJsonReader reader)
         {
             reader.CheckEnd();
@@ -222,14 +231,14 @@ namespace blqw.Serializable
             }
             do
             {
-                var key = ReadKey(reader);                      //获取Key
-                var member = jsonType[key, true];               //得到对象属性
+                var key = ReadKey(reader); //获取Key
+                var member = jsonType[key, true]; //得到对象属性
                 if (member != null && member.CanWrite)
                 {
                     try
                     {
-                        object val = ReadValue(reader, member.JsonType);//得到值
-                        member.SetValue(obj, val);           //赋值
+                        var val = ReadValue(reader, member.JsonType); //得到值
+                        member.SetValue(obj, val); //赋值
                     }
                     catch (JsonParseException)
                     {
@@ -242,7 +251,7 @@ namespace blqw.Serializable
                 }
                 else
                 {
-                    SkipValue(reader);                          //跳过Json中的值
+                    SkipValue(reader); //跳过Json中的值
                 }
             } while (reader.SkipChar(',', false));
         }
@@ -257,9 +266,9 @@ namespace blqw.Serializable
 
             var length = arr.Length;
             var eleType = jsonType.ElementType;
-            for (int i = 0; i < length; i++)
+            for (var i = 0; i < length; i++)
             {
-                object val = ReadValue(reader, eleType);  //得到值
+                var val = ReadValue(reader, eleType); //得到值
                 arr.SetValue(val, i);
                 if (reader.SkipChar(',', false) == false)
                 {
@@ -268,11 +277,14 @@ namespace blqw.Serializable
             }
         }
 
-        /// <summary> 填充 IDictionary 或者 IDictionary&lt;,&gt;
+        /// <summary>
+        /// 填充 IDictionary 或者 IDictionary&lt;,&gt;
         /// </summary>
-        /// <param name="obj">IDictionar或IDictionary<,>实例</param>
-        /// <param name="jsonType"></param>
-        /// <param name="reader"></param>
+        /// <param name="obj">
+        /// IDictionar或IDictionary&lt;,&gt;实例
+        /// </param>
+        /// <param name="jsonType"> </param>
+        /// <param name="reader"> </param>
         private void FillDictionary(ref object obj, JsonType jsonType, UnsafeJsonReader reader)
         {
             reader.CheckEnd();
@@ -282,14 +294,15 @@ namespace blqw.Serializable
             }
             if (jsonType.AddKeyValue == null)
             {
-                throw new JsonParseException(jsonType.DisplayText + " 无法写入数据,有可能是只读的或找不到Add入口", reader.RawJson);
+                throw new JsonParseException($"{jsonType.DisplayText} 无法写入数据,有可能是只读的或找不到Add(key,value)方法",
+                    reader.RawJson);
             }
             var eleType = jsonType.ElementType;
             var keyType = jsonType.KeyType;
             if (keyType.TypeCode == TypeCode.String || keyType.IsObject)
             {
-                string key = ReadKey(reader);               //获取Key
-                object val = ReadValue(reader, eleType);    //得到值
+                var key = ReadKey(reader); //获取Key
+                var val = ReadValue(reader, eleType); //得到值
                 if (key != null && key.Length > 0 && val is string && key[0] == '$' && key == "$Type$")
                 {
                     var type = Type.GetType((string)val, false, false);
@@ -308,8 +321,8 @@ namespace blqw.Serializable
 
                 while (reader.SkipChar(',', false))
                 {
-                    key = ReadKey(reader);               //获取Key
-                    val = ReadValue(reader, eleType);    //得到值
+                    key = ReadKey(reader); //获取Key
+                    val = ReadValue(reader, eleType); //得到值
                     jsonType.AddKeyValue(obj, key, val);
                 }
             }
@@ -317,19 +330,20 @@ namespace blqw.Serializable
             {
                 do
                 {
-                    string keyStr = ReadKey(reader);            //获取Key
-                    object key = keyType.Convert(keyStr, jsonType.Type);
-                    object val = ReadValue(reader, eleType);    //得到值
+                    var keyStr = ReadKey(reader); //获取Key
+                    var key = keyType.Convert(keyStr, jsonType.Type);
+                    var val = ReadValue(reader, eleType); //得到值
                     jsonType.AddKeyValue(obj, key, val);
                 } while (reader.SkipChar(',', false));
             }
         }
 
-        /// <summary> 填充 IList 或者 IList &lt;&gt;
+        /// <summary>
+        /// 填充 IList 或者 IList &lt;&gt;
         /// </summary>
-        /// <param name="obj"></param>
-        /// <param name="jsonType"></param>
-        /// <param name="reader"></param>
+        /// <param name="obj"> </param>
+        /// <param name="jsonType"> </param>
+        /// <param name="reader"> </param>
         private void FillList(object obj, JsonType jsonType, UnsafeJsonReader reader)
         {
             reader.CheckEnd();
@@ -339,20 +353,21 @@ namespace blqw.Serializable
             }
             if (jsonType.AddValue == null)
             {
-                throw new JsonParseException(jsonType.DisplayText + " 无法写入数据,有可能是只读的或找不到Add入口", reader.RawJson);
+                throw new JsonParseException($"{jsonType.DisplayText} 无法写入数据,有可能是只读的或找不到Add(value)方法", reader.RawJson);
             }
             var eleType = jsonType.ElementType;
             do
             {
-                object val = ReadValue(reader, eleType);  //得到值
+                var val = ReadValue(reader, eleType); //得到值
                 //((dynamic)obj).Add((dynamic)val);
-                jsonType.AddValue(obj, val);    //赋值
+                jsonType.AddValue(obj, val); //赋值
             } while (reader.SkipChar(',', false));
         }
 
-        /// <summary> 跳过一个键
+        /// <summary>
+        /// 跳过一个键
         /// </summary>
-        /// <param name="reader"></param>
+        /// <param name="reader"> </param>
         private static void SkipKey(UnsafeJsonReader reader)
         {
             reader.CheckEnd();
@@ -367,10 +382,11 @@ namespace blqw.Serializable
             reader.SkipChar(':', true);
         }
 
-        /// <summary> 获取一个键
+        /// <summary>
+        /// 获取一个键
         /// </summary>
-        /// <param name="reader"></param>
-        /// <returns></returns>
+        /// <param name="reader"> </param>
+        /// <returns> </returns>
         private static string ReadKey(UnsafeJsonReader reader)
         {
             reader.CheckEnd();
@@ -388,10 +404,10 @@ namespace blqw.Serializable
         }
 
 
-
-        /// <summary> 跳过一个值
+        /// <summary>
+        /// 跳过一个值
         /// </summary>
-        /// <param name="reader"></param>
+        /// <param name="reader"> </param>
         private static void SkipValue(UnsafeJsonReader reader)
         {
             reader.CheckEnd();
@@ -432,11 +448,12 @@ namespace blqw.Serializable
             }
         }
 
-        /// <summary> 读取一个值对象
+        /// <summary>
+        /// 读取一个值对象
         /// </summary>
-        /// <param name="reader"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
+        /// <param name="reader"> </param>
+        /// <param name="jsonType"> </param>
+        /// <returns> </returns>
         private object ReadValue(UnsafeJsonReader reader, JsonType jsonType)
         {
             reader.CheckEnd();
@@ -456,20 +473,21 @@ namespace blqw.Serializable
                 case '\'':
                     return ParseString(reader, jsonType);
                 default:
-                    object val = reader.ReadConsts(false);
-                    if (jsonType.TypeCode == TypeCode.Object && _convertString != null)
+                    var val = reader.ReadConsts(false);
+                    if (_converter != null)
                     {
-                        return _convertString((IConvertible)val);
+                        return _converter.Convert(val, jsonType.TypeCode);
                     }
                     return jsonType.Convert(val, jsonType.Type);
             }
         }
 
-        /// <summary> 将字符串解析为指定类型
+        /// <summary>
+        /// 将字符串解析为指定类型
         /// </summary>
-        /// <param name="reader"></param>
-        /// <param name="jsonType"></param>
-        /// <returns></returns>
+        /// <param name="reader"> </param>
+        /// <param name="jsonType"> </param>
+        /// <returns> </returns>
         private object ParseString(UnsafeJsonReader reader, JsonType jsonType)
         {
             //数字
@@ -480,40 +498,41 @@ namespace blqw.Serializable
                 {
                     return jsonType.Convert(reader.ReadString(), jsonType.Type);
                 }
-                char quot = reader.Current;
+                var quot = reader.Current;
                 reader.MoveNext();
                 var val = jsonType.Convert(reader.ReadConsts(true), jsonType.Type);
                 reader.SkipChar(quot, true);
                 return val;
             }
-            else if (jsonType.TypeCode == TypeCode.DateTime)
+            if (jsonType.TypeCode == TypeCode.DateTime)
             {
                 return reader.ReadDateTime();
             }
-            else if (jsonType.TypeCode == TypeCode.Object && _convertString != null)
+            if (_converter != null)
             {
-                return _convertString(reader.ReadString());
+                return _converter.Convert(reader.ReadString(), jsonType.TypeCode);
             }
             return jsonType.Convert(reader.ReadString(), jsonType.Type);
         }
 
 
-        /// <summary> 读取数组
+        /// <summary>
+        /// 读取数组
         /// </summary>
-        /// <param name="reader"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
+        /// <param name="reader"> </param>
+        /// <param name="jsonType"> </param>
+        /// <returns> </returns>
         private object ReadList(UnsafeJsonReader reader, JsonType jsonType)
         {
             if (jsonType.Type.IsArray)
             {
-                ArrayList list = new ArrayList();   //Array类型中的AddValue方法调用的是ArrayList
+                var list = new ArrayList(); //Array类型中的AddValue方法调用的是ArrayList
                 FillList(list, jsonType, reader);
                 return list.ToArray(jsonType.ElementType.Type);
             }
             if (jsonType.IsObject)
             {
-                object list = Activator.CreateInstance(_arrayType.Type);
+                var list = Activator.CreateInstance(_arrayType.Type);
                 FillList(list, _arrayType, reader);
                 return list;
             }
@@ -525,11 +544,12 @@ namespace blqw.Serializable
             }
         }
 
-        /// <summary> 读取对象
+        /// <summary>
+        /// 读取对象
         /// </summary>
-        /// <param name="reader"></param>
-        /// <param name="type"></param>
-        /// <returns></returns>
+        /// <param name="reader"> </param>
+        /// <param name="jsonType"> </param>
+        /// <returns> </returns>
         private object ReadObject(UnsafeJsonReader reader, JsonType jsonType)
         {
             if (jsonType.IsObject)
@@ -538,22 +558,19 @@ namespace blqw.Serializable
                 FillDictionary(ref obj, _keyValueType, reader);
                 return obj;
             }
-            else if (jsonType.IsDictionary)
+            if (jsonType.IsDictionary)
             {
                 var obj = Activator.CreateInstance(jsonType.Type);
                 FillDictionary(ref obj, jsonType, reader);
                 return obj;
             }
-            else if (jsonType.IsMataType)
-            {
-                return ReadValue(reader, jsonType);
-            }
-            else
+            if (!jsonType.IsMataType)
             {
                 var obj = Activator.CreateInstance(jsonType.Type);
                 FillProperty(obj, jsonType, reader);
                 return obj;
             }
+            return ReadValue(reader, jsonType);
         }
     }
 }

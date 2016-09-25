@@ -1,136 +1,171 @@
 ﻿using System;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace blqw.Serializable
 {
-    /// <summary> 用于处于Type类型为Key时的缓存
+    /// <summary>
+    /// 用于处于Type类型为Key时的缓存
     /// </summary>
-    class TypeCache<T>
+    internal class TypeCache<T> 
     {
-        /// <summary> 标准的字典缓存
+        /// <summary>
+        /// 标准的字典缓存
         /// </summary>
-        private readonly Dictionary<Type, T> _cache = new Dictionary<Type, T>();
+        private readonly ConcurrentDictionary<Type, T> _cache = new ConcurrentDictionary<Type, T>();
 
-        /// <summary> 泛型缓存
+        /// <summary>
+        /// 设置缓存项
         /// </summary>
-        class GenericCache<Key>
-        {
-            public readonly static T Item;
-            public readonly static bool IsReadied;
-        }
-
-        /// <summary> 设置缓存项
-        /// </summary>
-        /// <param name="key">缓存键</param>
-        /// <param name="item">缓存值</param>
+        /// <param name="key"> 缓存键 </param>
+        /// <param name="item"> 缓存值 </param>
+        /// <exception cref="ArgumentNullException"> <paramref name="key" /> is <see langword="null" />. </exception>
+        /// <exception cref="TargetInvocationException"> 初始化泛型缓存时出现错误 </exception>
+        [SuppressMessage("ReSharper", "ExceptionNotDocumentedOptional")]
         public void Set(Type key, T item)
         {
+            Debug.Assert(_cache != null, "_cache != null");
             if (key == null)
-            {
-                throw new ArgumentNullException("key");
-            }
-            if (key.IsGenericTypeDefinition) //如果是泛型定义类型 就不能加入泛型缓存
-            {
-                lock (_cache)
-                {
-                    _cache[key] = item;
-                }
+                throw new ArgumentNullException(nameof(key));
+
+            _cache[key] = item;
+            if (key.IsGenericTypeDefinition || (typeof(void) == key)) //如果是泛型定义类型 就不能加入泛型缓存
                 return;
-            }
-            var gc = typeof(GenericCache<>).MakeGenericType(typeof(T), key);
-            var fieid1 = gc.GetField("Item", BindingFlags.Public | BindingFlags.Static);
-            var fieid2 = gc.GetField("IsReadied", BindingFlags.Public | BindingFlags.Static);
-            lock (_cache)
+            try
             {
-                _cache[key] = item;
-                fieid1.SetValue(null, item);
-                fieid2.SetValue(null, true);
+                typeof(GenericCache<>)
+                    .MakeGenericType(typeof(T), key)
+                    .GetMethod("Initialize")?
+                    .Invoke(null, new object[] {item});
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine(ex, $"{nameof(TypeCache<T>)}.{nameof(Set)}异常(T:{typeof(T).FullName})");
+                throw new TargetInvocationException("初始化泛型缓存时出现错误", ex);
             }
         }
 
-        /// <summary> 获取缓存值
+        /// <summary>
+        /// 获取缓存值
         /// </summary>
-        /// <param name="key">缓存键</param>
+        /// <param name="key"> 缓存键 </param>
+        /// <exception cref="ArgumentNullException"> <paramref name="key" /> is <see langword="null" />. </exception>
         public T Get(Type key)
         {
             if (key == null)
-            {
-                throw new ArgumentNullException("key");
-            }
+                throw new ArgumentNullException(nameof(key));
+
             T item;
-            if (_cache.TryGetValue(key, out item))
-            {
-                return item;
-            }
-            return default(T);
+            Debug.Assert(_cache != null, "_cache != null");
+            return _cache.TryGetValue(key, out item) ? item : default(T);
         }
 
-        /// <summary> 获取缓存值
+        /// <summary>
+        /// 获取缓存值
         /// </summary>
-        /// <typeparam name="Key">缓存键的类型</typeparam>
-        public T Get<Key>()
+        /// <typeparam name="TKey"> 缓存键的类型 </typeparam>
+        public T Get<TKey>()
         {
-            return GenericCache<Key>.Item;
+            return GenericCache<TKey>.Item;
         }
 
-        /// <summary> 获取缓存值,如果指定缓存不存在则使用create参数获取缓存
+        /// <summary>
+        /// 获取缓存值,如果指定缓存不存在则使用create参数获取缓存
         /// </summary>
-        /// <param name="key">缓存键</param>
-        /// <param name="create">用于创建缓存项委托</param>
-        public T GetOrCreate(Type key, Func<T> create)
+        /// <param name="key"> 缓存键 </param>
+        /// <param name="create"> 用于创建缓存项委托 </param>
+        /// <exception cref="ArgumentNullException"> <paramref name="key" /> is <see langword="null" />. </exception>
+        /// <exception cref="ArgumentNullException"> <paramref name="create" /> is <see langword="null" />. </exception>
+        /// <exception cref="OverflowException"> 缓存中已包含元素的最大数目 (<see cref="F:System.Int32.MaxValue" />)。 </exception>
+        /// <exception cref="TargetInvocationException"> 初始化泛型缓存时出现错误 </exception>
+        /// <exception cref="TargetException"> <paramref name="create" /> 方法内部异常. </exception>
+        public T GetOrCreate(Type key, Func<Type, T> create)
         {
+            Debug.Assert(_cache != null, "_cache != null");
+
             if (key == null)
-            {
-                throw new ArgumentNullException("key");
-            }
-            T item;
-            if (_cache.TryGetValue(key, out item))
-            {
-                return item;
-            }
+                throw new ArgumentNullException(nameof(key));
             if (create == null)
+                throw new ArgumentNullException(nameof(create));
+
+
+            return _cache.GetOrAdd(key, t =>
             {
-                throw new ArgumentNullException("create");
-            }
-            item = create();
-            lock (_cache)
-            {
-                if (_cache.ContainsKey(key))
+                T item;
+                try
                 {
-                    return _cache[key];
+                    item = create(key);
+                }
+                catch (Exception ex)
+                {
+                    throw new TargetException($"{nameof(create)}方法内部异常", ex);
                 }
                 Set(key, item);
                 return item;
-            }
+            });
         }
 
-        /// <summary> 获取缓存值,如果指定缓存不存在则使用create参数获取缓存
+        /// <summary>
+        /// 获取缓存值,如果指定缓存不存在则使用create参数获取缓存
         /// </summary>
-        /// <typeparam name="Key">缓存键的类型</typeparam>
-        /// <param name="create">用于创建缓存项委托</param>
-        public T GetOrCreate<Key>(Func<T> create)
+        /// <typeparam name="TKey"> 缓存键的类型 </typeparam>
+        /// <param name="create"> 用于创建缓存项委托 </param>
+        /// <exception cref="ArgumentNullException"> <paramref name="create" /> is <see langword="null" />. </exception>
+        /// <exception cref="TargetException"> <paramref name="create" /> 方法内部异常. </exception>
+        /// <exception cref="TargetInvocationException"> 初始化泛型缓存时出现错误. </exception>
+        /// <exception cref="OverflowException"> 缓存中已包含元素的最大数目 (<see cref="F:System.Int32.MaxValue" />)。 </exception>
+        public T GetOrCreate<TKey>(Func<Type, T> create)
         {
-            if (GenericCache<Key>.IsReadied)
-            {
-                return GenericCache<Key>.Item;
-            }
             if (create == null)
+                throw new ArgumentNullException(nameof(create));
+
+            if (GenericCache<TKey>.IsInitialized)
+                return GenericCache<TKey>.Item;
+            var key = typeof(TKey);
+            return _cache.GetOrAdd(key, t =>
             {
-                throw new ArgumentNullException("create");
-            }
-            var item = create();
-            lock (_cache)
-            {
-                if (GenericCache<Key>.IsReadied)
+                T item;
+                try
                 {
-                    return GenericCache<Key>.Item;
+                    item = create(key);
                 }
-                Set(typeof(Key), item);
+                catch (Exception ex)
+                {
+                    throw new TargetException($"{nameof(create)}方法内部异常", ex);
+                }
+                Set(key, item);
                 return item;
+            });
+        }
+
+        /// <summary>
+        /// 泛型缓存
+        /// </summary>
+        // ReSharper disable once UnusedTypeParameter (泛型缓存)
+        private static class GenericCache<TKey>
+        {
+            /// <summary>
+            /// 缓存项
+            /// </summary>
+            public static T Item { get; private set; }
+
+            /// <summary>
+            /// 是否已经初始化完成
+            /// </summary>
+            // ReSharper disable once StaticMemberInGenericType
+            public static bool IsInitialized { get; private set; }
+
+            /// <summary>
+            /// 初始化泛型缓存
+            /// </summary>
+            /// <param name="item"> </param>
+            // ReSharper disable once UnusedMember.Local (反射调用)
+            public static void Initialize(T item)
+            {
+                IsInitialized = true;
+                Item = item;
             }
         }
     }
