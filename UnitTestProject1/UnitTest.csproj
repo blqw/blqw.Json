@@ -38,6 +38,10 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="blqw.Convert3, Version=3.0.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\blqw.Convert3.3.0.2-beta\lib\net45\blqw.Convert3.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="blqw.IOC">
       <HintPath>..\..\blqw.IOC\blqw.IOC\bin\Debug\blqw.IOC.dll</HintPath>
     </Reference>
@@ -99,6 +103,9 @@
       <Project>{5E143DB7-044B-42AB-ABA8-C071293F020E}</Project>
       <Name>Demo</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

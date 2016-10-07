@@ -13,7 +13,8 @@
     <description>$description$</description>
     <releaseNotes>
       * 3.0重构,大幅度增加可拓展性,性能有所下降,后续优化
-      * [3.0.6] 修复Guid的默认行为,带有连字符
+      #### [3.1.2-beta]2016.10.07
+      * 更新`blqw.IOC`和`blqw.Convert3`
     </releaseNotes>
     <copyright>Copyright 2016</copyright>
     <tags>blqw Json</tags>

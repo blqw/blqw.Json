@@ -152,7 +152,7 @@ namespace blqw.Serializable
             IsMataType = EqualMataType(type);
             IsAnonymous = Type.IsGenericType && Type.Name.StartsWith("<>f__AnonymousType");
             IsObject = type == typeof(object);
-            Convertor = ConvertorContainer.Default.Get(type);
+            Convertor = ConvertorServices.Container.GetConvertor(type);
             IsNumber = TypeCode >= TypeCode.SByte && TypeCode <= TypeCode.Decimal;
 
             //兼容IList,IDictionary,IList<T>,IDictionary<TKey, TValue>
@@ -372,25 +372,30 @@ namespace blqw.Serializable
 
         public object Convert(string str, Type type)
         {
-            bool b;
-            var obj = Convertor.ChangeType(str, type, out b);
-            if (b)
+            using (var context = new ConvertContext())
             {
+                bool b;
+                var obj = Convertor.ChangeType(context, str, type, out b);
+                if (b == false)
+                {
+                    context.ThrowIfHaveError();
+                }
                 return obj;
             }
-            throw new InvalidCastException($"'{str}'转为类型{CType.GetFriendlyName(type)}失败");
         }
 
         public object Convert(object val, Type type)
         {
-            bool b;
-            var obj = Convertor.ChangeType(val, type, out b);
-            if (b)
+            using (var context = new ConvertContext())
             {
+                bool b;
+                var obj = Convertor.ChangeType(context, val, type, out b);
+                if (b == false)
+                {
+                    context.ThrowIfHaveError();
+                }
                 return obj;
             }
-            throw new InvalidCastException(
-                $"'{val.To<string>()}<{CType.GetFriendlyName(val?.GetType())}>'转为类型{CType.GetFriendlyName(type)}失败");
         }
 
 
