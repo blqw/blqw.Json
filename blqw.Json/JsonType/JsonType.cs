@@ -236,10 +236,7 @@ namespace blqw.Serializable
                 }
                 IsList = true;
                 ElementType = Get<object>();
-                AddValue =
-                    ((IAddOrSet)
-                        Activator.CreateInstance(typeof(AddOrSet<,>).MakeGenericType(typeof(object), ElementType.Type)))
-                        .IList;
+                AddValue =((IAddOrSet)Activator.CreateInstance(typeof(AddOrSet<,>).MakeGenericType(typeof(object), ElementType.Type))).IList;
 
                 return;
             }
@@ -260,6 +257,11 @@ namespace blqw.Serializable
             //枚举属性
             foreach (var p in Type.GetProperties(flags))
             {
+                //获取索引器
+                if (p.GetIndexParameters()?.Length > 0)
+                {
+                    continue;
+                }
                 var jm = JsonMember.Create(p);
                 if (jm != null)
                 {
