@@ -49,7 +49,14 @@ namespace blqw.Serializable.JsonWriters
                     break;
                 case TypeCode.Object:
                     obj = value.ToType(typeof(object), CultureInfo.InvariantCulture);
-                    args.WriterContainer.GetWriter<object>().Write(obj, args);
+                    if (obj == null || obj is DBNull)
+                    {
+                        args.WriterContainer.GetNullWriter().Write(null, args);
+                    }
+                    else
+                    {
+                        args.WriterContainer.GetWriter<object>().Write(obj, args);
+                    }
                     break;
                 case TypeCode.Empty:
                 case TypeCode.DBNull:
