@@ -22,6 +22,7 @@ namespace blqw.Serializable.JsonWriters
             args.BeginArray();
             for (int j = 0, count = table.Rows.Count; j < count; j++)
             {
+                args.BeginObject();
                 comma1.AppendCommaIgnoreFirst();
                 var row = table.Rows[j];
                 var comma = new CommaHelper(writer);
@@ -49,6 +50,7 @@ namespace blqw.Serializable.JsonWriters
                         args.WriterContainer.GetWriter(value.GetType()).Write(value, args);
                     }
                 }
+                args.EndObject();
             }
             args.EndArray();
         }

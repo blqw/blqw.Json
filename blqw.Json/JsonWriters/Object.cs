@@ -9,6 +9,11 @@ namespace blqw.Serializable.JsonWriters
 
         public void Write(object obj, JsonWriterArgs args)
         {
+            if (obj == null || obj is DBNull)
+            {
+
+                return;
+            }
             var writer = args.Writer;
             args.BeginObject();
 

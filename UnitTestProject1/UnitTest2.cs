@@ -66,23 +66,23 @@ namespace UnitTestProject1
         [TestMethod]
         public void 测试动态类型时间()
         {
-            var str = "{\"time\":\"2016-08-09 16:50:37\",\"id\":1,\"name\":\"blqw\"}";
+            var str = "{\"0time\":\"2016-08-09 16:50:37\",\"1id\":1,\"2name\":\"blqw\"}";
             var dict = new Dictionary<string, object>()
             {
-                ["time"] = DateTime.Parse("2016-08-09 16:50:37"),
-                ["id"] = 1,
-                ["name"] = "blqw",
+                ["0time"] = DateTime.Parse("2016-08-09 16:50:37"),
+                ["1id"] = 1,
+                ["2name"] = "blqw",
             };
-            var obj = dict.ToDynamic();
+            var obj = blqw.IOC.ComponentServices.GetDynamic(dict);
             var json = Json.ToJsonString(obj);
             Assert.AreEqual(str, json);
             str = "[" + str + "]";
             var table = new DataTable();
-            table.Columns.Add("time", typeof(DateTime));
-            table.Columns.Add("id", typeof(int));
-            table.Columns.Add("name", typeof(string));
-            table.Rows.Add(dict["time"], dict["id"], dict["name"]);
-            obj = table.ToDynamic();
+            table.Columns.Add("0time", typeof(DateTime));
+            table.Columns.Add("1id", typeof(int));
+            table.Columns.Add("2name", typeof(string));
+            table.Rows.Add(dict["0time"], dict["1id"], dict["2name"]);
+            obj = blqw.IOC.ComponentServices.GetDynamic(table);
             json = Json.ToJsonString(obj);
             Assert.AreEqual(str, json);
 
@@ -90,26 +90,10 @@ namespace UnitTestProject1
             var list = new List<object>();
             while (reader.Read())
             {
-                list.Add(reader.ToDynamic());
+                list.Add(blqw.IOC.ComponentServices.GetDynamic(reader));
             }
             json = list.ToJsonString();
             Assert.AreEqual(str, json);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         }
 
 
