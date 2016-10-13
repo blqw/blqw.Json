@@ -78,6 +78,9 @@ blqw.Json.ToDynamic(string);
 ~~性能测试请参考:[pk.md](https://github.com/blqw/blqw.Json/blob/master/pk.md)~~
 
 ##更新说明
+#### 2016.10.13 [3.1.1.1]
+* 修复某些特殊情况下报空引用的问题
+
 #### 2016.08.16 [3.0.6]
 * 修复Guid的默认行为,带有连字符
 

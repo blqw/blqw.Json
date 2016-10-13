@@ -66,34 +66,34 @@ namespace UnitTestProject1
         [TestMethod]
         public void 测试动态类型时间()
         {
-            var str = "{\"time\":\"2016-08-09 16:50:37\",\"id\":1,\"name\":\"blqw\"}";
-            var dict = new Dictionary<string, object>()
-            {
-                ["time"] = DateTime.Parse("2016-08-09 16:50:37"),
-                ["id"] = 1,
-                ["name"] = "blqw",
-            };
-            var obj = dict.ToDynamic();
-            var json = Json.ToJsonString(obj);
-            Assert.AreEqual(str, json);
-            str = "[" + str + "]";
-            var table = new DataTable();
-            table.Columns.Add("time", typeof(DateTime));
-            table.Columns.Add("id", typeof(int));
-            table.Columns.Add("name", typeof(string));
-            table.Rows.Add(dict["time"], dict["id"], dict["name"]);
-            obj = table.ToDynamic();
-            json = Json.ToJsonString(obj);
-            Assert.AreEqual(str, json);
+            //var str = "{\"time\":\"2016-08-09 16:50:37\",\"id\":1,\"name\":\"blqw\"}";
+            //var dict = new Dictionary<string, object>()
+            //{
+            //    ["time"] = DateTime.Parse("2016-08-09 16:50:37"),
+            //    ["id"] = 1,
+            //    ["name"] = "blqw",
+            //};
+            //var obj = dict.ToDynamic();
+            //var json = Json.ToJsonString(obj);
+            //Assert.AreEqual(str, json);
+            //str = "[" + str + "]";
+            //var table = new DataTable();
+            //table.Columns.Add("time", typeof(DateTime));
+            //table.Columns.Add("id", typeof(int));
+            //table.Columns.Add("name", typeof(string));
+            //table.Rows.Add(dict["time"], dict["id"], dict["name"]);
+            //obj = table.ToDynamic();
+            //json = Json.ToJsonString(obj);
+            //Assert.AreEqual(str, json);
 
-            var reader = new DataTableReader(table);
-            var list = new List<object>();
-            while (reader.Read())
-            {
-                list.Add(reader.ToDynamic());
-            }
-            json = list.ToJsonString();
-            Assert.AreEqual(str, json);
+            //var reader = new DataTableReader(table);
+            //var list = new List<object>();
+            //while (reader.Read())
+            //{
+            //    list.Add(reader.ToDynamic());
+            //}
+            //json = list.ToJsonString();
+            //Assert.AreEqual(str, json);
 
 
 
