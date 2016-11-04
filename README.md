@@ -75,9 +75,12 @@ blqw.Json.ToJsonString(object,JsonBuilderSettings);
 blqw.Json.ToDynamic(string);  
 ```
 
-~~性能测试请参考:[pk.md](https://github.com/blqw/blqw.Json/blob/master/pk.md)~~
 
 ##更新说明
+#### [3.1.2]2016.11.04
+* 更新`blqw.IOC`和`blqw.Convert3`升级到最新正式版
+* 版本更新到正式版
+
 #### [3.1.2-beta]2016.10.07
 * 更新`blqw.IOC`和`blqw.Convert3`
 

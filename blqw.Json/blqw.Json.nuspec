@@ -15,6 +15,9 @@
       * 3.0重构,大幅度增加可拓展性,性能有所下降,后续优化
       #### [3.1.2-beta]2016.10.07
       * 更新`blqw.IOC`和`blqw.Convert3`
+      #### [3.1.2]2016.11.04
+      * 更新`blqw.IOC`和`blqw.Convert3`升级到最新正式版
+      * 版本更新到正式版
     </releaseNotes>
     <copyright>Copyright 2016</copyright>
     <tags>blqw Json</tags>
