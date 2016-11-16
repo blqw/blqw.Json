@@ -2,6 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Reflection;
+using System.Runtime.Remoting;
+using System.Runtime.Serialization;
 
 namespace blqw.Serializable
 {
@@ -18,13 +21,13 @@ namespace blqw.Serializable
             }
         }
 
-        #endregion
+        #endregion IEnumerable<KeyValuePair<string,object>> 成员
 
         #region ICollection<KeyValuePair<string,object>> 成员
 
         bool ICollection<KeyValuePair<string, object>>.IsReadOnly => base.IsReadOnly;
 
-        #endregion
+        #endregion ICollection<KeyValuePair<string,object>> 成员
 
         #region IEnumerable 成员
 
@@ -37,14 +40,34 @@ namespace blqw.Serializable
             }
         }
 
-        #endregion
+        #endregion IEnumerable 成员
+
+        #region Methods
 
         public override string ToString()
         {
             return this.ToJsonString();
         }
 
+        #endregion Methods
+
         #region IDictionary<string,object> 成员
+
+        public object this[string key]
+        {
+            get { return BaseGet(key); }
+            set
+            {
+                if (value == null)
+                {
+                    BaseRemove(key);
+                }
+                else
+                {
+                    BaseSet(key, value);
+                }
+            }
+        }
 
         public void Add(string key, object value)
         {
@@ -68,24 +91,7 @@ namespace blqw.Serializable
             return value != null;
         }
 
-
-        public object this[string key]
-        {
-            get { return BaseGet(key); }
-            set
-            {
-                if (value == null)
-                {
-                    BaseRemove(key);
-                }
-                else
-                {
-                    BaseSet(key, value);
-                }
-            }
-        }
-
-        #endregion
+        #endregion IDictionary<string,object> 成员
 
         #region ICollection<KeyValuePair<string,object>> 成员
 
@@ -135,7 +141,7 @@ namespace blqw.Serializable
             return Remove(item.Key);
         }
 
-        #endregion
+        #endregion ICollection<KeyValuePair<string,object>> 成员
 
         #region IDictionary<string,object> 成员
 
@@ -143,18 +149,22 @@ namespace blqw.Serializable
 
         ICollection<object> IDictionary<string, object>.Values => BaseGetAllValues();
 
-        #endregion
+        #endregion IDictionary<string,object> 成员
 
         #region IDictionary 成员
 
-        private string Parse(object key)
+        bool IDictionary.IsFixedSize => false;
+
+        bool IDictionary.IsReadOnly => true;
+
+        ICollection IDictionary.Keys => base.Keys;
+
+        ICollection IDictionary.Values => BaseGetAllValues(typeof(object));
+
+        object IDictionary.this[object key]
         {
-            var k = key as string;
-            if (k == null && key != null)
-            {
-                throw new ArgumentException("key只能是字符串");
-            }
-            return k;
+            get { return BaseGet(Parse(key)); }
+            set { BaseSet(Parse(key), value); }
         }
 
         void IDictionary.Add(object key, object value)
@@ -172,38 +182,71 @@ namespace blqw.Serializable
             return BaseGet(Parse(key)) != null;
         }
 
-        IDictionaryEnumerator IDictionary.GetEnumerator()
-        {
-            throw new NotImplementedException();
-        }
-
-        bool IDictionary.IsFixedSize => false;
-
-        bool IDictionary.IsReadOnly => true;
-
-        ICollection IDictionary.Keys => base.Keys;
+        IDictionaryEnumerator IDictionary.GetEnumerator() => new Enumerator(this);
 
         void IDictionary.Remove(object key)
         {
             BaseRemove(Parse(key));
         }
 
-        ICollection IDictionary.Values => BaseGetAllValues(typeof(object));
-
-        object IDictionary.this[object key]
+        private string Parse(object key)
         {
-            get { return BaseGet(Parse(key)); }
-            set { BaseSet(Parse(key), value); }
+            var k = key as string;
+            if (k == null && key != null)
+            {
+                throw new ArgumentException("key只能是字符串");
+            }
+            return k;
         }
 
-        #endregion
+        private class Enumerator : IDictionaryEnumerator, IObjectHandle, IObjectReference, ICustomTypeProvider
+        {
+            #region Fields
+
+            private int _index = -1;
+            private JsonDictionary _jsonDictionary;
+
+            #endregion Fields
+
+            #region Constructors
+
+            public Enumerator(JsonDictionary jsonDictionary)
+            {
+                _jsonDictionary = jsonDictionary;
+            }
+
+            #endregion Constructors
+
+            #region Properties
+
+            public object Current => this;
+
+            public DictionaryEntry Entry => new DictionaryEntry(Key, Value);
+
+            public object Key => _jsonDictionary.BaseGetKey(_index);
+
+            public object Value => _jsonDictionary.BaseGet(_index);
+
+            #endregion Properties
+
+            #region Methods
+
+            public Type GetCustomType() => typeof(NameObjectCollectionBase);
+
+            public object GetRealObject(StreamingContext context) => _jsonDictionary;
+
+            public bool MoveNext() => ++_index < _jsonDictionary.Count;
+
+            public void Reset() => _index = -1;
+
+            public object Unwrap() => _jsonDictionary;
+
+            #endregion Methods
+        }
+
+        #endregion IDictionary 成员
 
         #region ICollection 成员
-
-        void ICollection.CopyTo(Array array, int index)
-        {
-            throw new NotImplementedException();
-        }
 
         int ICollection.Count
         {
@@ -220,6 +263,11 @@ namespace blqw.Serializable
             get { return this; }
         }
 
-        #endregion
+        void ICollection.CopyTo(Array array, int index)
+        {
+            throw new NotImplementedException();
+        }
+
+        #endregion ICollection 成员
     }
 }
