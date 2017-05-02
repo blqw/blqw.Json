@@ -1139,7 +1139,7 @@ namespace blqw.Serializable
                         Flush();
                         if (length > 200)
                         {
-                            var s = new string(point, offset, length - 1);
+                            var s = new string(point, offset, length);
                             if (_index == 3)
                             {
                                 _str[0] = string.Concat(_str[0], _str[1], _str[2], s);
