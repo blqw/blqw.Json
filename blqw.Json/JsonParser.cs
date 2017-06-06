@@ -297,11 +297,17 @@ namespace blqw.Serializable
                 throw new JsonParseException($"{jsonType.DisplayText} 无法写入数据,有可能是只读的或找不到Add(key,value)方法",
                     reader.RawJson);
             }
+            
             var eleType = jsonType.ElementType;
             var keyType = jsonType.KeyType;
             if (keyType.TypeCode == TypeCode.String || keyType.IsObject)
             {
                 var key = ReadKey(reader); //获取Key
+                if((obj as IDictionary)?[key] is Type newEleType)
+                {
+                    eleType = JsonType.Get(newEleType);
+                    ((IDictionary) obj).Remove(key);
+                }
                 var val = ReadValue(reader, eleType); //得到值
                 if (key != null && key.Length > 0 && val is string && key[0] == '$' && key == "$Type$")
                 {
@@ -322,6 +328,15 @@ namespace blqw.Serializable
                 while (reader.SkipChar(',', false))
                 {
                     key = ReadKey(reader); //获取Key
+                    if ((obj as IDictionary)?[key] is Type newEleType1)
+                    {
+                        eleType = JsonType.Get(newEleType1);
+                        ((IDictionary)obj).Remove(key);
+                    }
+                    else
+                    {
+                        eleType = jsonType.ElementType;
+                    }
                     val = ReadValue(reader, eleType); //得到值
                     jsonType.AddKeyValue(obj, key, val);
                 }
