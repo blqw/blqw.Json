@@ -1,10 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Net;
-using System.Text;
 using blqw;
 using System.Collections.Generic;
-using blqw.IOC;
 
 namespace UnitTestProject1
 {

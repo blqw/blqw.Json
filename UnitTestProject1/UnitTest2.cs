@@ -73,7 +73,7 @@ namespace UnitTestProject1
                 ["1id"] = 1,
                 ["2name"] = "blqw",
             };
-            var obj = blqw.IOC.ComponentServices.GetDynamic(dict);
+            var obj = dict.ToDynamic();
             var json = Json.ToJsonString(obj);
             Assert.AreEqual(str, json);
             str = "[" + str + "]";
@@ -82,7 +82,7 @@ namespace UnitTestProject1
             table.Columns.Add("1id", typeof(int));
             table.Columns.Add("2name", typeof(string));
             table.Rows.Add(dict["0time"], dict["1id"], dict["2name"]);
-            obj = blqw.IOC.ComponentServices.GetDynamic(table);
+            obj = table.ToDynamic();
             json = Json.ToJsonString(obj);
             Assert.AreEqual(str, json);
 
@@ -90,7 +90,7 @@ namespace UnitTestProject1
             var list = new List<object>();
             while (reader.Read())
             {
-                list.Add(blqw.IOC.ComponentServices.GetDynamic(reader));
+                list.Add(reader.ToDynamic());
             }
             json = list.ToJsonString();
             Assert.AreEqual(str, json);

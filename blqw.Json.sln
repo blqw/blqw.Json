@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.329
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "blqw.Json", "blqw.Json\blqw.Json.csproj", "{2F130490-F69D-4F4F-BA8B-DF75ACDD94F9}"
 EndProject
@@ -17,6 +17,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTest", "UnitTestProject1\UnitTest.csproj", "{CF9236DA-61BD-44E6-963B-398CE0E3C258}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo", "Demo\Demo.csproj", "{5E143DB7-044B-42AB-ABA8-C071293F020E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "blqw.Json.Standard", "blqw.Json.Standard\blqw.Json.Standard.csproj", "{415624A9-6831-4A21-B98A-BF313C6EACD9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,8 +38,15 @@ Global
 		{5E143DB7-044B-42AB-ABA8-C071293F020E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5E143DB7-044B-42AB-ABA8-C071293F020E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5E143DB7-044B-42AB-ABA8-C071293F020E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{415624A9-6831-4A21-B98A-BF313C6EACD9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{415624A9-6831-4A21-B98A-BF313C6EACD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{415624A9-6831-4A21-B98A-BF313C6EACD9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{415624A9-6831-4A21-B98A-BF313C6EACD9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4D3222C6-2D2E-4931-AF3F-2EBA79BEAE13}
 	EndGlobalSection
 EndGlobal

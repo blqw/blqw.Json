@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Demo</RootNamespace>
     <AssemblyName>Demo</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -98,9 +98,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\blqw.Json\blqw.Json.csproj">
-      <Project>{2f130490-f69d-4f4f-ba8b-df75acdd94f9}</Project>
-      <Name>blqw.Json</Name>
+    <ProjectReference Include="..\blqw.Json.Standard\blqw.Json.Standard.csproj">
+      <Project>{415624a9-6831-4a21-b98a-bf313c6eacd9}</Project>
+      <Name>blqw.Json.Standard</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

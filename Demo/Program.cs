@@ -1,19 +1,13 @@
 ﻿using blqw;
-using blqw.Serializable;
+using blqw.JsonServices;
+using Crylw.Json;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Data;
 using System.IO;
-using System.Linq;
-using System.Net;
-using System.Reflection;
-using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.Serialization;
-using System.Text;
 using System.Text.RegularExpressions;
-using ServiceStack.Text;
+using Json = blqw.Json;
+using JsonWriterSettings = blqw.JsonServices.JsonWriterSettings;
 
 namespace Demo
 {
@@ -26,7 +20,7 @@ namespace Demo
             
             public object GetRealObject(StreamingContext context)
             {
-                if (context.Context is JsonWriterArgs)
+                if (context.Context is JsonWriterSettings)
                 {
                     return new {id = this.ID, name = this.Name};
                 }
@@ -42,7 +36,7 @@ namespace Demo
         class TestClass2Writer : IJsonWriter
         {
             public Type Type => typeof(TestClass2);
-            public void Write(object obj, JsonWriterArgs args)
+            public void Write(object obj, JsonWriterSettings args)
             {
                 var o = (TestClass2)obj;
                 args.Writer.Write($"\"Regex\":/{o.Regex.ToString()}/g");
