@@ -46,7 +46,7 @@ namespace blqw.JsonServices.JsonWriters
                         value.ToString(args.DateTimeFormatString ?? "yyyy-MM-dd HH:mm:ss"));
                     break;
                 default:
-                    args.Write(value.ToString());
+                    args.Write("");
                     break;
             }
         }

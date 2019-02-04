@@ -5,6 +5,10 @@
     <AssemblyName>blqw.Json</AssemblyName>
     <RootNamespace>blqw</RootNamespace>
     <LangVersion>latest</LangVersion>
+    <Description>一个优秀的Json序列化类库</Description>
+    <Version>4.0.0.1-beta</Version>
+    <PackageReleaseNotes>v4.0.0.1 [2019.02.04]
+移植到standard2.0</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -12,7 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="blqw.Convert4" Version="0.0.9-beta" />
+    <PackageReference Include="blqw.Convert4" Version="0.0.9.1-beta" />
   </ItemGroup>
 
 </Project>

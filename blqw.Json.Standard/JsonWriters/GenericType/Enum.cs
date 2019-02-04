@@ -12,9 +12,9 @@ namespace blqw.JsonServices.JsonWriters
             throw new NotImplementedException();
         }
 
-        public object GetService(Type serviceType)
+        public IJsonWriter MakeGenericType(Type genericType)
         {
-            var t = typeof(InnerWriter<>).MakeGenericType(serviceType);
+            var t = typeof(InnerWriter<>).MakeGenericType(genericType);
             return (IJsonWriter) Activator.CreateInstance(t);
         }
 

@@ -88,7 +88,7 @@ namespace blqw.JsonServices
             }
             _originReference = _writer = _wrapper.Writer;
             if (!(_wrapper.Writer is IGenericJsonWriter writer)) return;
-            _writer = (IJsonWriter)writer.GetService(_type);
+            _writer = writer.MakeGenericType(_type);
             if (_writer == null)
             {
                 throw new NotImplementedException(

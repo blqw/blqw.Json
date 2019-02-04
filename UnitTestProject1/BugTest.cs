@@ -41,10 +41,18 @@ namespace UnitTestProject1
             public string weather { get; set; }
             public string wind { get; set; }
             public string temperature { get; set; }
-        } 
+        }
         #endregion
 
-       
+        [TestMethod]
+        public void Test_20190204()
+        {
+            var a = new { Sex = UserSex.Male };
+            var c = a.ToJsonString(JsonBuilderSettings.Default ^ JsonBuilderSettings.EnumToNumber);
+            Assert.AreEqual("{\"Sex\":\"Male\"}", c);
+        }
+
+
         [TestMethod]
         public void Test_20141128()
         {
@@ -57,11 +65,11 @@ namespace UnitTestProject1
         public void Debug_20161013()
         {
             var a = new MyClass();
-            var c = a.ToJsonString(JsonBuilderSettings.Default^JsonBuilderSettings.IgnoreNullMember);
+            var c = a.ToJsonString(JsonBuilderSettings.Default ^ JsonBuilderSettings.IgnoreNullMember);
             Assert.AreEqual("null", c);
         }
 
-        class MyClass:IConvertible
+        class MyClass : IConvertible
         {
             /// <summary>返回此实例的 <see cref="T:System.TypeCode" />。</summary>
             /// <returns>枚举常数，它是实现该接口的类或值类型的 <see cref="T:System.TypeCode" />。</returns>

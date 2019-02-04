@@ -42,8 +42,8 @@
     <Reference Include="blqw.DI.ExtensionMethods, Version=1.0.0.3, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\blqw.DI.ExtensionMethods.1.0.0.3\lib\netstandard2.0\blqw.DI.ExtensionMethods.dll</HintPath>
     </Reference>
-    <Reference Include="Convert4, Version=0.0.9.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\blqw.Convert4.0.0.9-beta\lib\netstandard2.0\Convert4.dll</HintPath>
+    <Reference Include="Convert4, Version=0.0.9.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\blqw.Convert4.0.0.9.1-beta\lib\netstandard2.0\Convert4.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Extensions.DependencyInjection, Version=2.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">

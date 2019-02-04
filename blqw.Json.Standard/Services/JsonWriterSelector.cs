@@ -113,14 +113,14 @@ namespace blqw.JsonServices
             //精确匹配当前类 或 泛型定义 (优先级最高)
             if (_writers.TryGetValue(serviceType, out var item))
             {
-                yield return item;
+                yield return (item as IGenericJsonWriter)?.MakeGenericType(serviceType) ?? item;
             }
             else
             {
                 item = MatchGeneric(serviceType);
                 if (item != null)
                 {
-                    yield return item;
+                    yield return (item as IGenericJsonWriter)?.MakeGenericType(serviceType) ?? item;
                 }
             }
 
@@ -133,14 +133,14 @@ namespace blqw.JsonServices
             {
                 if (_writers.TryGetValue(interfaceType, out item))
                 {
-                    yield return item;
+                    yield return (item as IGenericJsonWriter)?.MakeGenericType(serviceType) ?? item;
                 }
                 else
                 {
                     item = MatchGeneric(interfaceType);
                     if (item != null)
                     {
-                        yield return item;
+                        yield return (item as IGenericJsonWriter)?.MakeGenericType(serviceType) ?? item;
                     }
                 }
             }

@@ -51,44 +51,25 @@ namespace blqw.JsonServices.JsonWriters
                     }
                     comma.AppendCommaIgnoreFirst();
                     writer.Write(member.EncodedJsonName);
-                    writer.Write(':');
+                    args.Colon();
                     args.WriteNull();
                 }
                 else if (member.MustFormat)
                 {
                     comma.AppendCommaIgnoreFirst();
                     writer.Write(member.EncodedJsonName);
-                    writer.Write(':');
+                    args.Colon();
                     args.Write(((IFormattable) value).ToString(member.FormatString, member.FormatProvider));
                 }
                 else
                 {
-                    Write(ref comma, member, value, args);
+                    comma.AppendCommaIgnoreFirst();
+                    writer.Write(member.EncodedJsonName);
+                    args.Colon();
+                    args.WriteObject(value);
                 }
             }
             args.EndObject();
-        }
-
-        private static void Write(ref CommaHelper comma, JsonMember member, object value, JsonWriterSettings args)
-        {
-            if (value == null || value is DBNull)
-            {
-                if (args.IgnoreNullMember)
-                {
-                    return;
-                }
-                comma.AppendCommaIgnoreFirst();
-                args.Writer.Write(member.EncodedJsonName);
-                args.Colon();
-                args.WriteNull();
-            }
-            else
-            {
-                comma.AppendCommaIgnoreFirst();
-                args.Writer.Write(member.EncodedJsonName);
-                args.Colon();
-                args.WriteCheckLoop(value, null);
-            }
         }
     }
 }

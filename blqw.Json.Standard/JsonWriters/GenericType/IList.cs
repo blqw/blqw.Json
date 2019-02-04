@@ -8,9 +8,9 @@ namespace blqw.JsonServices.JsonWriters
     {
         public Type Type => typeof(IList<>);
 
-        public object GetService(Type serviceType)
+        public IJsonWriter MakeGenericType(Type genericType)
         {
-            foreach (var item in serviceType.GetInterfaces())
+            foreach (var item in genericType.GetInterfaces())
             {
                 if (item.IsGenericType
                     && item.IsGenericTypeDefinition == false
@@ -20,13 +20,13 @@ namespace blqw.JsonServices.JsonWriters
                     return (IJsonWriter)Activator.CreateInstance(t);
                 }
             }
-            if (serviceType.IsInterface)
+            if (genericType.IsInterface)
             {
-                if (serviceType.IsGenericType
-                    && serviceType.IsGenericTypeDefinition == false
-                    && serviceType.GetGenericTypeDefinition() == Type)
+                if (genericType.IsGenericType
+                    && genericType.IsGenericTypeDefinition == false
+                    && genericType.GetGenericTypeDefinition() == Type)
                 {
-                    var t = typeof(InnerWriter<>).MakeGenericType(serviceType.GetGenericArguments());
+                    var t = typeof(InnerWriter<>).MakeGenericType(genericType.GetGenericArguments());
                     return (IJsonWriter)Activator.CreateInstance(t);
                 }
             }
